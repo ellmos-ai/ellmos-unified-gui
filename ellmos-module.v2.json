@@ -1,0 +1,43 @@
+{
+  "schema": "ellmos.module.v2",
+  "id": "ellmos-unified-gui",
+  "display_name": "ellmos-unified-gui",
+  "category": "runtime",
+  "kind": "ui",
+  "status": "active",
+  "visibility": "public-candidate",
+  "provides": [
+    "operator.ui",
+    "control.dashboard"
+  ],
+  "requires": [],
+  "optional": [
+    "tasks.default",
+    "routing.default"
+  ],
+  "conflicts": [],
+  "surfaces": [
+    "service",
+    "ui"
+  ],
+  "state": {
+    "ownership": "external",
+    "location": "user-home"
+  },
+  "boundaries": {
+    "network": "local",
+    "data": "user-local",
+    "platforms": [
+      "windows",
+      "macos",
+      "linux",
+      "web"
+    ]
+  },
+  "source_of_truth": {
+    "type": "local-directory",
+    "path": ".",
+    "repository": null
+  },
+  "adapters": []
+}

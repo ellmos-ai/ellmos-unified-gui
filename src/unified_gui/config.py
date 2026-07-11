@@ -35,16 +35,63 @@ SHARED_CONFIG_DIR = "~/OneDrive/.TOPICS/_control-center"
 # Standard-Layout dieses Oekosystems (Discovery-Defaults; probe() filtert
 # ohnehin alles, was auf einem System nicht existiert).
 DISCOVERY_DEFAULTS = {
+    ("lock_master", "module_id"): "lock-master",
     ("lock_master", "module_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",
     ("lock_master", "roots_file"): "~/OneDrive/_scripts/lock_roots.json",
+    ("ticket_master", "module_id"): "ticket-master",
     ("ticket_master", "tickets_root"): "~/OneDrive/.TOPICS/_control-center/_TICKETS",
     ("ticket_master", "config_dir"): "~/OneDrive/.TOPICS/.AI/.MODULES/ticket-master/config",
     ("bach", "bach_root"): "~/OneDrive/.TOPICS/.AI/.OS/BACH",
     ("scanner_tasks", "db_path"): "~/.rinnsal/scanner_tasks.db",
     ("scanner_tasks", "tool_path"): "~/OneDrive/.TOPICS/_control-center/_tasks/_tool/scanner_tasks.py",
+    ("clutch", "module_id"): "clutch",
     ("clutch", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/clutch",
     ("controlcenter", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MCP/ellmos-controlcenter-mcp",
 }
+
+
+def _module_catalog_candidates() -> list[Path]:
+    configured = os.environ.get("ELLMOS_MODULES_CATALOG")
+    one_drive = os.environ.get("OneDrive") or os.environ.get("ONEDRIVE")
+    values = [
+        configured,
+        str(Path(one_drive) / ".TOPICS" / ".AI" / ".MODULES" / "modules.catalog.json") if one_drive else None,
+        "~/OneDrive/.TOPICS/.AI/.MODULES/modules.catalog.json",
+        "~/.TOPICS/.AI/.MODULES/modules.catalog.json",
+    ]
+    result: list[Path] = []
+    for value in values:
+        if not value:
+            continue
+        candidate = Path(_expand(value)).resolve()
+        if candidate not in result:
+            result.append(candidate)
+    return result
+
+
+def resolve_module_path(module_id: str | None, fallback: str | None = None, suffix: str | None = None) -> str | None:
+    """Löst eine Modul-ID katalog-first auf; ein konfigurierter Altpfad bleibt Fallback."""
+    if module_id:
+        for catalog_path in _module_catalog_candidates():
+            try:
+                catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if catalog.get("schema") != "ellmos.modules-catalog.v1":
+                continue
+            for module in catalog.get("modules", []):
+                if not isinstance(module, dict) or module.get("id") != module_id:
+                    continue
+                source = module.get("resolved_source")
+                if not isinstance(source, str) or not source:
+                    break
+                path = (catalog_path.parent / source).resolve()
+                if suffix:
+                    path /= suffix
+                if path.exists():
+                    return str(path)
+                break
+    return _expand(fallback)
 
 
 def _expand(value: str | None) -> str | None:
@@ -60,6 +107,7 @@ def hostname() -> str:
 
 @dataclass
 class LockMasterConfig:
+    module_id: str | None = None
     # Pfad zum lock-master-Repo (fuer permissions.py-Import). None => Auto-Discovery.
     module_path: str | None = None
     # Projekt-Roots fuer LOCK.permissions.json. Entweder direkte Liste ...
@@ -93,6 +141,7 @@ class ScannerTasksConfig:
 
 @dataclass
 class ClutchConfig:
+    module_id: str | None = None
     # clutch-Repo (Ordner mit clutch/cli.py) — CLI laeuft mit cwd=Repo.
     repo_path: str | None = None
     python_exe: str | None = None
@@ -115,6 +164,7 @@ class ControlCenterConfig:
 
 @dataclass
 class TicketMasterConfig:
+    module_id: str | None = None
     # Verzeichnis mit T-*.txt + QUEUED/PENDING/SOLVED (live: _control-center/_TICKETS
     # oder ein ticket-master tickets/-Ordner).
     tickets_root: str | None = None
@@ -167,15 +217,17 @@ class UnifiedGuiConfig:
             title=data.get("title", "Unified GUI"),
             local_only=bool(data.get("local_only", True)),
             lock_master=LockMasterConfig(
-                module_path=_expand(lm.get("module_path")),
+                module_id=lm.get("module_id"),
+                module_path=resolve_module_path(lm.get("module_id"), lm.get("module_path")),
                 roots=[_expand(r) for r in (lm.get("roots") or [])],
                 roots_file=_expand(lm.get("roots_file")),
                 watcher_url=lm.get("watcher_url", "http://127.0.0.1:8095"),
                 timeout_s=float(lm.get("timeout_s", 1.5)),
             ),
             ticket_master=TicketMasterConfig(
+                module_id=tm.get("module_id"),
                 tickets_root=_expand(tm.get("tickets_root")),
-                config_dir=_expand(tm.get("config_dir")),
+                config_dir=resolve_module_path(tm.get("module_id"), tm.get("config_dir"), "config"),
             ),
             bach=BachConfig(
                 bach_root=_expand(bc.get("bach_root")),
@@ -190,7 +242,11 @@ class UnifiedGuiConfig:
                 python_exe=_expand(sc.get("python_exe")),
             ),
             clutch=ClutchConfig(
-                repo_path=_expand((data.get("clutch") or {}).get("repo_path")),
+                module_id=(data.get("clutch") or {}).get("module_id"),
+                repo_path=resolve_module_path(
+                    (data.get("clutch") or {}).get("module_id"),
+                    (data.get("clutch") or {}).get("repo_path"),
+                ),
                 python_exe=_expand((data.get("clutch") or {}).get("python_exe")),
                 timeout_s=float((data.get("clutch") or {}).get("timeout_s", 45.0)),
             ),

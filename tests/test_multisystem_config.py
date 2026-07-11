@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import pytest
 
-from unified_gui.config import UnifiedGuiConfig, _expand, hostname
+from unified_gui.config import UnifiedGuiConfig, _expand, hostname, resolve_module_path
 
 
 def test_expand_user_and_env(monkeypatch):
@@ -88,3 +88,23 @@ def test_discovery_off_switch(monkeypatch, tmp_path):
     cfg = UnifiedGuiConfig.load()
     assert cfg.clutch.repo_path is None
     assert cfg.bach.bach_root is None
+
+
+def test_module_id_resolves_from_catalog_before_legacy_path(monkeypatch, tmp_path):
+    module_dir = tmp_path / ".MODULES" / ".CONTROL" / "lock-master"
+    module_dir.mkdir(parents=True)
+    catalog_path = tmp_path / ".MODULES" / "modules.catalog.json"
+    catalog_path.write_text(json.dumps({
+        "schema": "ellmos.modules-catalog.v1",
+        "modules": [{"id": "lock-master", "resolved_source": ".CONTROL/lock-master"}],
+    }), encoding="utf-8")
+    monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(catalog_path))
+
+    resolved = resolve_module_path("lock-master", "/legacy/lock-master")
+    assert resolved == str(module_dir)
+
+
+def test_module_id_keeps_legacy_path_as_fallback(monkeypatch, tmp_path):
+    monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(tmp_path / "missing.json"))
+    fallback = str(tmp_path / "legacy")
+    assert resolve_module_path("missing-module", fallback) == fallback
