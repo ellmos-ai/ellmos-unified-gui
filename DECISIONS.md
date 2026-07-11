@@ -4,6 +4,22 @@ Format: `[ID] Datum — Entscheidung` mit Kontext/Begründung. Neueste oben.
 
 ---
 
+## [D08] 2026-07-11 — Cloud-/Multi-System-Konfiguration: Kaskade + ~-Notation + Discovery
+
+Das Oekosystem synct via OneDrive auf mehrere Systeme mit ABWEICHENDEN
+Home-Pfaden (WORKSTATION: lukas, LAPTOP: User, Mac). Deshalb: (1) alle
+Pfadfelder expandieren ~/$VAR/%VAR% — Configs werden in ~-Notation
+geschrieben und funktionieren unveraendert auf jedem System; (2) Config-
+Kaskade Shared(OneDrive, synct) < Shared-Host < User(~/.unified_gui) <
+User-Host < cwd < Env < Overrides — Host-Dateien (config.<HOSTNAME>.json)
+erlauben Abweichungen pro System ohne die Basis zu forken; (3) Auto-
+Discovery ergaenzt fehlende Felder mit dem Standard-Layout (probe()
+filtert Nichtexistentes), abschaltbar via discovery=false /
+UNIFIED_GUI_DISCOVERY=0; UNIFIED_GUI_CONFIG ersetzt die Kaskade exklusiv
+(Test-Hermetik). Mac-Vorbehalt: OneDrive liegt dort meist unter
+~/Library/CloudStorage/... — dort Host-/User-Override oder Symlink ~/OneDrive.
+**Quelle:** User-Anforderung 2026-07-11 („cloudsensitiv ... configs pro System").
+
 ## [D07] 2026-07-11 — clutch ist die Modell-/Credential-Registry (kein api_models-Store)
 
 Der geplante api_models-Adapter mit eigener models.json entfaellt: clutch bringt

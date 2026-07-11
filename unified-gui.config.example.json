@@ -1,32 +1,31 @@
 {
-  "_comment": "Kopiere diese Datei nach unified-gui.config.json und passe die Pfade an. Alternativ: UNIFIED_GUI_*-Env-Variablen (siehe src/unified_gui/config.py).",
+  "_hinweis": "Alle Dateien der Kaskade sind optional: Shared-Basis (~/OneDrive/.TOPICS/_control-center/unified-gui.config.json) < Shared-Host (...config.<HOST>.json) < ~/.unified_gui/unified-gui.config.json < ~/.unified_gui/...config.<HOST>.json < ./unified-gui.config.json < UNIFIED_GUI_*-Env < create_app(config). Pfade in ~-Notation oder $VAR/%VAR% schreiben (system-portabel). Fehlende Felder ergaenzt die Auto-Discovery mit dem Standard-Layout (abschaltbar: discovery=false).",
   "title": "Unified GUI",
-  "local_only": true,
+  "discovery": true,
   "lock_master": {
-    "module_path": "/pfad/zu/lock-master",
-    "roots": [],
-    "roots_file": "/pfad/zu/lock_roots.json",
+    "module_path": "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",
+    "roots_file": "~/OneDrive/_scripts/lock_roots.json",
     "watcher_url": "http://127.0.0.1:8095"
   },
   "ticket_master": {
-    "tickets_root": "/pfad/zu/TICKETS",
-    "config_dir": "/pfad/zu/ticket-master/config"
+    "tickets_root": "~/OneDrive/.TOPICS/_control-center/_TICKETS",
+    "config_dir": "~/OneDrive/.TOPICS/.AI/.MODULES/ticket-master/config"
   },
   "bach": {
-    "bach_root": "/pfad/zu/BACH",
+    "bach_root": "~/OneDrive/.TOPICS/.AI/.OS/BACH",
     "rest_url": "http://127.0.0.1:8000"
   },
   "scanner_tasks": {
-    "db_path": "/pfad/zu/scanner_tasks.db",
-    "tool_path": "/pfad/zu/scanner_tasks.py"
+    "db_path": "~/.rinnsal/scanner_tasks.db",
+    "tool_path": "~/OneDrive/.TOPICS/_control-center/_tasks/_tool/scanner_tasks.py"
   },
   "clutch": {
-    "repo_path": "/pfad/zu/clutch"
+    "repo_path": "~/OneDrive/.TOPICS/.AI/.MODULES/clutch"
   },
   "ollama": {
     "url": "http://127.0.0.1:11434"
   },
   "controlcenter": {
-    "repo_path": "/pfad/zu/ellmos-controlcenter-mcp"
+    "repo_path": "~/OneDrive/.TOPICS/.AI/.MCP/ellmos-controlcenter-mcp"
   }
 }

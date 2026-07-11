@@ -1,5 +1,27 @@
 # Changelog — ellmos Unified GUI
 
+## [0.4.0] - 2026-07-11 (Multi-System/Cloud)
+
+### Added
+
+- Config-Kaskade: Shared-Basis in OneDrive (_control-center/unified-gui.config.json,
+  synct auf alle Systeme) < Shared-Host < ~/.unified_gui (Basis+Host) < cwd <
+  Env < Overrides; Host-Overrides via unified-gui.config.<HOSTNAME>.json [D08]
+- Pfad-Expansion (~, $VAR, %VAR%) in allen Pfadfeldern — dieselbe Config
+  funktioniert auf WORKSTATION (lukas), LAPTOP (User) und Mac
+- Auto-Discovery der Standard-Layout-Pfade fuer fehlende Felder
+  (discovery=false bzw. UNIFIED_GUI_DISCOVERY=0 schaltet ab; explizites
+  null bleibt respektiert); UNIFIED_GUI_CONFIG ersetzt die Kaskade exklusiv
+- Control-Center-Start: START-UNIFIED-GUI.bat (Port-Check, PYTHONPATH-
+  Fallback, %USERPROFILE%-neutral) + Menue in START.bat; Registrierung in
+  controlcenter.stack.json und MANIFEST.md
+
+### Changed
+
+- Maschinen-spezifische Configs (absolute C:/Users/...-Pfade) entfernt —
+  ersetzt durch die geteilte ~-notierte Basis in OneDrive
+
+
 ## [0.3.0] - 2026-07-11 (Phase 3)
 
 ### Added

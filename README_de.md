@@ -28,6 +28,19 @@ Berechtigungen (`LOCK.permissions.json`-Editor, lock-master) · Routinen/Cron
 (BACH-Scheduler; Routine → Modell + Rolle + Skills) · Tasks (BACH/Scanner/homebase,
 zuweisbar) · Tickets (ticket-master-Intake/Router/Queues) · Skills (controlcenter-mcp).
 
+## Multi-System / Cloud (OneDrive)
+
+Die Konfiguration ist **host-neutral**: Pfade in `~`-Notation (oder `$VAR`/`%VAR%`),
+Basis-Config liegt geteilt in `~/OneDrive/.TOPICS/_control-center/unified-gui.config.json`
+und synct auf alle Systeme — unabhaengig davon, ob das Home `lukas`, `User` oder
+etwas anderes ist. Abweichungen pro System: `unified-gui.config.<HOSTNAME>.json`
+daneben (shared) oder unter `~/.unified_gui/` (lokal). Fehlende Felder ergaenzt
+eine Auto-Discovery des Standard-Layouts; Backends, die es auf einem System nicht
+gibt, verschwinden ohnehin per Capability-Probe. Start ueberall:
+`_control-center/START-UNIFIED-GUI.bat` (Windows) bzw. `python -m unified_gui`.
+**Mac-Hinweis:** OneDrive liegt dort meist unter `~/Library/CloudStorage/...` —
+einmalig `~/OneDrive`-Symlink setzen oder Host-Override nutzen.
+
 ## Dokumente
 
 | Datei | Inhalt |

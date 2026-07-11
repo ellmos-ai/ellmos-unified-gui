@@ -1,18 +1,61 @@
 # SPDX-License-Identifier: MIT
-"""Konfiguration der Unified GUI.
+"""Konfiguration der Unified GUI — cloud-/multi-system-faehig.
 
-Quellen (spaeter gewinnt): eingebaute Defaults < JSON-Config-Datei < Env-Variablen
-< explizit uebergebenes dict. Keine Klartext-Secrets — nur Pfade/URLs/Referenzen.
+Config-Kaskade (spaeter gewinnt, alle Dateien optional):
+  1. Shared-Basis   ~/OneDrive/.TOPICS/_control-center/unified-gui.config.json
+  2. Shared-Host    ~/OneDrive/.TOPICS/_control-center/unified-gui.config.<HOST>.json
+  3. User-Basis     ~/.unified_gui/unified-gui.config.json
+  4. User-Host      ~/.unified_gui/unified-gui.config.<HOST>.json
+  5. cwd (Dev)      ./unified-gui.config.json
+  6. Env-Variablen  UNIFIED_GUI_*
+  7. overrides-dict (create_app(config={...}))
+
+Ist UNIFIED_GUI_CONFIG gesetzt, ersetzt diese EINE Datei die Quellen 1-5
+(exklusiv — fuer Tests und Sonderfaelle).
+
+Portabilitaet: Alle Pfadfelder expandieren `~`, `$VAR` und `%VAR%` — Configs
+gehoeren deshalb in `~`-Notation geschrieben, damit dieselbe Datei auf
+WORKSTATION (lukas), LAPTOP (User) und Mac funktioniert. Fehlen Felder,
+ergaenzt eine Auto-Discovery die Standard-Layout-Pfade des Oekosystems
+(abschaltbar: "discovery": false bzw. UNIFIED_GUI_DISCOVERY=0).
+Keine Klartext-Secrets — nur Pfade/URLs/Referenzen.
 """
 from __future__ import annotations
 
 import json
 import os
+import socket
 from dataclasses import dataclass, field
 from pathlib import Path
 
 ENV_PREFIX = "UNIFIED_GUI_"
 CONFIG_FILENAME = "unified-gui.config.json"
+SHARED_CONFIG_DIR = "~/OneDrive/.TOPICS/_control-center"
+
+# Standard-Layout dieses Oekosystems (Discovery-Defaults; probe() filtert
+# ohnehin alles, was auf einem System nicht existiert).
+DISCOVERY_DEFAULTS = {
+    ("lock_master", "module_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",
+    ("lock_master", "roots_file"): "~/OneDrive/_scripts/lock_roots.json",
+    ("ticket_master", "tickets_root"): "~/OneDrive/.TOPICS/_control-center/_TICKETS",
+    ("ticket_master", "config_dir"): "~/OneDrive/.TOPICS/.AI/.MODULES/ticket-master/config",
+    ("bach", "bach_root"): "~/OneDrive/.TOPICS/.AI/.OS/BACH",
+    ("scanner_tasks", "db_path"): "~/.rinnsal/scanner_tasks.db",
+    ("scanner_tasks", "tool_path"): "~/OneDrive/.TOPICS/_control-center/_tasks/_tool/scanner_tasks.py",
+    ("clutch", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/clutch",
+    ("controlcenter", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MCP/ellmos-controlcenter-mcp",
+}
+
+
+def _expand(value: str | None) -> str | None:
+    """Expandiert ~, $VAR und %VAR% — macht Configs system-portabel."""
+    if not value:
+        return value
+    return os.path.expanduser(os.path.expandvars(str(value)))
+
+
+def hostname() -> str:
+    return socket.gethostname().upper()
 
 
 @dataclass
@@ -96,16 +139,22 @@ class UnifiedGuiConfig:
     def load(cls, overrides: dict | None = None, config_file: str | Path | None = None) -> "UnifiedGuiConfig":
         data: dict = {}
 
-        path = Path(config_file) if config_file else _default_config_path()
-        if path and path.is_file():
+        if config_file:
+            sources: list[Path] = [Path(_expand(str(config_file)))]
+        else:
+            sources = _config_sources()
+        for path in sources:
+            if not path.is_file():
+                continue
             try:
-                data = json.loads(path.read_text(encoding="utf-8"))
+                _deep_update(data, json.loads(path.read_text(encoding="utf-8")))
             except (OSError, json.JSONDecodeError):
-                data = {}
+                continue
 
         _apply_env(data)
         if overrides:
             _deep_update(data, overrides)
+        _apply_discovery(data)
         return cls._from_dict(data)
 
     @classmethod
@@ -118,31 +167,31 @@ class UnifiedGuiConfig:
             title=data.get("title", "Unified GUI"),
             local_only=bool(data.get("local_only", True)),
             lock_master=LockMasterConfig(
-                module_path=lm.get("module_path"),
-                roots=list(lm.get("roots") or []),
-                roots_file=lm.get("roots_file"),
+                module_path=_expand(lm.get("module_path")),
+                roots=[_expand(r) for r in (lm.get("roots") or [])],
+                roots_file=_expand(lm.get("roots_file")),
                 watcher_url=lm.get("watcher_url", "http://127.0.0.1:8095"),
                 timeout_s=float(lm.get("timeout_s", 1.5)),
             ),
             ticket_master=TicketMasterConfig(
-                tickets_root=tm.get("tickets_root"),
-                config_dir=tm.get("config_dir"),
+                tickets_root=_expand(tm.get("tickets_root")),
+                config_dir=_expand(tm.get("config_dir")),
             ),
             bach=BachConfig(
-                bach_root=bc.get("bach_root"),
+                bach_root=_expand(bc.get("bach_root")),
                 rest_url=bc.get("rest_url", "http://127.0.0.1:8000"),
                 rest_timeout_s=float(bc.get("rest_timeout_s", 1.5)),
                 cli_timeout_s=float(bc.get("cli_timeout_s", 120.0)),
-                python_exe=bc.get("python_exe"),
+                python_exe=_expand(bc.get("python_exe")),
             ),
             scanner_tasks=ScannerTasksConfig(
-                db_path=sc.get("db_path"),
-                tool_path=sc.get("tool_path"),
-                python_exe=sc.get("python_exe"),
+                db_path=_expand(sc.get("db_path")),
+                tool_path=_expand(sc.get("tool_path")),
+                python_exe=_expand(sc.get("python_exe")),
             ),
             clutch=ClutchConfig(
-                repo_path=(data.get("clutch") or {}).get("repo_path"),
-                python_exe=(data.get("clutch") or {}).get("python_exe"),
+                repo_path=_expand((data.get("clutch") or {}).get("repo_path")),
+                python_exe=_expand((data.get("clutch") or {}).get("python_exe")),
                 timeout_s=float((data.get("clutch") or {}).get("timeout_s", 45.0)),
             ),
             ollama=OllamaConfig(
@@ -150,21 +199,50 @@ class UnifiedGuiConfig:
                 timeout_s=float((data.get("ollama") or {}).get("timeout_s", 1.5)),
             ),
             controlcenter=ControlCenterConfig(
-                repo_path=(data.get("controlcenter") or {}).get("repo_path"),
+                repo_path=_expand((data.get("controlcenter") or {}).get("repo_path")),
                 node_exe=(data.get("controlcenter") or {}).get("node_exe", "node"),
                 timeout_s=float((data.get("controlcenter") or {}).get("timeout_s", 30.0)),
             ),
         )
 
 
-def _default_config_path() -> Path | None:
+def _config_sources() -> list[Path]:
+    """Kaskade der Config-Dateien (spaeter in der Liste gewinnt beim Merge).
+
+    UNIFIED_GUI_CONFIG (Env) ersetzt die komplette Kaskade durch genau eine
+    Datei — exklusiv, damit Tests/Sonderfaelle hermetisch bleiben."""
     env = os.environ.get(ENV_PREFIX + "CONFIG")
     if env:
-        return Path(env).expanduser()
-    home = Path.home() / ".unified_gui" / CONFIG_FILENAME
-    if home.is_file():
-        return home
-    return Path.cwd() / CONFIG_FILENAME
+        return [Path(_expand(env))]
+
+    host = hostname()
+    shared_dir = Path(_expand(SHARED_CONFIG_DIR))
+    user_dir = Path.home() / ".unified_gui"
+    stem = CONFIG_FILENAME.rsplit(".json", 1)[0]
+    return [
+        shared_dir / CONFIG_FILENAME,
+        shared_dir / f"{stem}.{host}.json",
+        user_dir / CONFIG_FILENAME,
+        user_dir / f"{stem}.{host}.json",
+        Path.cwd() / CONFIG_FILENAME,
+    ]
+
+
+def _apply_discovery(data: dict) -> None:
+    """Ergaenzt fehlende Pfadfelder um Standard-Layout-Defaults (~-Notation).
+
+    Nur Felder, die nach allen Quellen noch fehlen; explizite Werte —
+    auch explizites null in einer Config/Override — bleiben unangetastet.
+    Abschaltbar via "discovery": false oder UNIFIED_GUI_DISCOVERY=0."""
+    env_flag = os.environ.get(ENV_PREFIX + "DISCOVERY")
+    if env_flag is not None and env_flag.strip().lower() in ("0", "false", "off", "no"):
+        return
+    if data.get("discovery") is False:
+        return
+    for (section, key), default in DISCOVERY_DEFAULTS.items():
+        block = data.setdefault(section, {})
+        if key not in block:
+            block[key] = default
 
 
 def _apply_env(data: dict) -> None:
