@@ -15,6 +15,8 @@ def _app_without_backends():
         "lock_master": {"module_path": "/nonexistent", "roots": [], "roots_file": None,
                         "watcher_url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "ticket_master": {"tickets_root": "/nonexistent"},
+        "bach": {"bach_root": None, "rest_url": "http://127.0.0.1:1", "rest_timeout_s": 0.2},
+        "scanner_tasks": {"db_path": None, "tool_path": None},
     })
 
 
@@ -49,6 +51,8 @@ def test_refresh_picks_up_new_backend(tmp_path):
         "lock_master": {"module_path": "/nonexistent", "roots": [], "roots_file": None,
                         "watcher_url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "ticket_master": {"tickets_root": str(tmp_path / "missing")},
+        "bach": {"bach_root": None, "rest_url": "http://127.0.0.1:1", "rest_timeout_s": 0.2},
+        "scanner_tasks": {"db_path": None, "tool_path": None},
     })
     client = TestClient(app)
     assert client.get("/api/status").json()["panels"] == []

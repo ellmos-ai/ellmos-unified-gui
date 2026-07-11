@@ -28,6 +28,27 @@ class LockMasterConfig:
 
 
 @dataclass
+class BachConfig:
+    # BACH-Repo-Root (Ordner mit system/bach.py) ODER direkt der system/-Ordner.
+    bach_root: str | None = None
+    # BACH-GUI-Server (Scheduler/Tasks/Prompts via REST).
+    rest_url: str = "http://127.0.0.1:8000"
+    rest_timeout_s: float = 1.5
+    # CLI-Aufrufe (Agenten) dauern wegen BACH-Startup-Hooks Sekunden.
+    cli_timeout_s: float = 120.0
+    python_exe: str | None = None
+
+
+@dataclass
+class ScannerTasksConfig:
+    # Rinnsal-Queue des Hintergrund-Scanners (ausserhalb OneDrive).
+    db_path: str | None = None
+    # Kanonisches CLI fuer assign/done (scanner_tasks.py).
+    tool_path: str | None = None
+    python_exe: str | None = None
+
+
+@dataclass
 class TicketMasterConfig:
     # Verzeichnis mit T-*.txt + QUEUED/PENDING/SOLVED (live: _control-center/_TICKETS
     # oder ein ticket-master tickets/-Ordner).
@@ -41,6 +62,8 @@ class UnifiedGuiConfig:
     title: str = "Unified GUI"
     lock_master: LockMasterConfig = field(default_factory=LockMasterConfig)
     ticket_master: TicketMasterConfig = field(default_factory=TicketMasterConfig)
+    bach: BachConfig = field(default_factory=BachConfig)
+    scanner_tasks: ScannerTasksConfig = field(default_factory=ScannerTasksConfig)
     # Standalone-Guard: nur lokale Origins/Clients (im Mount-Betrieb Sache des Hosts)
     local_only: bool = True
 
@@ -64,6 +87,8 @@ class UnifiedGuiConfig:
     def _from_dict(cls, data: dict) -> "UnifiedGuiConfig":
         lm = data.get("lock_master") or {}
         tm = data.get("ticket_master") or {}
+        bc = data.get("bach") or {}
+        sc = data.get("scanner_tasks") or {}
         return cls(
             title=data.get("title", "Unified GUI"),
             local_only=bool(data.get("local_only", True)),
@@ -77,6 +102,18 @@ class UnifiedGuiConfig:
             ticket_master=TicketMasterConfig(
                 tickets_root=tm.get("tickets_root"),
                 config_dir=tm.get("config_dir"),
+            ),
+            bach=BachConfig(
+                bach_root=bc.get("bach_root"),
+                rest_url=bc.get("rest_url", "http://127.0.0.1:8000"),
+                rest_timeout_s=float(bc.get("rest_timeout_s", 1.5)),
+                cli_timeout_s=float(bc.get("cli_timeout_s", 120.0)),
+                python_exe=bc.get("python_exe"),
+            ),
+            scanner_tasks=ScannerTasksConfig(
+                db_path=sc.get("db_path"),
+                tool_path=sc.get("tool_path"),
+                python_exe=sc.get("python_exe"),
             ),
         )
 
@@ -99,6 +136,10 @@ def _apply_env(data: dict) -> None:
         ENV_PREFIX + "LOCK_MODULE": ("lock_master", "module_path"),
         ENV_PREFIX + "LOCK_ROOTS_FILE": ("lock_master", "roots_file"),
         ENV_PREFIX + "WATCHER_URL": ("lock_master", "watcher_url"),
+        ENV_PREFIX + "BACH_ROOT": ("bach", "bach_root"),
+        ENV_PREFIX + "BACH_URL": ("bach", "rest_url"),
+        ENV_PREFIX + "SCANNER_DB": ("scanner_tasks", "db_path"),
+        ENV_PREFIX + "SCANNER_TOOL": ("scanner_tasks", "tool_path"),
     }
     for env_name, (section, key) in mapping.items():
         value = os.environ.get(env_name)

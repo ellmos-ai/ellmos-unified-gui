@@ -19,11 +19,14 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from ..adapters.bach import BachAdapter
 from ..adapters.lock_master import LockMasterAdapter
+from ..adapters.scanner_tasks import ScannerTasksAdapter
 from ..adapters.ticket_master import TicketMasterAdapter
 from ..capabilities import CapabilityRegistry
 from ..config import UnifiedGuiConfig
-from ..panels import p5_permissions, p8_tickets
+from ..panels import (p1_prompts, p2_agents, p5_permissions, p6_routines,
+                      p7_tasks, p8_tickets)
 from ..panels.base import PanelSpec
 from ..security import LocalOnlyMiddleware
 
@@ -44,11 +47,19 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
     registry = CapabilityRegistry()
     lock_adapter = LockMasterAdapter(config.lock_master)
     ticket_adapter = TicketMasterAdapter(config.ticket_master)
+    bach_adapter = BachAdapter(config.bach)
+    scanner_adapter = ScannerTasksAdapter(config.scanner_tasks)
     registry.register(lock_adapter)
     registry.register(ticket_adapter)
+    registry.register(bach_adapter)
+    registry.register(scanner_adapter)
 
     all_panels: list[PanelSpec] = [
+        p1_prompts.build(bach_adapter),
+        p2_agents.build(bach_adapter),
         p5_permissions.build(lock_adapter),
+        p6_routines.build(bach_adapter),
+        p7_tasks.build(bach_adapter, scanner_adapter, registry),
         p8_tickets.build(ticket_adapter),
     ]
 
@@ -93,8 +104,11 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
         ]
         return templates.TemplateResponse(request, "index.html", _ctx(request, {"adapters": states}))
 
+    # Bewusst sync (def): Adapter-Probes machen blockierende HTTP-Calls — im
+    # Mount-Betrieb u. U. auf den EIGENEN Host (BACH :8000). Sync-Handler laufen
+    # im Threadpool, der Event-Loop bleibt frei -> kein Self-Call-Deadlock.
     @app.post("/api/refresh")
-    async def refresh():
+    def refresh():
         registry.refresh()
         return {
             "ok": True,
@@ -103,7 +117,7 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
         }
 
     @app.get("/api/status")
-    async def status():
+    def status():
         return {
             "version": __version__,
             "available": sorted(c.value for c in registry.available),

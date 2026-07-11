@@ -1,5 +1,29 @@
 # Changelog — ellmos Unified GUI
 
+## [0.2.0] - 2026-07-11 (Phase 2)
+
+### Added
+
+- Adapter `bach`: REST (Scheduler /api/daemon/*, Tasks, Prompt-Bibliothek) +
+  CLI-JSON (Agenten start/stop/steer/clear-steer/checkpoint, Task-Zuweisung);
+  extract_json() zieht Payloads aus hook-verrauschter CLI-Ausgabe
+- Adapter `scanner-tasks`: Rinnsal-Queue read-only (mode=ro) + assign/done
+  ueber das kanonische scanner_tasks.py-CLI
+- Panels: P1 Prompts (BACH-Bibliothek + PromptBoard-Import + profiprompt-v1-
+  Export), P2 Agenten (Dispatch mit Modell/Modus, available_actions-Buttons),
+  P6 Routinen (Jobs+Chains CRUD/Toggle/Run, Daemon-Status), P7 Tasks
+  (Multi-Quellen-Aggregation mit Provenienz-Badges, Zuweisung an die Quelle)
+- BACH bindet die Unified GUI unter /control ein (weiches Optional in
+  gui/server.py + Nav-Link System > Unified GUI); Paket editierbar installiert,
+  Config-Discovery via ~/.unified_gui/unified-gui.config.json
+
+### Fixed
+
+- Self-Call-Deadlock im Mount-Betrieb: /api/refresh und /api/status sind sync
+  (Threadpool), damit Adapter-Probes den eigenen Host abfragen koennen
+- urllib.parse.quote statt nicht existentem urllib.request.quote
+
+
 ## [0.1.0] - 2026-07-11 (Phase 1)
 
 ### Added

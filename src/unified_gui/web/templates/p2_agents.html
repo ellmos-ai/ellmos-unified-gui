@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block subtitle %}Agenten{% endblock %}
+{% block content %}
+<h1>Agenten <span class="muted">BACH-Dispatch (CLI-Aufrufe dauern einige Sekunden)</span></h1>
+
+<div class="card">
+    <h3>Agent starten</h3>
+    <div class="row">
+        <input id="a-name" placeholder="Agent-Name (siehe Liste)" style="flex:1">
+        <select id="a-model" title="Modell">
+            <option value="">Modell (default)</option>
+            <option value="sonnet">sonnet</option>
+            <option value="opus">opus</option>
+            <option value="haiku">haiku</option>
+        </select>
+        <select id="a-mode" title="Modus">
+            <option value="">Modus (default)</option>
+            <option value="plan">plan</option>
+            <option value="default">default</option>
+        </select>
+        <button class="btn" onclick="agentAction('start', document.getElementById('a-name').value)">Starten</button>
+    </div>
+</div>
+
+<div class="row" style="margin-bottom:0.6rem;">
+    <button class="btn" onclick="loadAgents()">Liste laden/aktualisieren</button>
+    <span id="p2-busy" class="muted small-text"></span>
+</div>
+<div class="grid" id="agent-list"><div class="muted">Noch nicht geladen — "Liste laden" klicken (dauert einige Sekunden).</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let busy = false;
+function setBusy(on, msg) {
+    busy = on;
+    document.getElementById("p2-busy").textContent = on ? (msg || "BACH-CLI läuft ...") : "";
+}
+
+async function loadAgents() {
+    if (busy) return;
+    setBusy(true, "Lade Agentenliste (BACH-CLI) ...");
+    try {
+        const data = await api("/api/p2/agents");
+        const agents = data.agents || [];
+        document.getElementById("agent-list").innerHTML = agents.map(a => {
+            const actions = (a.available_actions || []).map(act =>
+                `<button class="btn tiny" onclick='agentAction(${JSON.stringify(act)}, ${JSON.stringify(a.name)})'>${esc(act)}</button>`
+            ).join(" ");
+            return `<div class="card">
+                <div class="card-head">
+                    <span class="health ${a.running ? "ok" : "offline"}"></span>
+                    <b>${esc(a.display_name || a.name)}</b>
+                    <span class="chip">${esc(a.status || (a.running ? "running" : "stopped"))}</span>
+                </div>
+                <div class="muted small-text">${esc(a.name)}${a.model ? " · " + esc(a.model) : ""}${a.pid ? " · PID " + a.pid : ""}</div>
+                <div class="row">${actions || '<span class="muted small-text">keine Aktionen</span>'}</div>
+            </div>`;
+        }).join("") || '<div class="muted">Keine Agenten gefunden.</div>';
+    } catch (e) { flash(e.message, true); }
+    setBusy(false);
+}
+
+async function agentAction(action, name) {
+    if (!name) { flash("Agent-Name fehlt", true); return; }
+    if (busy) return;
+    let body = {name};
+    if (action === "start") {
+        body.model = document.getElementById("a-model").value || null;
+        body.mode = document.getElementById("a-mode").value || null;
+    }
+    if (action === "steer") {
+        const note = prompt("Steer-Hinweis für " + name + ":");
+        if (!note) return;
+        body.note = note;
+    }
+    const endpoint = {start: "start", stop: "stop", steer: "steer",
+                      "clear-steer": "clear-steer", checkpoint: "checkpoint"}[action];
+    if (!endpoint) { flash("Aktion nicht unterstützt: " + action, true); return; }
+    setBusy(true, action + " läuft (BACH-CLI) ...");
+    try {
+        await api("/api/p2/" + endpoint, {method: "POST",
+            headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+        flash(action + " OK");
+        await loadAgents();
+        return;
+    } catch (e) { flash(e.message, true); }
+    setBusy(false);
+}
+</script>
+{% endblock %}

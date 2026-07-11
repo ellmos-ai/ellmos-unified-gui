@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block subtitle %}Tasks{% endblock %}
+{% block content %}
+<h1>Tasks <span class="muted">aggregiert mit Provenienz — Zuweisung geht an die Quelle</span></h1>
+
+<div class="toolbar">
+    <label>Status:
+        <select id="t-status" onchange="loadTasks()">
+            <option value="all">alle</option>
+            <option value="pending">pending/open</option>
+            <option value="done">done</option>
+        </select>
+    </label>
+    <span id="t-sources" class="muted small-text"></span>
+</div>
+
+<div id="task-list"><div class="muted">Lade ...</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROV_LABEL = {bach: "BACH", scanner: "Scanner"};
+
+async function loadTasks() {
+    try {
+        const status = document.getElementById("t-status").value;
+        const data = await api("/api/p7/tasks?status=" + encodeURIComponent(status));
+        document.getElementById("t-sources").textContent = data.sources.map(s =>
+            `${s.name}: ${s.available ? s.count + " Tasks" : "offline"}${s.error ? " (" + s.error + ")" : ""}`
+        ).join(" · ");
+        document.getElementById("task-list").innerHTML = (data.tasks || []).map(t =>
+            `<div class="rule">
+                <span>
+                    <span class="chip">${esc(PROV_LABEL[t.provenance] || t.provenance)}</span>
+                    <b>#${t.id}</b> ${esc(t.title)}
+                    <span class="muted small-text">${esc(t.status)}${t.priority ? " · " + esc(t.priority) : ""}${t.assigned_to ? " · → " + esc(t.assigned_to) : ""}</span>
+                </span>
+                <span class="row">
+                    <button class="btn tiny" onclick='assignTask(${JSON.stringify(t.provenance)}, ${t.id})'>Zuweisen</button>
+                    <button class="btn tiny" onclick='doneTask(${JSON.stringify(t.provenance)}, ${t.id})'>Done</button>
+                </span>
+            </div>`
+        ).join("") || '<div class="muted">Keine Tasks.</div>';
+    } catch (e) { flash(e.message, true); }
+}
+
+async function assignTask(provenance, id) {
+    const target = prompt("Zuweisen an (Agent/Partner, z. B. CLAUDE, GEMINI, sonnet-worker):");
+    if (!target) return;
+    try {
+        await api("/api/p7/assign", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({provenance, id, target})});
+        flash("Zugewiesen (kann bei BACH einige Sekunden dauern)");
+        loadTasks();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function doneTask(provenance, id) {
+    if (!confirm("#" + id + " als erledigt markieren?")) return;
+    try {
+        await api("/api/p7/done", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({provenance, id})});
+        flash("Erledigt");
+        loadTasks();
+    } catch (e) { flash(e.message, true); }
+}
+
+loadTasks();
+</script>
+{% endblock %}

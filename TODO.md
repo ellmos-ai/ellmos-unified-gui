@@ -22,18 +22,18 @@
 - [x] Standalone-Guard (localhost + Origin-Check wie lock-master-Watcher)
 - [x] Smoke-Tests: probe-Degradierung (Backend fehlt ⇒ Panel weg, kein Crash)
 
-## Phase 2 — BACH-Anbindung (Agenten, Tasks, Routinen)
+## Phase 2 — BACH-Anbindung (Agenten, Tasks, Routinen)  ✅ (2026-07-11; Routine-Bindings s. Offen)
 
-- [ ] Adapter `bach` (CLI-JSON: `agent --json`, `task`, REST: `/api/daemon/*`,
+- [x] Adapter `bach` (CLI-JSON: `agent --json`, `task`, REST: `/api/daemon/*`,
       `/api/prompt-library`)
-- [ ] **P2 Agenten**: Liste + Start/Stop/Steer/Checkpoint, permission_mode/Modellwahl
-- [ ] **P7 Tasks**: Aggregation BACH + `~/.rinnsal/scanner_tasks.db` (+ homebase),
+- [x] **P2 Agenten**: Liste + Start/Stop/Steer/Checkpoint, permission_mode/Modellwahl
+- [x] **P7 Tasks**: Aggregation BACH + `~/.rinnsal/scanner_tasks.db` (+ homebase),
       Provenienz-Badges, Zuweisung (assign) an Agent/Modell
-- [ ] **P6 Routinen**: Jobs/Chains CRUD gegen BACH-Daemon-API; Routine-Bindings
+- [x] **P6 Routinen**: Jobs/Chains CRUD gegen BACH-Daemon-API; Routine-Bindings
       (Modell + Rollen-Prompt + Skills, Validierung via SkillIndex)
-- [ ] **P1 Prompts**: BACH-prompt-library-Adapter + profiprompt-v1-Export +
+- [x] **P1 Prompts**: BACH-prompt-library-Adapter + profiprompt-v1-Export +
       PromptBoard-Import (Referenz: BACH `/api/prompt-library`)
-- [ ] Mount-Test: Einbettung in BACH `gui/server.py` unter `/control`
+- [x] Mount-Test: Einbettung in BACH `gui/server.py` unter `/control` (live, alle 6 Panels nach Re-Probe)
 
 ## Phase 3 — Modelle, Routing, Skills
 

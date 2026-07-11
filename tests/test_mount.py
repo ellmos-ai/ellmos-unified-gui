@@ -18,6 +18,8 @@ def _mounted_client(tmp_path):
         "lock_master": {"module_path": "/nonexistent", "roots": [], "roots_file": None,
                         "watcher_url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "ticket_master": {"tickets_root": str(tmp_path / "TICKETS"), "config_dir": None},
+        "bach": {"bach_root": None, "rest_url": "http://127.0.0.1:1", "rest_timeout_s": 0.2},
+        "scanner_tasks": {"db_path": None, "tool_path": None},
     })
     return TestClient(host)
 

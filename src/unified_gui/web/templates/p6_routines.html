@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block subtitle %}Routinen{% endblock %}
+{% block content %}
+<h1>Routinen / Cron <span class="muted">BACH-Scheduler (Intervall-Jobs + Chains)</span></h1>
+
+<div class="row" style="margin-bottom:0.6rem;">
+    <span id="daemon-state" class="chip">Daemon: ?</span>
+    <button class="btn small" onclick="loadOverview()">Aktualisieren</button>
+</div>
+
+<div class="card">
+    <h3>Neuer Job</h3>
+    <div class="row">
+        <input id="j-name" placeholder="Name" style="width:180px">
+        <input id="j-schedule" placeholder="Intervall (Minuten)" style="width:140px">
+        <input id="j-command" placeholder="Kommando (z. B. bach --recurring check)" style="flex:1">
+        <button class="btn" onclick="createJob()">Anlegen</button>
+    </div>
+    <p class="muted small-text">Routine-Bindings (Modell + Rolle + Skills) folgen, sobald der
+    Schreibpfad in BACH festgelegt ist (siehe TODO "Offen").</p>
+</div>
+
+<h2>Jobs</h2>
+<div id="jobs-list" class="card"><div class="muted">Lade ...</div></div>
+
+<h2>Chains</h2>
+<div id="chains-list" class="card"><div class="muted">Lade ...</div></div>
+
+<h2>Letzte Läufe</h2>
+<div id="runs-list" class="card small-text"><div class="muted">Lade ...</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadOverview() {
+    try {
+        const data = await api("/api/p6/overview");
+        const st = data.status || {};
+        const running = st.running ?? st.daemon_running ?? false;
+        const el = document.getElementById("daemon-state");
+        el.textContent = "Daemon: " + (running ? "läuft" : "gestoppt");
+        el.className = "chip " + (running ? "verdict-allow" : "verdict-deny");
+
+        const jobs = (data.jobs && data.jobs.jobs) || [];
+        document.getElementById("jobs-list").innerHTML = jobs.map(j =>
+            `<div class="rule">
+                <span><b>${esc(j.name)}</b>
+                    <span class="muted small-text">${esc(j.job_type || "interval")} · alle ${esc(j.schedule)} Min ·
+                    ${j.is_active ? "aktiv" : "inaktiv"} · Runs: ${j.run_count ?? 0} · Next: ${esc(j.next_run || "-")}</span>
+                </span>
+                <span class="row">
+                    <button class="btn tiny" onclick="jobAction('toggle', ${j.id})">${j.is_active ? "Deaktivieren" : "Aktivieren"}</button>
+                    <button class="btn tiny" onclick="jobAction('run', ${j.id})">Jetzt ausführen</button>
+                </span>
+            </div>`
+        ).join("") || '<div class="muted">Keine Jobs.</div>';
+
+        const chains = (data.chains && data.chains.chains) || [];
+        document.getElementById("chains-list").innerHTML = chains.map(c =>
+            `<div class="rule">
+                <span><b>${esc(c.name || c.title)}</b>
+                    <span class="muted small-text">${c.is_active ? "aktiv" : "inaktiv"}${c.description ? " · " + esc(c.description) : ""}</span>
+                </span>
+                <span class="row">
+                    <button class="btn tiny" onclick="chainAction('toggle', ${c.id})">${c.is_active ? "Deaktivieren" : "Aktivieren"}</button>
+                    <button class="btn tiny" onclick="chainAction('run', ${c.id})">Jetzt ausführen</button>
+                </span>
+            </div>`
+        ).join("") || '<div class="muted">Keine Chains.</div>';
+    } catch (e) { flash(e.message, true); }
+    loadRuns();
+}
+
+async function loadRuns() {
+    try {
+        const data = await api("/api/p6/runs");
+        const runs = data.runs || data.rows || [];
+        document.getElementById("runs-list").innerHTML = runs.slice(0, 20).map(r =>
+            `<div class="rule"><span>${esc(r.job_name || r.name || r.job_id)}
+                <span class="muted">${esc(r.started_at || r.run_at || "")} · ${esc(r.status || "")}</span></span></div>`
+        ).join("") || '<div class="muted">Keine Läufe protokolliert.</div>';
+    } catch (e) {
+        document.getElementById("runs-list").innerHTML = '<div class="muted">Läufe nicht abrufbar.</div>';
+    }
+}
+
+async function createJob() {
+    const name = document.getElementById("j-name").value.trim();
+    const schedule = document.getElementById("j-schedule").value.trim();
+    const command = document.getElementById("j-command").value.trim();
+    if (!name || !schedule || !command) { flash("Name, Intervall und Kommando sind Pflicht", true); return; }
+    try {
+        await api("/api/p6/jobs", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({name, schedule, command})});
+        flash("Job angelegt");
+        loadOverview();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function jobAction(action, id) {
+    try {
+        await api("/api/p6/jobs/" + action, {method: "POST",
+            headers: {"Content-Type": "application/json"}, body: JSON.stringify({id})});
+        flash(action + " OK");
+        loadOverview();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function chainAction(action, id) {
+    try {
+        await api("/api/p6/chains/" + action, {method: "POST",
+            headers: {"Content-Type": "application/json"}, body: JSON.stringify({id})});
+        flash(action + " OK");
+        loadOverview();
+    } catch (e) { flash(e.message, true); }
+}
+
+loadOverview();
+</script>
+{% endblock %}

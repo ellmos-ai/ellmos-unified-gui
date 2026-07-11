@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block subtitle %}Prompts{% endblock %}
+{% block content %}
+<h1>Prompts <span class="muted">BACH-Bibliothek (versioniert) · profiprompt-v1-Interop</span></h1>
+
+<div class="toolbar">
+    <input class="pl-search" id="q" placeholder="Suche ..." oninput="debouncedLoad()" style="flex:1; max-width:320px;">
+    <select id="cat" onchange="loadPrompts()"><option value="">Alle Kategorien</option></select>
+    <button class="btn" onclick="importPB()">Import aus PromptBoard</button>
+    <a class="btn" href="{{ base }}/api/p1/export-v1" download>Export (profiprompt-v1)</a>
+    <button class="btn btn-primary" onclick="startCreate()">Neu</button>
+</div>
+
+<div class="grid two">
+    <div class="card" id="prompt-list"><div class="muted">Lade ...</div></div>
+    <div class="card" id="prompt-detail"><div class="muted">Links einen Prompt wählen.</div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentId = null, debounceTimer = null;
+function debouncedLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadPrompts, 300); }
+
+async function loadPrompts() {
+    try {
+        const params = new URLSearchParams();
+        const q = document.getElementById("q").value.trim();
+        const cat = document.getElementById("cat").value;
+        if (q) params.set("q", q);
+        if (cat) params.set("category", cat);
+        const data = await api("/api/p1/prompts?" + params);
+        const sel = document.getElementById("cat");
+        const current = cat;
+        sel.innerHTML = '<option value="">Alle Kategorien</option>' +
+            (data.categories || []).map(c => `<option${c === current ? " selected" : ""}>${esc(c)}</option>`).join("");
+        document.getElementById("prompt-list").innerHTML = (data.prompts || []).map(p =>
+            `<div class="rule" style="cursor:pointer" onclick="openPrompt(${p.id})">
+                <span><b>${esc(p.name)}</b>${p.category ? ' <span class="chip">' + esc(p.category) + "</span>" : ""}
+                <div class="muted small-text">${esc(p.purpose || "")}</div></span>
+            </div>`
+        ).join("") || '<div class="muted">Keine Prompts — "Neu" oder "Import aus PromptBoard".</div>';
+    } catch (e) { flash(e.message, true); }
+}
+
+async function openPrompt(id) {
+    try {
+        const data = await api("/api/p1/prompts/" + id);
+        currentId = id;
+        const p = data.prompt, versions = data.versions || [];
+        document.getElementById("prompt-detail").innerHTML =
+            `<h3>${esc(p.name)} <span class="muted">#${p.id}</span></h3>
+            <textarea class="pl-textarea" id="d-text" rows="10" style="width:100%">${esc(p.text)}</textarea>
+            <div class="row">
+                <input id="d-tags" value="${esc(p.tags || "")}" placeholder="Tags" style="flex:1">
+                <button class="btn" onclick="saveCurrent()">Speichern (neue Version)</button>
+                <button class="btn" onclick="deleteCurrent()">Löschen</button>
+            </div>
+            <h3 style="margin-top:1rem;">Versionen (${versions.length})</h3>` +
+            versions.map(v => `<div class="rule small-text"><span><b>v${v.version_number}</b>
+                <span class="muted">${esc(v.created_at || "")}</span>
+                <pre style="white-space:pre-wrap; max-height:100px; overflow-y:auto;">${esc(v.text)}</pre></span></div>`).join("");
+    } catch (e) { flash(e.message, true); }
+}
+
+function startCreate() {
+    currentId = null;
+    document.getElementById("prompt-detail").innerHTML =
+        `<h3>Neuer Prompt</h3>
+        <div class="col">
+            <input id="n-name" placeholder="Name (eindeutig)">
+            <input id="n-category" placeholder="Kategorie">
+            <input id="n-purpose" placeholder="Purpose">
+            <input id="n-tags" placeholder="Tags (kommagetrennt)">
+            <textarea id="n-text" rows="8" placeholder="Prompt-Text (Variablen-Platzhalter im doppelt-geschweiften Stil erlaubt)"></textarea>
+            <button class="btn" onclick="createPrompt()">Anlegen</button>
+        </div>`;
+}
+
+async function createPrompt() {
+    try {
+        const data = await api("/api/p1/prompts", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                name: document.getElementById("n-name").value.trim(),
+                category: document.getElementById("n-category").value.trim() || null,
+                purpose: document.getElementById("n-purpose").value.trim() || null,
+                tags: document.getElementById("n-tags").value.trim() || null,
+                text: document.getElementById("n-text").value
+            })});
+        flash("Angelegt (#" + data.id + ")");
+        loadPrompts(); openPrompt(data.id);
+    } catch (e) { flash(e.message, true); }
+}
+
+async function saveCurrent() {
+    if (!currentId) return;
+    try {
+        const data = await api("/api/p1/prompts/update", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({id: currentId,
+                text: document.getElementById("d-text").value,
+                tags: document.getElementById("d-tags").value.trim() || null})});
+        flash("Gespeichert — Altstand als v" + data.archived_version + " archiviert");
+        openPrompt(currentId);
+    } catch (e) { flash(e.message, true); }
+}
+
+async function deleteCurrent() {
+    if (!currentId || !confirm("Prompt inkl. Versionen löschen?")) return;
+    try {
+        await api("/api/p1/prompts/" + currentId + "/delete", {method: "POST"});
+        currentId = null;
+        document.getElementById("prompt-detail").innerHTML = '<div class="muted">Gelöscht.</div>';
+        loadPrompts();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function importPB() {
+    try {
+        const data = await api("/api/p1/import-promptboard", {method: "POST"});
+        flash("Import: " + data.imported + " neu, " + data.skipped + " vorhanden");
+        loadPrompts();
+    } catch (e) { flash(e.message, true); }
+}
+
+loadPrompts();
+</script>
+{% endblock %}
