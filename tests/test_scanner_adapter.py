@@ -61,6 +61,9 @@ def test_p7_aggregation_with_scanner_only(tmp_path):
         "ticket_master": {"tickets_root": "/nonexistent"},
         "bach": {"bach_root": None, "rest_url": "http://127.0.0.1:1", "rest_timeout_s": 0.2},
         "scanner_tasks": {"db_path": str(db)},
+        "clutch": {"repo_path": None},
+        "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
+        "controlcenter": {"repo_path": None},
     })
     client = TestClient(app)
 

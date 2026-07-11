@@ -20,13 +20,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from ..adapters.bach import BachAdapter
+from ..adapters.clutch import ClutchAdapter
+from ..adapters.controlcenter import ControlCenterAdapter
 from ..adapters.lock_master import LockMasterAdapter
+from ..adapters.ollama import OllamaAdapter
 from ..adapters.scanner_tasks import ScannerTasksAdapter
 from ..adapters.ticket_master import TicketMasterAdapter
 from ..capabilities import CapabilityRegistry
 from ..config import UnifiedGuiConfig
-from ..panels import (p1_prompts, p2_agents, p5_permissions, p6_routines,
-                      p7_tasks, p8_tickets)
+from ..panels import (p1_prompts, p2_agents, p3_models, p4_routing,
+                      p5_permissions, p6_routines, p7_tasks, p8_tickets,
+                      p9_skills)
 from ..panels.base import PanelSpec
 from ..security import LocalOnlyMiddleware
 
@@ -49,18 +53,23 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
     ticket_adapter = TicketMasterAdapter(config.ticket_master)
     bach_adapter = BachAdapter(config.bach)
     scanner_adapter = ScannerTasksAdapter(config.scanner_tasks)
-    registry.register(lock_adapter)
-    registry.register(ticket_adapter)
-    registry.register(bach_adapter)
-    registry.register(scanner_adapter)
+    clutch_adapter = ClutchAdapter(config.clutch)
+    ollama_adapter = OllamaAdapter(config.ollama)
+    controlcenter_adapter = ControlCenterAdapter(config.controlcenter)
+    for adapter in (lock_adapter, ticket_adapter, bach_adapter, scanner_adapter,
+                    clutch_adapter, ollama_adapter, controlcenter_adapter):
+        registry.register(adapter)
 
     all_panels: list[PanelSpec] = [
         p1_prompts.build(bach_adapter),
         p2_agents.build(bach_adapter),
+        p3_models.build(clutch_adapter, ollama_adapter, registry),
+        p4_routing.build(ticket_adapter, clutch_adapter, registry),
         p5_permissions.build(lock_adapter),
         p6_routines.build(bach_adapter),
         p7_tasks.build(bach_adapter, scanner_adapter, registry),
         p8_tickets.build(ticket_adapter),
+        p9_skills.build(controlcenter_adapter),
     ]
 
     app.state.config = config

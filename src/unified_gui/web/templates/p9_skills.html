@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block subtitle %}Skills{% endblock %}
+{% block content %}
+<h1>Skills <span class="muted">Inventar & Intent-Matching via ControlCenter-MCP</span></h1>
+
+<div class="card">
+    <h3>Welcher Skill passt zu meiner Aufgabe?</h3>
+    <div class="row">
+        <input id="s-intent" placeholder='Intent, z. B. "PDF in Text umwandeln" oder "Paper reviewen"' style="flex:1">
+        <button class="btn" onclick="findSkill()">Suchen</button>
+    </div>
+    <div id="find-result" style="margin-top:0.5rem;"></div>
+</div>
+
+<div class="toolbar">
+    <button class="btn" onclick="loadSkills()">Skill-Inventar laden (MCP, dauert 1–3 s)</button>
+    <span id="s-count" class="muted small-text"></span>
+</div>
+<div id="skill-list" class="card"><div class="muted">Noch nicht geladen.</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function renderPayload(el, data) {
+    // ControlCenter-MCP liefert je nach Tool strukturierte Objekte oder Text
+    if (data == null) { el.innerHTML = '<span class="muted">Keine Antwort.</span>'; return; }
+    if (data.text) { el.innerHTML = "<pre class='small-text' style='white-space:pre-wrap'>" + esc(data.text) + "</pre>"; return; }
+    const items = data.skills || data.results || data.matches || (Array.isArray(data) ? data : null);
+    if (items && items.length) {
+        el.innerHTML = items.map(s =>
+            `<div class="rule"><span><b>${esc(s.name || s.skill || s.id || "?")}</b>
+                <div class="muted small-text">${esc(s.description || s.reason || "")}</div>
+                <span class="muted small-text">${esc(s.path || s.location || "")}</span></span>
+                ${s.score != null ? '<span class="chip">' + esc(String(s.score)) + "</span>" : ""}</div>`
+        ).join("");
+        return;
+    }
+    el.innerHTML = "<pre class='small-text' style='white-space:pre-wrap'>" + esc(JSON.stringify(data, null, 2)) + "</pre>";
+}
+
+async function loadSkills() {
+    const el = document.getElementById("skill-list");
+    el.innerHTML = '<div class="muted">MCP-Session läuft ...</div>';
+    try {
+        const data = await api("/api/p9/skills");
+        renderPayload(el, data);
+        const items = data.skills || data.results || [];
+        document.getElementById("s-count").textContent = items.length ? items.length + " Skills" : "";
+    } catch (e) { el.innerHTML = ""; flash(e.message, true); }
+}
+
+async function findSkill() {
+    const intent = document.getElementById("s-intent").value.trim();
+    if (!intent) return;
+    const el = document.getElementById("find-result");
+    el.innerHTML = '<span class="muted">MCP-Session läuft ...</span>';
+    try {
+        const data = await api("/api/p9/find", {method: "POST",
+            headers: {"Content-Type": "application/json"}, body: JSON.stringify({intent})});
+        renderPayload(el, data);
+    } catch (e) { el.innerHTML = ""; flash(e.message, true); }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block subtitle %}Routing{% endblock %}
+{% block content %}
+<h1>Routing <span class="muted">ticket-master (Score→Tier→Provider) · clutch (auto-lernend)</span></h1>
+
+<div class="grid two">
+    <div class="card">
+        <h3>ticket-master-Konfiguration <span id="cfg-state" class="muted small-text"></span></h3>
+        <div class="score-grid">
+            <label>tier1_max <input type="number" id="t1"></label>
+            <label>tier2_max <input type="number" id="t2"></label>
+            <label>tier3_max <input type="number" id="t3"></label>
+            <label>tier4_min <input type="number" id="t4"></label>
+            <label>Default-Provider
+                <select id="def-provider"></select>
+            </label>
+            <label>Advisor-Schwelle <input type="number" id="adv-threshold"></label>
+        </div>
+        <div class="row">
+            <label class="small-text"><input type="checkbox" id="adv-enabled"> Advisor aktiv</label>
+            <input id="adv-model" placeholder="Advisor-Modell (z. B. opus)" style="width:180px">
+        </div>
+        <div class="row">
+            <input id="router-cmd" placeholder="router_command (leer = Score-Fallback)" style="flex:1">
+        </div>
+        <div class="row">
+            <button class="btn" onclick="saveConfig()">Speichern</button>
+            <span class="muted small-text">Schreibt ticket-master.config.json (legt sie ggf. aus der .example an)</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>clutch Route-Vorschau <span id="clutch-state" class="muted small-text"></span></h3>
+        <div class="row">
+            <input id="route-task" placeholder="Task-Beschreibung eingeben ..." style="flex:1">
+            <button class="btn" onclick="routePreview()">Routen</button>
+        </div>
+        <div id="route-result" class="small-text muted" style="margin-top:0.5rem;"></div>
+        <h3 style="margin-top:1rem;">clutch-Statistik</h3>
+        <div class="row"><button class="btn small" onclick="loadStats()">Laden (CLI, dauert kurz)</button></div>
+        <pre id="clutch-stats" class="small-text" style="white-space:pre-wrap; max-height:280px; overflow-y:auto;"></pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadConfig() {
+    try {
+        const data = await api("/api/p4/config");
+        const tm = data.ticket_master;
+        document.getElementById("cfg-state").textContent =
+            tm.config_exists ? "(Config vorhanden)" : "(noch keine Config — Fallback-Defaults)";
+        const th = tm.score_thresholds;
+        t1.value = th.tier1_max; t2.value = th.tier2_max; t3.value = th.tier3_max; t4.value = th.tier4_min;
+        const sel = document.getElementById("def-provider");
+        sel.innerHTML = tm.providers.map(p =>
+            `<option${p === tm.default_provider ? " selected" : ""}>${esc(p)}</option>`).join("");
+        document.getElementById("adv-threshold").value = tm.advisor.threshold_score;
+        document.getElementById("adv-enabled").checked = !!tm.advisor.enabled;
+        document.getElementById("adv-model").value = tm.advisor.model || "";
+        document.getElementById("router-cmd").value = tm.router_command || "";
+        document.getElementById("clutch-state").textContent =
+            data.clutch_available ? "" : "(clutch offline)";
+    } catch (e) { flash(e.message, true); }
+}
+
+async function saveConfig() {
+    try {
+        await api("/api/p4/config", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                score_thresholds: {tier1_max: +t1.value, tier2_max: +t2.value,
+                                   tier3_max: +t3.value, tier4_min: +t4.value},
+                default_provider: document.getElementById("def-provider").value,
+                router_command: document.getElementById("router-cmd").value.trim() || null,
+                advisor: {enabled: document.getElementById("adv-enabled").checked,
+                          model: document.getElementById("adv-model").value.trim() || "opus",
+                          threshold_score: +document.getElementById("adv-threshold").value}
+            })});
+        flash("Routing-Config gespeichert");
+        loadConfig();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function routePreview() {
+    const task = document.getElementById("route-task").value.trim();
+    if (!task) return;
+    const el = document.getElementById("route-result");
+    el.textContent = "clutch routet (CLI) ...";
+    try {
+        const data = await api("/api/p4/clutch-route", {method: "POST",
+            headers: {"Content-Type": "application/json"}, body: JSON.stringify({task})});
+        el.innerHTML = "<pre style='white-space:pre-wrap'>" + esc(JSON.stringify(data, null, 2)) + "</pre>";
+    } catch (e) { el.textContent = ""; flash(e.message, true); }
+}
+
+async function loadStats() {
+    const el = document.getElementById("clutch-stats");
+    el.textContent = "Lade (clutch-CLI) ...";
+    try {
+        const data = await api("/api/p4/clutch-stats");
+        el.textContent = JSON.stringify(data, null, 2);
+    } catch (e) { el.textContent = ""; flash(e.message, true); }
+}
+
+loadConfig();
+</script>
+{% endblock %}

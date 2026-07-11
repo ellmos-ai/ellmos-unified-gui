@@ -35,17 +35,22 @@
       PromptBoard-Import (Referenz: BACH `/api/prompt-library`)
 - [x] Mount-Test: Einbettung in BACH `gui/server.py` unter `/control` (live, alle 6 Panels nach Re-Probe)
 
-## Phase 3 — Modelle, Routing, Skills
+## Phase 3 — Modelle, Routing, Skills  ✅ (2026-07-11; homebase → Phase 4)
 
-- [ ] Adapter `ollama` (/api/tags, Verfügbarkeit) + `api_models`
-      (proprietäre Modelle via Credential-Referenz, NIE Klartext-Keys)
-- [ ] Adapter `clutch` (Provider/Routing) + `homebase` (hb_route_stats, hb_state_task)
-- [ ] **P3 Modelle**: lokale + API-Modelle, Hinzufügen, Health-Check, Default je Rolle
-- [ ] **P4 Routing**: ticket-master-Score/Tiers editieren, router_command, Advisor,
-      Statistik (hb_route_stats)
-- [ ] Adapter `controlcenter` + **P9 Skills** (Inventar, Intent-Matching)
+- [x] Adapter `ollama` (/api/tags, /api/ps, /api/version) — `api_models` entfiel:
+      clutch IST die Modell-/Credential-Registry (`clutch keys`, getriebe.json) [D07]
+- [x] Adapter `clutch` (models/stats/route via CLI-JSON) — `homebase` auf Phase 4
+      verschoben (Routing/Tasks dort noch Dry-run-Stubs, Nutzen aktuell gering)
+- [x] **P3 Modelle**: clutch-Gears + Ollama-Live-Sicht (Tags, geladene Modelle);
+      Hinzufügen/Default-je-Rolle bleibt clutch-Config (getriebe.json)
+- [x] **P4 Routing**: ticket-master-Score/Tiers/default_provider/router_command/
+      Advisor-Editor (legt Config aus .example an) + clutch-Stats & Route-Vorschau
+- [x] Adapter `controlcenter` (eigener minimaler stdio-MCP-Client, mcp_client.py)
+      + **P9 Skills** (Inventar 109 Skills, Intent-Matching, Bundles)
 
 ## Phase 4 — Konsolidierung
+
+- [ ] Adapter `homebase` (hb_route_stats, hb_state_task_*) sobald Execution-Backends real
 
 - [ ] BACH mountet Unified GUI; überlappende BACH-Panels deprecaten
 - [ ] ellmos-core: Operator-Bereich = Unified-GUI-Mount (Abgrenzung Endnutzer/Operator)

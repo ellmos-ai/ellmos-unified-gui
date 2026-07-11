@@ -1,5 +1,30 @@
 # Changelog — ellmos Unified GUI
 
+## [0.3.0] - 2026-07-11 (Phase 3)
+
+### Added
+
+- mcp_client.py: minimaler stdio-MCP-Client (JSON-RPC newline-delimited,
+  initialize-Handshake, tools/call) — wiederverwendbar fuer weitere MCP-Backends
+- Adapter `clutch`: Modell-Registry (13 Gears inkl. Kosten/Staerken), Routing-
+  Statistik und Route-Vorschau via CLI-JSON (cwd=Repo); Credentials bleiben in
+  clutchs Store — die GUI zeigt nie Schluessel
+- Adapter `ollama`: /api/tags, /api/ps, /api/version (Live-Sicht lokale Modelle)
+- Adapter `controlcenter`: Skill-Inventar/Intent-Matching/Bundles ueber den
+  ellmos-controlcenter-mcp (kurzlebige Node-Sessions)
+- ticket-master-Adapter: RoutingConfig-RW — Score-Tiers, default_provider,
+  router_command, Advisor editierbar; legt ticket-master.config.json bei Bedarf
+  aus der .example an; Schwellen-Validierung
+- Panels: P3 Modelle (clutch+Ollama nebeneinander), P4 Routing (Editor +
+  clutch-Stats/Route-Vorschau), P9 Skills (Inventar, Intent-Suche)
+
+### Changed
+
+- ROUTING_CONFIG wird nur gemeldet, wenn config_dir existiert (Schreibpfad)
+- api_models-Adapter entfiel bewusst: clutch ist die kanonische Modell-/
+  Credential-Registry [D07]; homebase-Adapter auf Phase 4 verschoben
+
+
 ## [0.2.0] - 2026-07-11 (Phase 2)
 
 ### Added

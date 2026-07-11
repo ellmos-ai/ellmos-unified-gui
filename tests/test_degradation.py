@@ -17,6 +17,9 @@ def _app_without_backends():
         "ticket_master": {"tickets_root": "/nonexistent"},
         "bach": {"bach_root": None, "rest_url": "http://127.0.0.1:1", "rest_timeout_s": 0.2},
         "scanner_tasks": {"db_path": None, "tool_path": None},
+        "clutch": {"repo_path": None},
+        "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
+        "controlcenter": {"repo_path": None},
     })
 
 
@@ -53,6 +56,9 @@ def test_refresh_picks_up_new_backend(tmp_path):
         "ticket_master": {"tickets_root": str(tmp_path / "missing")},
         "bach": {"bach_root": None, "rest_url": "http://127.0.0.1:1", "rest_timeout_s": 0.2},
         "scanner_tasks": {"db_path": None, "tool_path": None},
+        "clutch": {"repo_path": None},
+        "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
+        "controlcenter": {"repo_path": None},
     })
     client = TestClient(app)
     assert client.get("/api/status").json()["panels"] == []

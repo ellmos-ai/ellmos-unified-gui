@@ -11,5 +11,22 @@
   "ticket_master": {
     "tickets_root": "/pfad/zu/TICKETS",
     "config_dir": "/pfad/zu/ticket-master/config"
+  },
+  "bach": {
+    "bach_root": "/pfad/zu/BACH",
+    "rest_url": "http://127.0.0.1:8000"
+  },
+  "scanner_tasks": {
+    "db_path": "/pfad/zu/scanner_tasks.db",
+    "tool_path": "/pfad/zu/scanner_tasks.py"
+  },
+  "clutch": {
+    "repo_path": "/pfad/zu/clutch"
+  },
+  "ollama": {
+    "url": "http://127.0.0.1:11434"
+  },
+  "controlcenter": {
+    "repo_path": "/pfad/zu/ellmos-controlcenter-mcp"
   }
 }

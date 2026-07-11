@@ -49,6 +49,28 @@ class ScannerTasksConfig:
 
 
 @dataclass
+class ClutchConfig:
+    # clutch-Repo (Ordner mit clutch/cli.py) — CLI laeuft mit cwd=Repo.
+    repo_path: str | None = None
+    python_exe: str | None = None
+    timeout_s: float = 45.0
+
+
+@dataclass
+class OllamaConfig:
+    url: str = "http://127.0.0.1:11434"
+    timeout_s: float = 1.5
+
+
+@dataclass
+class ControlCenterConfig:
+    # ellmos-controlcenter-mcp-Repo (mit gebautem dist/index.js).
+    repo_path: str | None = None
+    node_exe: str = "node"
+    timeout_s: float = 30.0
+
+
+@dataclass
 class TicketMasterConfig:
     # Verzeichnis mit T-*.txt + QUEUED/PENDING/SOLVED (live: _control-center/_TICKETS
     # oder ein ticket-master tickets/-Ordner).
@@ -64,6 +86,9 @@ class UnifiedGuiConfig:
     ticket_master: TicketMasterConfig = field(default_factory=TicketMasterConfig)
     bach: BachConfig = field(default_factory=BachConfig)
     scanner_tasks: ScannerTasksConfig = field(default_factory=ScannerTasksConfig)
+    clutch: ClutchConfig = field(default_factory=ClutchConfig)
+    ollama: OllamaConfig = field(default_factory=OllamaConfig)
+    controlcenter: ControlCenterConfig = field(default_factory=ControlCenterConfig)
     # Standalone-Guard: nur lokale Origins/Clients (im Mount-Betrieb Sache des Hosts)
     local_only: bool = True
 
@@ -114,6 +139,20 @@ class UnifiedGuiConfig:
                 db_path=sc.get("db_path"),
                 tool_path=sc.get("tool_path"),
                 python_exe=sc.get("python_exe"),
+            ),
+            clutch=ClutchConfig(
+                repo_path=(data.get("clutch") or {}).get("repo_path"),
+                python_exe=(data.get("clutch") or {}).get("python_exe"),
+                timeout_s=float((data.get("clutch") or {}).get("timeout_s", 45.0)),
+            ),
+            ollama=OllamaConfig(
+                url=(data.get("ollama") or {}).get("url", "http://127.0.0.1:11434"),
+                timeout_s=float((data.get("ollama") or {}).get("timeout_s", 1.5)),
+            ),
+            controlcenter=ControlCenterConfig(
+                repo_path=(data.get("controlcenter") or {}).get("repo_path"),
+                node_exe=(data.get("controlcenter") or {}).get("node_exe", "node"),
+                timeout_s=float((data.get("controlcenter") or {}).get("timeout_s", 30.0)),
             ),
         )
 

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block subtitle %}Modelle{% endblock %}
+{% block content %}
+<h1>Modelle <span class="muted">clutch-Registry + Ollama-Live-Sicht</span></h1>
+
+<div class="toolbar">
+    <span id="m-sources" class="muted small-text"></span>
+    <button class="btn small" onclick="loadModels()">Aktualisieren</button>
+    <button class="btn small" onclick="loadRunning()">Geladene Modelle (Ollama)</button>
+</div>
+<p class="muted small-text">API-Schlüssel verwaltet clutch (<code>clutch keys set/list</code>,
+<code>~/.clutch/credentials.json</code>) — hier werden nie Schlüssel angezeigt.
+Neue Modelle/Provider: Gears in clutchs <code>getriebe.json</code> pflegen.</p>
+
+<div id="running-box"></div>
+<div id="model-list" class="card"><div class="muted">Lade ...</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadModels() {
+    try {
+        const data = await api("/api/p3/models");
+        document.getElementById("m-sources").textContent = data.sources.map(s =>
+            `${s.name}: ${s.available ? s.count + " Modelle" : "offline"}${s.error ? " (" + s.error + ")" : ""}`
+        ).join(" · ");
+        document.getElementById("model-list").innerHTML = (data.models || []).map(m =>
+            `<div class="rule">
+                <span>
+                    <span class="chip">${esc(m.source)}</span>
+                    <b>${esc(m.name)}</b>
+                    <span class="muted small-text">${esc(m.provider)}${m.tier != null ? " · Gang " + m.tier : ""}${m.class ? " · " + esc(m.class) : ""}</span>
+                </span>
+                <span class="muted small-text">
+                    ${m.cost_in_1k != null ? (m.cost_in_1k === 0 ? "kostenlos" : "$" + m.cost_in_1k + "/" + "$" + m.cost_out_1k + " je 1k") : ""}
+                    ${(m.strengths || []).filter(Boolean).slice(0, 4).map(s => '<span class="chip">' + esc(s) + "</span>").join(" ")}
+                </span>
+            </div>`
+        ).join("") || '<div class="muted">Keine Modelle gefunden.</div>';
+    } catch (e) { flash(e.message, true); }
+}
+
+async function loadRunning() {
+    try {
+        const data = await api("/api/p3/running");
+        const running = data.running || [];
+        document.getElementById("running-box").innerHTML =
+            `<div class="card"><h3>Aktuell geladen (Ollama)</h3>` +
+            (running.map(r => `<div class="rule"><span><b>${esc(r.name)}</b>
+                <span class="muted small-text">${Math.round((r.size_vram || r.size || 0) / 1073741824 * 10) / 10} GB VRAM</span></span></div>`).join("")
+             || '<div class="muted">Kein Modell geladen.</div>') + `</div>`;
+    } catch (e) { flash(e.message, true); }
+}
+
+loadModels();
+</script>
+{% endblock %}

@@ -126,6 +126,8 @@ class TicketMasterAdapter(BaseAdapter):
         try:
             if self._root() is not None:
                 caps.add(Capability.TICKETS_RW)
+            # Routing-Editor nur, wenn der Config-Ordner existiert (Schreibpfad)
+            if self.config.config_dir and Path(self.config.config_dir).expanduser().is_dir():
                 caps.add(Capability.ROUTING_CONFIG)
         except Exception:  # noqa: BLE001 — probe wirft nie
             pass
@@ -261,6 +263,67 @@ class TicketMasterAdapter(BaseAdapter):
             return json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             return None
+
+    # ------------------------------------------------------------------
+    # RoutingConfig (P4): Score-Tiers, default_provider, router_command, advisor
+    # ------------------------------------------------------------------
+    def routing_config(self) -> dict:
+        """Aktive Routing-Parameter (Config oder Fallback-Defaults)."""
+        tm_config = self._tm_config() or {}
+        return {
+            "config_exists": self._tm_config() is not None,
+            "config_dir": self.config.config_dir,
+            "score_thresholds": {**DEFAULT_THRESHOLDS, **(tm_config.get("score_thresholds") or {})},
+            "default_provider": tm_config.get("default_provider", "claude"),
+            "providers": list((tm_config.get("providers") or {}).keys()) or ["claude", "codex", "agy"],
+            "router_command": tm_config.get("router_command"),
+            "advisor": {**{"enabled": False, "model": "opus",
+                           "threshold_score": DEFAULT_ADVISOR_THRESHOLD},
+                        **(tm_config.get("advisor") or {})},
+        }
+
+    def set_routing_config(self, updates: dict) -> dict:
+        """Schreibt Routing-Parameter in ticket-master.config.json.
+
+        Existiert nur die .example-Datei, wird daraus die echte Config erzeugt
+        (Konvention von ticket-master: example kopieren und anpassen)."""
+        if not self.config.config_dir:
+            raise AdapterError("no_config_dir", "config_dir nicht konfiguriert")
+        config_dir = Path(self.config.config_dir).expanduser()
+        if not config_dir.is_dir():
+            raise AdapterError("config_dir_missing", str(config_dir))
+        path = config_dir / "ticket-master.config.json"
+        current = self._tm_config()
+        if current is None:
+            example = config_dir / "ticket-master.config.example.json"
+            if example.is_file():
+                try:
+                    current = json.loads(example.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    current = {}
+            else:
+                current = {}
+
+        allowed = {"score_thresholds", "default_provider", "router_command", "advisor"}
+        for key, value in updates.items():
+            if key not in allowed:
+                raise AdapterError("field_not_editable", key)
+            if key in ("score_thresholds", "advisor") and isinstance(value, dict):
+                merged = dict(current.get(key) or {})
+                merged.update(value)
+                current[key] = merged
+            else:
+                current[key] = value
+
+        thresholds = {**DEFAULT_THRESHOLDS, **(current.get("score_thresholds") or {})}
+        if not (int(thresholds["tier1_max"]) < int(thresholds["tier2_max"])
+                < int(thresholds["tier3_max"]) < int(thresholds["tier4_min"])):
+            raise AdapterError("invalid_thresholds",
+                               "tier1_max < tier2_max < tier3_max < tier4_min erforderlich")
+
+        path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + "\n",
+                        encoding="utf-8")
+        return self.routing_config()
 
     def _next_id(self, root: Path, now: datetime) -> str:
         datestr = now.strftime("%Y%m%d")

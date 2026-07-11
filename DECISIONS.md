@@ -4,6 +4,15 @@ Format: `[ID] Datum — Entscheidung` mit Kontext/Begründung. Neueste oben.
 
 ---
 
+## [D07] 2026-07-11 — clutch ist die Modell-/Credential-Registry (kein api_models-Store)
+
+Der geplante api_models-Adapter mit eigener models.json entfaellt: clutch bringt
+bereits Provider-neutrale Gears (getriebe.json), einen Credential-Store
+(~/.clutch/credentials.json via `clutch keys`, env-first) und Model-Discovery
+mit. Eigene Modell-Persistenz in der GUI waere eine zweite Wahrheit (verstoesse
+gegen D04). P3 zeigt clutch + Ollama nebeneinander; Schluessel erscheinen nie
+in der GUI. homebase-Adapter auf Phase 4 verschoben (Routing/Swarm dort Stubs).
+
 ## [D06] 2026-07-11 — Tickets & Locks als Panels, nicht als eigene GUIs dupliziert
 
 ticket-master (kein UI) und lock-master (Watcher nur für Locks) bekommen ihre GUI
