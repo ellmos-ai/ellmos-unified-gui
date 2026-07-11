@@ -1,0 +1,83 @@
+/* ellmos Unified GUI — schlankes Dark-Theme, kein Framework */
+:root {
+    --bg: #14161a; --panel: #1c1f26; --card: #23272f; --border: #333a45;
+    --text: #d7dde6; --muted: #8b95a3; --accent: #4da3ff;
+    --ok: #3fbf6f; --warn: #e0a83f; --err: #e05555;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+       font: 14px/1.5 system-ui, "Segoe UI", sans-serif; }
+h1 { font-size: 1.3rem; } h2 { font-size: 1.1rem; margin-top: 1.5rem; }
+h3 { font-size: 0.95rem; margin: 0 0 0.6rem; }
+code { background: var(--bg); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.85em; }
+a { color: var(--accent); }
+
+.topbar { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.2rem;
+          background: var(--panel); border-bottom: 1px solid var(--border);
+          position: sticky; top: 0; flex-wrap: wrap; }
+.brand { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+.brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.ver { color: var(--muted); font-weight: 400; font-size: 0.8rem; }
+.topbar nav { display: flex; gap: 0.3rem; flex: 1; flex-wrap: wrap; }
+.nav-link { padding: 0.3rem 0.7rem; border-radius: 6px; text-decoration: none; color: var(--text); }
+.nav-link:hover { background: var(--card); }
+
+.content { padding: 1.2rem; max-width: 1300px; margin: 0 auto; }
+.muted { color: var(--muted); }
+.small-text { font-size: 0.8rem; }
+
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.grid.two { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.grid.three { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.grid.board { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+        padding: 0.9rem; margin-bottom: 1rem; }
+.card.link { text-decoration: none; color: var(--text); display: flex;
+             flex-direction: column; gap: 0.3rem; }
+.card.link:hover { border-color: var(--accent); }
+.card-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+
+.health { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.health.ok { background: var(--ok); } .health.degraded { background: var(--warn); }
+.health.offline { background: var(--err); }
+
+.chips { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.chip { background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+        padding: 0.1rem 0.55rem; font-size: 0.75rem; color: var(--muted); }
+.verdict-allow { color: var(--ok); border-color: var(--ok); }
+.verdict-ask { color: var(--warn); border-color: var(--warn); }
+.verdict-deny { color: var(--err); border-color: var(--err); }
+.deny-h { color: var(--err); } .ask-h { color: var(--warn); } .allow-h { color: var(--ok); }
+
+.toolbar { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; margin: 0.8rem 0; }
+.row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 0.4rem; }
+.col { display: flex; flex-direction: column; gap: 0.5rem; }
+
+input, select, textarea { background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.6rem; font: inherit; }
+textarea { resize: vertical; }
+
+.btn { background: var(--panel); color: var(--text); border: 1px solid var(--border);
+       border-radius: 6px; padding: 0.4rem 0.8rem; cursor: pointer; font: inherit; }
+.btn:hover { border-color: var(--accent); }
+.btn.warn { border-color: var(--err); color: var(--err); }
+.btn.small { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+.btn.tiny { padding: 0.05rem 0.4rem; font-size: 0.72rem; }
+
+.rule { display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;
+        padding: 0.25rem 0; border-bottom: 1px dashed var(--border); }
+.rule code { word-break: break-all; }
+
+.lane { min-height: 120px; }
+.ticket { background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+          padding: 0.5rem; margin-bottom: 0.5rem; }
+
+.score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; align-items: end; }
+.score-grid label { display: flex; flex-direction: column; font-size: 0.8rem; color: var(--muted); }
+.score-grid input { width: 100%; }
+
+#flash { position: fixed; bottom: 1rem; right: 1rem; background: var(--card);
+         border: 1px solid var(--ok); border-radius: 8px; padding: 0.6rem 1rem;
+         transition: opacity 0.4s; opacity: 0; max-width: 400px; }
+#flash.error { border-color: var(--err); }

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block subtitle %}Übersicht{% endblock %}
+{% block content %}
+<h1>Backends & Panels</h1>
+<p class="muted">Capability-driven: Nur Panels, deren Backend erreichbar ist, erscheinen in der Navigation.</p>
+
+<div class="grid">
+    {% for a in adapters %}
+    <div class="card">
+        <div class="card-head">
+            <span class="health {{ a.health.status }}"></span>
+            <b>{{ a.label }}</b>
+        </div>
+        <div class="muted small-text">{{ a.health.detail }}</div>
+        {% if a.capabilities %}
+        <div class="chips">
+            {% for c in a.capabilities %}<span class="chip">{{ c }}</span>{% endfor %}
+        </div>
+        {% else %}
+        <div class="muted small-text">Keine Capabilities — Backend abwesend{% if a.probe_error %} ({{ a.probe_error }}){% endif %}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<h2>Aktive Panels</h2>
+{% if panels %}
+<div class="grid">
+    {% for p in panels %}
+    <a class="card link" href="{{ base }}{{ p.path }}">
+        <b>{{ p.label }}</b>
+        <span class="muted small-text">{{ p.path }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<p class="muted">Kein Panel aktiv — keines der konfigurierten Backends ist erreichbar.
+Konfiguration: <code>unified-gui.config.json</code> bzw. <code>UNIFIED_GUI_*</code>-Env-Variablen.</p>
+{% endif %}
+{% endblock %}

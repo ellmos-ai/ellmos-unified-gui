@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.claude/settings.local.json
+.claude/.cache/
+.claude/state/
+*.db
+*.log
+unified-gui.config.json

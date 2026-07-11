@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block subtitle %}Berechtigungen{% endblock %}
+{% block content %}
+<h1>Berechtigungen <span class="muted">LOCK.permissions.json (deny &gt; ask &gt; allow)</span></h1>
+
+<div class="toolbar">
+    <label>Projekt-Root:
+        <select id="root-select" onchange="loadRules()"></select>
+    </label>
+    <label>Default:
+        <select id="default-select" onchange="setDefault()">
+            <option value="allow">allow</option>
+            <option value="ask">ask</option>
+            <option value="deny">deny</option>
+        </select>
+    </label>
+    <span id="perm-file-state" class="muted small-text"></span>
+</div>
+
+<div class="grid three">
+    <div class="card"><h3 class="deny-h">deny</h3><div id="list-deny"></div></div>
+    <div class="card"><h3 class="ask-h">ask</h3><div id="list-ask"></div></div>
+    <div class="card"><h3 class="allow-h">allow</h3><div id="list-allow"></div></div>
+</div>
+
+<div class="card">
+    <h3>Regel hinzufügen</h3>
+    <div class="row">
+        <select id="new-decision">
+            <option value="deny">deny</option>
+            <option value="ask">ask</option>
+            <option value="allow">allow</option>
+        </select>
+        <input id="new-pattern" placeholder='z. B. Bash(rm:*), Write(**/CREDENTIALS/**), mcp__*__delete*' style="flex:1">
+        <button class="btn" onclick="addRule()">Hinzufügen</button>
+    </div>
+    <p class="muted small-text">Pattern im <code>.claude/settings.json</code>-Stil: <code>Tool(arg)</code>, Globs, <code>cmd:*</code>-Präfixe.</p>
+</div>
+
+<div class="card">
+    <h3>Test-Bench: Aktion auswerten</h3>
+    <div class="row">
+        <input id="eval-agent" value="claude" style="width:110px" title="Agent">
+        <input id="eval-action" placeholder='z. B. Bash(rm -rf x) oder Write(a/CREDENTIALS/k.txt)' style="flex:1">
+        <button class="btn" onclick="evaluate()">Auswerten</button>
+        <span id="eval-result" class="chip"></span>
+    </div>
+</div>
+
+<div class="card" id="locks-card">
+    <h3>Locks <span class="muted small-text" id="locks-state"></span></h3>
+    <div class="row">
+        <button class="btn" onclick="locksAction('scan')">Scan</button>
+        <button class="btn" onclick="locksAction('prune')">Prune (abgelaufene)</button>
+        <button class="btn warn" onclick="if(confirm('ALLE Roots sofort sperren?')) locksAction('bulk-lock')">Bulk-Lockdown</button>
+        <button class="btn" onclick="if(confirm('Bulk-Sperre aufheben?')) locksAction('bulk-unlock')">Bulk-Unlock</button>
+    </div>
+    <div id="locks-list" class="small-text"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentRoot = null;
+
+async function loadRoots() {
+    const data = await api("/api/p5/roots");
+    const sel = document.getElementById("root-select");
+    sel.innerHTML = data.roots.map(r =>
+        `<option value="${esc(r.path)}">${esc(r.path)}${r.has_permissions ? "" : "  (noch keine Datei)"}</option>`
+    ).join("");
+    if (data.roots.length) { currentRoot = data.roots[0].path; loadRules(); }
+}
+
+async function loadRules() {
+    currentRoot = document.getElementById("root-select").value;
+    try {
+        const perm = await api("/api/p5/rules?root=" + encodeURIComponent(currentRoot));
+        document.getElementById("default-select").value = perm.default || "allow";
+        document.getElementById("perm-file-state").textContent =
+            perm._exists ? "Datei vorhanden" : "Noch keine LOCK.permissions.json — wird beim ersten Speichern angelegt";
+        for (const d of ["deny", "ask", "allow"]) {
+            document.getElementById("list-" + d).innerHTML =
+                (perm.rules[d] || []).map(rule =>
+                    `<div class="rule"><code>${esc(rule)}</code>
+                     <button class="btn tiny" onclick='removeRule("${d}", ${JSON.stringify(rule)})'>✕</button></div>`
+                ).join("") || '<span class="muted small-text">—</span>';
+        }
+    } catch (e) { flash(e.message, true); }
+}
+
+async function addRule() {
+    const pattern = document.getElementById("new-pattern").value.trim();
+    if (!pattern) return;
+    try {
+        await api("/api/p5/rules", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({root: currentRoot, decision: document.getElementById("new-decision").value, pattern})});
+        document.getElementById("new-pattern").value = "";
+        flash("Regel gespeichert");
+        loadRules();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function removeRule(decision, pattern) {
+    try {
+        await api("/api/p5/rules/remove", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({root: currentRoot, decision, pattern})});
+        loadRules();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function setDefault() {
+    try {
+        await api("/api/p5/default", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({root: currentRoot, default: document.getElementById("default-select").value})});
+        flash("Default gespeichert");
+        loadRules();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function evaluate() {
+    const el = document.getElementById("eval-result");
+    try {
+        const data = await api("/api/p5/evaluate", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({root: currentRoot,
+                agent: document.getElementById("eval-agent").value.trim() || "claude",
+                action: document.getElementById("eval-action").value.trim()})});
+        el.textContent = data.verdict;
+        el.className = "chip verdict-" + data.verdict;
+    } catch (e) { el.textContent = ""; flash(e.message, true); }
+}
+
+async function loadLocks() {
+    const state = document.getElementById("locks-state");
+    try {
+        const data = await api("/api/p5/locks");
+        const locks = Array.isArray(data) ? data : (data.locks || []);
+        state.textContent = locks.length + " aktiv (via lock-master-Watcher)";
+        document.getElementById("locks-list").innerHTML = locks.slice(0, 50).map(l =>
+            `<div class="rule"><code>${esc(l.path || l.file || JSON.stringify(l).slice(0, 120))}</code></div>`
+        ).join("") || '<span class="muted">Keine aktiven Locks.</span>';
+    } catch (e) {
+        state.textContent = "Watcher offline — Lock-Aktionen nicht verfügbar";
+        document.getElementById("locks-list").innerHTML =
+            '<span class="muted small-text">lock-master-Watcher starten (START.bat, Port 8095), dann ⟳ Re-Probe.</span>';
+    }
+}
+
+async function locksAction(action) {
+    try {
+        await api("/api/p5/locks/" + action, {method: "POST"});
+        flash(action + " ausgeführt");
+        loadLocks();
+    } catch (e) { flash(e.message, true); }
+}
+
+loadRoots(); loadLocks();
+</script>
+{% endblock %}

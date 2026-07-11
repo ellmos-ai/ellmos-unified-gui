@@ -1,0 +1,15 @@
+{
+  "_comment": "Kopiere diese Datei nach unified-gui.config.json und passe die Pfade an. Alternativ: UNIFIED_GUI_*-Env-Variablen (siehe src/unified_gui/config.py).",
+  "title": "Unified GUI",
+  "local_only": true,
+  "lock_master": {
+    "module_path": "/pfad/zu/lock-master",
+    "roots": [],
+    "roots_file": "/pfad/zu/lock_roots.json",
+    "watcher_url": "http://127.0.0.1:8095"
+  },
+  "ticket_master": {
+    "tickets_root": "/pfad/zu/TICKETS",
+    "config_dir": "/pfad/zu/ticket-master/config"
+  }
+}

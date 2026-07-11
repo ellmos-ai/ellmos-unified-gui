@@ -1,0 +1,313 @@
+# SPDX-License-Identifier: MIT
+"""ticket-master-Adapter: Ticket-Dateisystem + Score-/Routing-Vorschau.
+
+Wahrheit bleibt dateibasiert (T-*.txt, Multi-Host-Claim per Dateiname) —
+der Adapter liest/schreibt genau dieses Format und laesst die Claim-Konvention
+unangetastet (DECISIONS.md D06). Score-Formel und Tier-Schwellen stammen aus
+ticket-master (prompts/TICKET-MASTER.md + config/ticket-master.config.json).
+"""
+from __future__ import annotations
+
+import json
+import re
+import socket
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+
+from ..capabilities import Capability, HealthInfo
+from ..config import TicketMasterConfig
+from .base import AdapterError, BaseAdapter
+
+QUEUES = ("OPEN", "QUEUED", "PENDING", "SOLVED", ".USER")
+_TICKET_RE = re.compile(r"^(T-\d{8}-\d{2,})(?:\.([A-Za-z0-9_-]+))?\.txt$")
+
+# Fallback-Schwellen (Score 0-50) — Quelle: ticket-master.config.example.json
+DEFAULT_THRESHOLDS = {"tier1_max": 8, "tier2_max": 12, "tier3_max": 28, "tier4_min": 29}
+DEFAULT_ADVISOR_THRESHOLD = 35
+
+TICKET_TEMPLATE = """==============================================================
+TICKET
+==============================================================
+ID:            {ticket_id}
+TITLE:         {title}
+CREATED:       {created}
+STATUS:        OPEN
+PRIORITY:      {priority}
+
+--------------------------------------------------------------
+PROJECT ASSIGNMENT
+--------------------------------------------------------------
+PIPELINE:      {pipeline}
+PROJECT_DIR:   {project}
+CONTROL_FILE:  n/a
+DOMAIN:        n/a
+ENDPOINT:      n/a
+URGENCY:       {urgency}
+
+--------------------------------------------------------------
+PROBLEM DESCRIPTION
+--------------------------------------------------------------
+{description}
+
+--------------------------------------------------------------
+VERLAUF
+--------------------------------------------------------------
+{created} Erfasst via Unified GUI (P8 Intake).
+
+--------------------------------------------------------------
+LOESUNG
+--------------------------------------------------------------
+(offen)
+"""
+
+
+@dataclass
+class TicketInfo:
+    id: str
+    title: str
+    queue: str
+    priority: str
+    claimed_by: str | None
+    path: str
+    created: str = ""
+
+    def as_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "queue": self.queue,
+            "priority": self.priority,
+            "claimed_by": self.claimed_by,
+            "path": self.path,
+            "created": self.created,
+        }
+
+
+@dataclass
+class RoutingSuggestion:
+    score: int
+    tier: int
+    provider: str
+    model: str | None
+    advisor: bool
+    candidates: list[str] = field(default_factory=list)
+
+    def as_dict(self) -> dict:
+        return {
+            "score": self.score,
+            "tier": self.tier,
+            "provider": self.provider,
+            "model": self.model,
+            "advisor": self.advisor,
+            "candidates": self.candidates,
+        }
+
+
+class TicketMasterAdapter(BaseAdapter):
+    name = "ticket-master"
+    label = "ticket-master (Tickets & Routing)"
+
+    def __init__(self, config: TicketMasterConfig | None = None) -> None:
+        self.config = config or TicketMasterConfig()
+        self.host = socket.gethostname().upper()
+
+    # ------------------------------------------------------------------
+    # Vertrag
+    # ------------------------------------------------------------------
+    def _root(self) -> Path | None:
+        if not self.config.tickets_root:
+            return None
+        root = Path(self.config.tickets_root).expanduser()
+        return root if root.is_dir() else None
+
+    def probe(self) -> set[Capability]:
+        caps: set[Capability] = set()
+        try:
+            if self._root() is not None:
+                caps.add(Capability.TICKETS_RW)
+                caps.add(Capability.ROUTING_CONFIG)
+        except Exception:  # noqa: BLE001 — probe wirft nie
+            pass
+        return caps
+
+    def health(self) -> HealthInfo:
+        root = self._root()
+        if root is None:
+            return HealthInfo("offline", "tickets_root nicht konfiguriert oder nicht vorhanden")
+        detail = f"{root}"
+        if not self._tm_config():
+            detail += " (ohne ticket-master.config.json: Fallback-Tiers)"
+            return HealthInfo("degraded", detail)
+        return HealthInfo("ok", detail)
+
+    # ------------------------------------------------------------------
+    # TicketStore
+    # ------------------------------------------------------------------
+    def queues(self) -> dict[str, list[dict]]:
+        root = self._require_root()
+        result: dict[str, list[dict]] = {q: [] for q in QUEUES}
+        # OPEN = unclaimed/claimed Tickets direkt im Root
+        for path in sorted(root.glob("T-*.txt")):
+            info = self._parse(path, "OPEN")
+            if info:
+                result["OPEN"].append(info.as_dict())
+        for queue in ("QUEUED", "PENDING", "SOLVED", ".USER"):
+            folder = root / queue
+            if not folder.is_dir():
+                continue
+            for path in sorted(folder.glob("T-*.txt")):
+                info = self._parse(path, queue)
+                if info:
+                    result[queue].append(info.as_dict())
+        return result
+
+    def intake(self, title: str, description: str, priority: str = "medium",
+               urgency: str = "woche", project: str = "n/a", pipeline: str = "n/a") -> dict:
+        title = title.strip()
+        if not title:
+            raise AdapterError("empty_title", "TITLE ist Pflicht")
+        root = self._require_root()
+        now = datetime.now()
+        ticket_id = self._next_id(root, now)
+        content = TICKET_TEMPLATE.format(
+            ticket_id=ticket_id,
+            title=title,
+            created=now.strftime("%Y-%m-%d"),
+            priority=priority if priority in ("low", "medium", "high", "critical") else "medium",
+            pipeline=pipeline.strip() or "n/a",
+            project=project.strip() or "n/a",
+            urgency=urgency if urgency in ("sofort", "heute", "woche", "backlog") else "woche",
+            description=description.strip() or "(keine Beschreibung)",
+        )
+        path = root / f"{ticket_id}.txt"
+        path.write_text(content, encoding="utf-8")
+        info = self._parse(path, "OPEN")
+        return info.as_dict() if info else {"id": ticket_id, "path": str(path)}
+
+    def move(self, ticket_id: str, queue: str) -> dict:
+        queue = queue.upper() if queue.upper() != ".USER" else ".USER"
+        if queue not in QUEUES:
+            raise AdapterError("invalid_queue", f"{queue} (erlaubt: {', '.join(QUEUES)})")
+        root = self._require_root()
+        source = self._find(root, ticket_id)
+        if source is None:
+            raise AdapterError("ticket_not_found", ticket_id)
+        target_dir = root if queue == "OPEN" else root / queue
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / source.name
+        if source.resolve() == target.resolve():
+            info = self._parse(source, queue)
+            return info.as_dict() if info else {}
+        source.replace(target)
+        info = self._parse(target, queue)
+        return info.as_dict() if info else {}
+
+    # ------------------------------------------------------------------
+    # Routing-Vorschau (Score -> Tier -> Provider)
+    # ------------------------------------------------------------------
+    def score_preview(self, clarity: int, complexity: int, creativity: int,
+                      context: int, criticality: int) -> RoutingSuggestion:
+        values = {"clarity": clarity, "complexity": complexity, "creativity": creativity,
+                  "context": context, "criticality": criticality}
+        for label, value in values.items():
+            if not 0 <= int(value) <= 10:
+                raise AdapterError("invalid_score_input", f"{label} muss 0-10 sein")
+        # Formel aus ticket-master: (10-Klarheit)+Komplexitaet+Kreativitaet+Kontext+Kritikalitaet
+        score = (10 - int(clarity)) + int(complexity) + int(creativity) + int(context) + int(criticality)
+
+        tm_config = self._tm_config() or {}
+        thresholds = {**DEFAULT_THRESHOLDS, **(tm_config.get("score_thresholds") or {})}
+        if score <= int(thresholds["tier1_max"]):
+            tier = 1
+        elif score <= int(thresholds["tier2_max"]):
+            tier = 2
+        elif score <= int(thresholds["tier3_max"]):
+            tier = 3
+        else:
+            tier = 4
+
+        providers = tm_config.get("providers") or {}
+        default_provider = tm_config.get("default_provider") or (next(iter(providers), "claude"))
+        provider_cfg = providers.get(default_provider) or {}
+        advisor_cfg = tm_config.get("advisor") or {}
+        advisor_threshold = int(advisor_cfg.get("threshold_score", DEFAULT_ADVISOR_THRESHOLD))
+
+        return RoutingSuggestion(
+            score=score,
+            tier=tier,
+            provider=default_provider,
+            model=provider_cfg.get("default_model"),
+            advisor=bool(score >= advisor_threshold),
+            candidates=list(providers.keys()) or ["claude", "codex", "agy"],
+        )
+
+    # ------------------------------------------------------------------
+    # intern
+    # ------------------------------------------------------------------
+    def _require_root(self) -> Path:
+        root = self._root()
+        if root is None:
+            raise AdapterError("no_tickets_root", "tickets_root nicht konfiguriert/vorhanden")
+        return root
+
+    def _tm_config(self) -> dict | None:
+        if not self.config.config_dir:
+            return None
+        path = Path(self.config.config_dir).expanduser() / "ticket-master.config.json"
+        if not path.is_file():
+            return None
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+
+    def _next_id(self, root: Path, now: datetime) -> str:
+        datestr = now.strftime("%Y%m%d")
+        highest = 0
+        for path in root.rglob(f"T-{datestr}-*.txt"):
+            match = _TICKET_RE.match(path.name)
+            if match:
+                try:
+                    highest = max(highest, int(match.group(1).rsplit("-", 1)[1]))
+                except ValueError:
+                    continue
+        return f"T-{datestr}-{highest + 1:02d}"
+
+    def _find(self, root: Path, ticket_id: str) -> Path | None:
+        candidates = [root, root / "QUEUED", root / "PENDING", root / "SOLVED", root / ".USER"]
+        for folder in candidates:
+            if not folder.is_dir():
+                continue
+            for path in folder.glob(f"{ticket_id}*.txt"):
+                match = _TICKET_RE.match(path.name)
+                if match and match.group(1) == ticket_id:
+                    return path
+        return None
+
+    def _parse(self, path: Path, queue: str) -> TicketInfo | None:
+        match = _TICKET_RE.match(path.name)
+        if not match:
+            return None
+        title, priority, created = "", "", ""
+        try:
+            head = path.read_text(encoding="utf-8", errors="replace")[:2000]
+            for line in head.splitlines():
+                upper = line.strip().upper()
+                if upper.startswith("TITLE:"):
+                    title = line.split(":", 1)[1].strip()
+                elif upper.startswith("PRIORITY:"):
+                    priority = line.split(":", 1)[1].strip()
+                elif upper.startswith("CREATED:"):
+                    created = line.split(":", 1)[1].strip()
+        except OSError:
+            pass
+        return TicketInfo(
+            id=match.group(1),
+            title=title or path.stem,
+            queue=queue,
+            priority=priority or "-",
+            claimed_by=match.group(2),
+            path=str(path),
+            created=created,
+        )

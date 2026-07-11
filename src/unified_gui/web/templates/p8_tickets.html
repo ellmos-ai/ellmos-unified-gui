@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block subtitle %}Tickets{% endblock %}
+{% block content %}
+<h1>Tickets <span class="muted">ticket-master (dateibasiert, Multi-Host-Claims)</span></h1>
+
+<div class="grid two">
+    <div class="card">
+        <h3>Intake — Aufgabe erfassen</h3>
+        <div class="col">
+            <input id="t-title" placeholder="Titel (Pflicht)">
+            <textarea id="t-desc" rows="4" placeholder="Problem/Änderungswunsch: beobachtet, erwartet, betroffene Dateien ..."></textarea>
+            <div class="row">
+                <select id="t-priority" title="Priorität">
+                    <option value="low">low</option>
+                    <option value="medium" selected>medium</option>
+                    <option value="high">high</option>
+                    <option value="critical">critical</option>
+                </select>
+                <select id="t-urgency" title="Dringlichkeit">
+                    <option value="sofort">sofort</option>
+                    <option value="heute">heute</option>
+                    <option value="woche" selected>woche</option>
+                    <option value="backlog">backlog</option>
+                </select>
+                <input id="t-project" placeholder="Projekt/Pfad (optional)" style="flex:1">
+                <button class="btn" onclick="intake()">Erfassen</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Router-Vorschau — Score → Provider</h3>
+        <div class="score-grid">
+            <label>Klarheit <input type="number" id="s-clarity" min="0" max="10" value="5"></label>
+            <label>Komplexität <input type="number" id="s-complexity" min="0" max="10" value="5"></label>
+            <label>Kreativität <input type="number" id="s-creativity" min="0" max="10" value="0"></label>
+            <label>Kontext <input type="number" id="s-context" min="0" max="10" value="5"></label>
+            <label>Kritikalität <input type="number" id="s-criticality" min="0" max="10" value="0"></label>
+            <button class="btn" onclick="score()">Berechnen</button>
+        </div>
+        <div id="score-result" class="small-text muted">Formel: (10−Klarheit) + Komplexität + Kreativität + Kontext + Kritikalität</div>
+    </div>
+</div>
+
+<h2>Queues</h2>
+<div class="grid board" id="board"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const QUEUE_ORDER = ["OPEN", "QUEUED", "PENDING", "SOLVED", ".USER"];
+const NEXT_QUEUES = {"OPEN": ["QUEUED", "PENDING", "SOLVED"], "QUEUED": ["PENDING", "SOLVED", "OPEN"],
+                     "PENDING": ["SOLVED", "QUEUED", "OPEN"], "SOLVED": ["OPEN"], ".USER": ["OPEN"]};
+
+async function loadBoard() {
+    try {
+        const queues = await api("/api/p8/queues");
+        document.getElementById("board").innerHTML = QUEUE_ORDER.map(q => {
+            const items = queues[q] || [];
+            return `<div class="card lane"><h3>${esc(q)} <span class="muted small-text">${items.length}</span></h3>` +
+                items.map(t =>
+                    `<div class="ticket">
+                        <b>${esc(t.id)}</b> ${t.claimed_by ? `<span class="chip">${esc(t.claimed_by)}</span>` : ""}
+                        <div class="small-text">${esc(t.title)}</div>
+                        <div class="muted small-text">${esc(t.priority)} · ${esc(t.created)}</div>
+                        <div class="row">${(NEXT_QUEUES[q] || []).map(n =>
+                            `<button class="btn tiny" onclick='move(${JSON.stringify(t.id)}, ${JSON.stringify(n)})'>→ ${esc(n)}</button>`).join("")}
+                        </div>
+                    </div>`
+                ).join("") + `</div>`;
+        }).join("");
+    } catch (e) { flash(e.message, true); }
+}
+
+async function intake() {
+    const title = document.getElementById("t-title").value.trim();
+    if (!title) { flash("Titel fehlt", true); return; }
+    try {
+        const data = await api("/api/p8/intake", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                title,
+                description: document.getElementById("t-desc").value,
+                priority: document.getElementById("t-priority").value,
+                urgency: document.getElementById("t-urgency").value,
+                project: document.getElementById("t-project").value.trim() || "n/a"
+            })});
+        flash("Ticket " + data.id + " erfasst");
+        document.getElementById("t-title").value = "";
+        document.getElementById("t-desc").value = "";
+        loadBoard();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function score() {
+    try {
+        const data = await api("/api/p8/score", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                clarity: +document.getElementById("s-clarity").value,
+                complexity: +document.getElementById("s-complexity").value,
+                creativity: +document.getElementById("s-creativity").value,
+                context: +document.getElementById("s-context").value,
+                criticality: +document.getElementById("s-criticality").value
+            })});
+        document.getElementById("score-result").innerHTML =
+            `Score <b>${data.score}</b>/50 → Tier <b>${data.tier}</b> → Vorschlag: <b>${esc(data.provider)}</b>` +
+            (data.model ? ` (${esc(data.model)})` : "") +
+            (data.advisor ? ' · <span class="chip verdict-ask">Advisor-Review empfohlen</span>' : "") +
+            `<br><span class="muted">Kandidaten: ${data.candidates.map(esc).join(", ")}</span>`;
+    } catch (e) { flash(e.message, true); }
+}
+
+loadBoard();
+</script>
+{% endblock %}

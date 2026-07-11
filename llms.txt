@@ -1,0 +1,21 @@
+# ellmos-unified-gui
+
+> Importable operator console for the ellmos/BACH ecosystem: one capability-driven
+> web UI (FastAPI + HTMX, no build step) over existing backends — models, agents,
+> prompts, routing, permissions, routines/cron, tasks, tickets, skills.
+> Status: concept (v0.1.0, 2026-07-11). German docs are canonical.
+
+## Docs
+
+- [KONZEPT.md](KONZEPT.md): problem, goals, panel catalog P1-P9, migration path
+- [ARCHITECTURE.md](ARCHITECTURE.md): layers, capability registry, mount vs. standalone
+- [docs/ADAPTER-CONTRACT.md](docs/ADAPTER-CONTRACT.md): adapter protocol, capabilities, mixins
+- [DECISIONS.md](DECISIONS.md): decision log D01-D06
+- [TODO.md](TODO.md): phased roadmap
+
+## Key facts
+
+- Two run modes: create_app() standalone, mount(app, prefix) embedded (BACH, ellmos-core)
+- Panels appear only if their backend capabilities are probed successfully
+- No own domain store: canonical schemas are profiprompt-library-v1.json,
+  LOCK.permissions.json, BACH scheduler_jobs, ticket-master T-*.txt files

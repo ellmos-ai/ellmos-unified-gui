@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — {% block subtitle %}Übersicht{% endblock %}</title>
+    <link rel="stylesheet" href="{{ base }}/static/app.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand"><span class="dot"></span> {{ title }} <span class="ver">v{{ version }}</span></div>
+    <nav>
+        <a href="{{ base }}/" class="nav-link">Übersicht</a>
+        {% for p in panels %}
+        <a href="{{ base }}{{ p.path }}" class="nav-link">{{ p.label }}</a>
+        {% endfor %}
+    </nav>
+    <button class="btn small" onclick="refreshCaps()" title="Backends erneut proben">⟳ Re-Probe</button>
+</header>
+<main class="content">
+    {% block content %}{% endblock %}
+</main>
+<script>
+const BASE = "{{ base }}";
+async function api(path, opts) {
+    const resp = await fetch(BASE + path, opts);
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.detail || resp.statusText);
+    return data;
+}
+function esc(t) {
+    const d = document.createElement("div");
+    d.textContent = t == null ? "" : String(t);
+    return d.innerHTML;
+}
+function flash(msg, isError) {
+    let el = document.getElementById("flash");
+    if (!el) {
+        el = document.createElement("div");
+        el.id = "flash";
+        document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.className = isError ? "flash error" : "flash";
+    el.style.opacity = 1;
+    setTimeout(() => { el.style.opacity = 0; }, 4000);
+}
+async function refreshCaps() {
+    try { await api("/api/refresh", {method: "POST"}); location.reload(); }
+    catch (e) { flash(e.message, true); }
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
