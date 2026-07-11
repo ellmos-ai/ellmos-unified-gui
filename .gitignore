@@ -12,3 +12,4 @@ build/
 *.db
 *.log
 unified-gui.config.json
+LOCK*.txt

@@ -1,4 +1,0 @@
-LOCK (Team, WORKSTATION-LG / Claude)
-Zweck: Phase 1 Implementierung (Paket, Registry, Adapter lock-master/ticket-master, P5, P8)
-Angelegt: 2026-07-11 01:30
-Verfall: 2026-07-12 01:30 (24h Sicherheitsnetz)
