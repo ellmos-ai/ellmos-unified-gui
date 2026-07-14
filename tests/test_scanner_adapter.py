@@ -173,3 +173,9 @@ def test_p7_aggregation_with_scanner_only(tmp_path):
     # Zuweisen ohne Tool -> fachlicher Fehler, kein Crash
     resp = client.post("/api/p7/assign", json={"provenance": "scanner", "id": 1, "target": "opus-1"})
     assert resp.status_code == 409
+
+    # Die Seite selbst laedt (Jinja-Template uebersetzt). Das JS darin — taskChips(),
+    # der "uneingestuft"-Chip — laeuft hier NICHT: dafuer braeuchte es einen Browser.
+    page = client.get("/p7")
+    assert page.status_code == 200
+    assert "taskChips" in page.text
