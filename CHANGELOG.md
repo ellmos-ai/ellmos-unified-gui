@@ -1,5 +1,35 @@
 # Changelog — ellmos Unified GUI
 
+## [Unreleased] (TASKPLAN v0.3)
+
+### Fixed
+
+- **P7 zeigte den Anleger als Bearbeiter.** Der Scanner-Adapter mappte `agent_id`
+  auf `assigned_to`; seit TASKPLAN 0.3 ist `agent_id` aber der Anleger. Zudem holte
+  die SELECT-Liste die neuen Spalten gar nicht erst — die GUI war für sie
+  strukturell blind. Jetzt gilt `assigned_to`; ein Rückfall auf `agent_id` greift
+  nur bei Altbestand und nie, wenn dort ein Anleger steht (`scanner`/`default`/
+  `created_by`). Ohne diese Unterscheidung hätten 25 der 44 Tasks den Anleger als
+  Bearbeiter angezeigt. [D09]
+- Alte, noch nicht auf v0.3 migrierte Queues brechen den Adapter nicht mehr: Er
+  liest strikt read-only und kann nie selbst migrieren, wählt die Spalten deshalb
+  nach `PRAGMA table_info` und zeigt notfalls weniger, statt mit `no such column`
+  auszufallen. [D09]
+
+### Changed
+
+- **DB-Pfad folgt der TASKPLAN-Konfiguration** (`~/.taskplan/taskplan.toml`,
+  `[storage] path`) statt hartkodiert zu sein — in `config.py` UND in der geteilten
+  `_control-center/unified-gui.config.json` (dort überstimmte der explizite Wert
+  jede Auflösung). Fallback bleibt `~/.rinnsal/scanner_tasks.db`. [D09]
+
+### Added
+
+- P7 zeigt `effort`, `scope`, `project_path`/`root_id`. Aufgaben ohne `effort`
+  bekommen einen Warn-Chip „uneingestuft": Die autonomen Loops fassen sie nicht an —
+  im Bestand betrifft das 38 von 44 Tasks, was vorher unsichtbar war.
+
+
 ## [0.4.0] - 2026-07-11 (Multi-System/Cloud)
 
 ### Added

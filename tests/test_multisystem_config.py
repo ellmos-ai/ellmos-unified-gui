@@ -9,7 +9,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import pytest
 
-from unified_gui.config import UnifiedGuiConfig, _expand, hostname, resolve_module_path
+from unified_gui.config import (
+    SCANNER_DB_FALLBACK,
+    UnifiedGuiConfig,
+    _expand,
+    hostname,
+    resolve_module_path,
+    scanner_db_default,
+)
 
 
 def test_expand_user_and_env(monkeypatch):
@@ -88,6 +95,53 @@ def test_discovery_off_switch(monkeypatch, tmp_path):
     cfg = UnifiedGuiConfig.load()
     assert cfg.clutch.repo_path is None
     assert cfg.bach.bach_root is None
+
+
+def _no_db_env(monkeypatch):
+    monkeypatch.delenv("TASKPLAN_DB", raising=False)
+    monkeypatch.delenv("RINNSAL_DB", raising=False)
+
+
+def test_scanner_db_follows_taskplan_config(monkeypatch):
+    """Die TASKPLAN-Konfiguration schlaegt den Altpfad — sonst driftet die GUI weg."""
+    _no_db_env(monkeypatch)
+    taskplan_client = pytest.importorskip("taskplan.client")
+    monkeypatch.setattr(taskplan_client, "configured_db_path", lambda: "/aus/der/toml.db")
+    assert scanner_db_default() == "/aus/der/toml.db"
+
+
+def test_scanner_db_env_beats_config(monkeypatch):
+    monkeypatch.setenv("TASKPLAN_DB", "/env/db.sqlite")
+    assert scanner_db_default() == "/env/db.sqlite"
+
+
+def test_scanner_db_falls_back_to_legacy_path(monkeypatch):
+    """Ohne TASKPLAN-Konfiguration bleibt die GUI beim Altpfad.
+
+    Bewusst NICHT bei ~/.taskplan/taskplan.db, worauf get_default_db_path()
+    zeigen wuerde: die ist im Bestand leer — die GUI zeigte dann ohne Fehler
+    und ohne Warnung eine leere Queue.
+    """
+    _no_db_env(monkeypatch)
+    taskplan_client = pytest.importorskip("taskplan.client")
+    monkeypatch.setattr(taskplan_client, "configured_db_path", lambda: "")
+    assert scanner_db_default() == SCANNER_DB_FALLBACK
+
+
+def test_scanner_db_without_taskplan_installed(monkeypatch):
+    """Fremdes System ohne TASKPLAN: Import scheitert -> Altpfad, kein Crash."""
+    _no_db_env(monkeypatch)
+    monkeypatch.setitem(sys.modules, "taskplan.client", None)  # Import wirft
+    assert scanner_db_default() == SCANNER_DB_FALLBACK
+
+
+def test_discovery_resolves_scanner_db(monkeypatch, tmp_path):
+    """Der Discovery-Default wird beim Laden ausgewertet, nicht beim Import."""
+    monkeypatch.setenv("UNIFIED_GUI_CONFIG", str(tmp_path / "leer.json"))
+    monkeypatch.delenv("UNIFIED_GUI_DISCOVERY", raising=False)
+    monkeypatch.setenv("TASKPLAN_DB", str(tmp_path / "aus-env.db"))
+    cfg = UnifiedGuiConfig.load()
+    assert cfg.scanner_tasks.db_path == str(tmp_path / "aus-env.db")
 
 
 def test_module_id_resolves_from_catalog_before_legacy_path(monkeypatch, tmp_path):

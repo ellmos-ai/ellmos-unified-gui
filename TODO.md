@@ -2,70 +2,33 @@
 
 **Stand:** 2026-07-11 · Phasen aus KONZEPT.md §7. `[ ]` offen · `[~]` in Arbeit · `[x]` fertig
 
-## TASKPLAN v0.3 — Anpassung noetig [C 2026-07-14]
+## TASKPLAN v0.3 — Anpassung  ✅ (2026-07-14, TASKSOLVER; Tasks 40/41/42)
 
-> **Nichts bricht, nichts crasht.** Die GUI liest 9 Spalten explizit per Name
-> (`adapters/scanner_tasks.py:74-75`, `sqlite3.Row`) — die 8 neuen Spalten sind fuer
-> sie schadlos unsichtbar. Geschrieben wird ohnehin nur ueber den Wrapper-CLI, und der
-> ist bereits nachgezogen.
->
-> **ABER: Ein Anzeigefehler ist scharf, sobald zum ersten Mal echt delegiert wird.**
+Hintergrund: `agent_id` trug früher DREI Bedeutungen (Anleger, Bearbeiter, Rolle)
+und wurde beim Zuweisen überschrieben. Seit TASKPLAN 0.3 sind `created_by` (Anleger)
+und `assigned_to` (Bearbeiter) getrennt. Begründungen: **DECISIONS.md [D09]**.
 
-**Was sich geaendert hat:** `agent_id` trug frueher DREI Bedeutungen (Anleger,
-Bearbeiter, Rolle) und wurde beim Zuweisen ueberschrieben — die Herkunft ging dabei
-verloren. Seit TASKPLAN 0.3 sind sie getrennt: `created_by` (unveraenderlich, der
-Anleger) und `assigned_to` + `delegation_status` (der Bearbeiter). `assign()` schreibt
-nur noch in Letztere.
+- [x] **(hoch) Zuweisungs-Anzeige korrigiert** — P7 zeigte den Anleger statt des
+      Bearbeiters. Die SELECT-Liste holte die neuen Spalten gar nicht erst (strukturell
+      blind), und `agent_id` wurde auf `assigned_to` gemappt. **Der in dieser Liste
+      ursprünglich vorgeschlagene Fallback `assigned_to or agent_id` hätte den Bug
+      reproduziert**: `agent_id` trägt bei nicht zugewiesenen Tasks den Anleger
+      (`scanner`) — empirisch 25 von 44 Tasks. Der Rückfall prüft jetzt den Anleger
+      mit. [D09]
+- [x] **(mittel) `effort`/`scope`/`project_path`/`root_id` werden angezeigt** —
+      uneingestufte Aufgaben (leeres `effort`) bekommen einen Warn-Chip. Sie sind der
+      Normalfall, nicht die Ausnahme: **38 von 44 Tasks** sind uneingestuft und werden
+      von den Loops nicht angefasst. Genau das war vorher unsichtbar.
+- [x] **(mittel) DB-Pfad kommt aus der TASKPLAN-Konfiguration** (`taskplan.toml`,
+      `[storage] path`) — in `config.py` und in der geteilten
+      `_control-center/unified-gui.config.json`, wo der explizite Wert jede Auflösung
+      überstimmte. **Nicht** `get_default_db_path()` wie hier vorgeschlagen: das fällt
+      auf die leere `~/.taskplan/taskplan.db` zurück. [D09]
+- [x] **(niedrig) Pfad in der eigenen CLAUDE.md korrigiert** (`.MODULES/.RUNTIME/`).
 
-- [ ] **(hoch) Zuweisungs-Anzeige korrigieren — zeigt sonst den Falschen.**
-      `src/unified_gui/adapters/scanner_tasks.py:92` mappt heute:
-      ```python
-      "assigned_to": row["agent_id"] if row["agent_id"] != "default" else "",
-      ```
-      `agent_id` ist ab jetzt der **Anleger**, nicht der Bearbeiter. Verschaerfend:
-      die SELECT-Liste in `:74` endet bei `updated_at` — `assigned_to` und `created_by`
-      werden **gar nicht erst geholt**. Die GUI ist fuer die neuen Spalten also
-      *strukturell blind*, nicht bloss falsch gemappt.
-
-      **Fix beruehrt ZWEI Stellen:**
-      1. `:74` — `assigned_to`, `created_by`, `delegation_status`, `effort`, `scope`
-         mitselektieren.
-      2. `:92` — auf `row["assigned_to"]` mappen; Fallback auf `agent_id` nur, solange
-         `assigned_to` leer ist (Altbestand: alle 38 Tasks haben heute ein leeres
-         `assigned_to`).
-
-      **Warum es heute noch nicht auffaellt:** Der alte Wrapper ueberschrieb `agent_id`
-      beim Zuweisen — die Anzeige sah dadurch *zufaellig* richtig aus. Ab der ersten
-      echten `assign()`-Nutzung zeigt die GUI dauerhaft den Anleger statt des
-      Bearbeiters.
-      *Aufwand: easy · Scope: local*
-
-- [ ] **(mittel) Neue Felder anzeigen:** `effort` (easy/medium/large/special) und
-      `scope` (local/central) bestimmen, ob eine Aufgabe autonom bearbeitet werden darf.
-      **Uneingestufte Aufgaben (`effort` leer) fasst der TASKSOLVER nicht an** — sie
-      sind faktisch unsichtbar. Eine Spalte oder ein Filter dafuer macht sofort
-      sichtbar, warum eine Aufgabe liegen bleibt. Ebenso nuetzlich: `project_path` /
-      `root_id` (in welchem Projekt liegt sie?).
-      *Aufwand: easy · Scope: local*
-
-- [ ] **(mittel) DB-Pfad aus der TASKPLAN-Konfiguration lesen statt hartzukodieren.**
-      `config.py:45` (`DISCOVERY_DEFAULTS`) und `_control-center/unified-gui.config.json`
-      setzen beide fest `~/.rinnsal/scanner_tasks.db`. `~/.taskplan/taskplan.toml`
-      (`[storage] path`) wird **nicht** gelesen.
-      **Heute folgenlos** (beide zeigen auf dieselbe DB), aber ein latentes Drift-Risiko:
-      Wird die TOML kuenftig umgestellt, zieht die GUI nicht mit und liest still die
-      falsche Datenbank — ohne Fehler, ohne Warnung.
-      Loesung: `from taskplan.client import get_default_db_path` (mit Fallback auf den
-      bisherigen Default, falls taskplan nicht importierbar ist).
-      *Aufwand: easy · Scope: local*
-
-- [ ] **(niedrig) Pfad in der eigenen CLAUDE.md korrigieren:** Sie nennt noch
-      `.MODULES/ellmos-unified-gui`; das Modul liegt unter `.MODULES/.RUNTIME/`.
-      *Aufwand: easy · Scope: local*
-
-**Nicht betroffen:** `ellmos-homebase-mcp` reicht das Row-Dict unveraendert durch
-(`modules/state.py:331-334`) und erbt das neue Schema automatisch ueber den
-rinnsal→taskplan-Seam. Dort ist **kein** Fix noetig.
+**Nicht betroffen:** `ellmos-homebase-mcp` reicht das Row-Dict unverändert durch
+(`modules/state.py:331-334`) und erbt das neue Schema automatisch über den
+rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 
 ## Phase 0 — Vorarbeiten (extern)
 

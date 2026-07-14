@@ -32,8 +32,38 @@ ENV_PREFIX = "UNIFIED_GUI_"
 CONFIG_FILENAME = "unified-gui.config.json"
 SHARED_CONFIG_DIR = "~/OneDrive/.TOPICS/_control-center"
 
+# Altpfad der Task-Queue (Rinnsal-Erbe). Bleibt der Rueckfall, wenn TASKPLAN
+# nichts konfiguriert hat oder gar nicht installiert ist.
+SCANNER_DB_FALLBACK = "~/.rinnsal/scanner_tasks.db"
+
+
+def scanner_db_default() -> str:
+    """DB-Pfad der Task-Queue — die TASKPLAN-Konfiguration schlaegt den Altpfad.
+
+    Reihenfolge wie bei TASKPLAN (TASKPLAN_DB > [storage] path > RINNSAL_DB),
+    damit GUI und TASKPLAN nicht auseinanderlaufen: Wird die TOML umgestellt,
+    zieht die GUI mit, statt still die falsche Datenbank zu lesen.
+
+    Bewusst NICHT `taskplan.client.get_default_db_path()`: dessen letzter Schritt
+    faellt auf ~/.taskplan/taskplan.db zurueck — im Bestand eine LEERE DB — und
+    legt dabei auch noch das Verzeichnis an. Die GUI wuerde dann ohne Fehler und
+    ohne Warnung eine leere Queue anzeigen. Fehlt eine Konfiguration, bleibt sie
+    deshalb bei ihrem bewaehrten Altpfad.
+    """
+    env_path = os.environ.get("TASKPLAN_DB", "")
+    if env_path:
+        return env_path
+    try:
+        from taskplan.client import configured_db_path
+        configured = configured_db_path()
+    except Exception:  # noqa: BLE001 — TASKPLAN fehlt/kaputt: Altpfad genuegt
+        configured = ""
+    return configured or os.environ.get("RINNSAL_DB", "") or SCANNER_DB_FALLBACK
+
+
 # Standard-Layout dieses Oekosystems (Discovery-Defaults; probe() filtert
-# ohnehin alles, was auf einem System nicht existiert).
+# ohnehin alles, was auf einem System nicht existiert). Callables werden erst
+# beim Laden ausgewertet — ein Literal wuerde beim Import einfrieren.
 DISCOVERY_DEFAULTS = {
     ("lock_master", "module_id"): "lock-master",
     ("lock_master", "module_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",
@@ -42,7 +72,7 @@ DISCOVERY_DEFAULTS = {
     ("ticket_master", "tickets_root"): "~/OneDrive/.TOPICS/_control-center/_TICKETS",
     ("ticket_master", "config_dir"): "~/OneDrive/.TOPICS/.AI/.MODULES/ticket-master/config",
     ("bach", "bach_root"): "~/OneDrive/.TOPICS/.AI/.OS/BACH",
-    ("scanner_tasks", "db_path"): "~/.rinnsal/scanner_tasks.db",
+    ("scanner_tasks", "db_path"): scanner_db_default,
     ("scanner_tasks", "tool_path"): "~/OneDrive/.TOPICS/_control-center/_tasks/_tool/scanner_tasks.py",
     ("clutch", "module_id"): "clutch",
     ("clutch", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/clutch",
@@ -298,7 +328,7 @@ def _apply_discovery(data: dict) -> None:
     for (section, key), default in DISCOVERY_DEFAULTS.items():
         block = data.setdefault(section, {})
         if key not in block:
-            block[key] = default
+            block[key] = default() if callable(default) else default
 
 
 def _apply_env(data: dict) -> None:

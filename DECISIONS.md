@@ -4,6 +4,40 @@ Format: `[ID] Datum — Entscheidung` mit Kontext/Begründung. Neueste oben.
 
 ---
 
+## [D09] 2026-07-14 — Scanner-Tasks: Bearbeiter ≠ Anleger, Schema-tolerant lesen, DB-Pfad aus TASKPLAN
+
+Drei Festlegungen aus der Anpassung an TASKPLAN 0.3 (Tasks 40/41/42). Zwei davon
+weichen bewusst von der ursprünglichen Vorgabe in TODO.md ab — die Abweichung ist
+belegt, nicht Geschmack:
+
+**1. Der Bearbeiter-Fallback prüft den Anleger mit.** `assigned_to` ist die
+Wahrheit. TODO.md schlug vor, ersatzweise auf `agent_id` zurückzufallen. Das
+reproduziert den Bug in weicher Form: `agent_id` trägt bei nicht zugewiesenen
+Tasks den ANLEGER (`scanner`) — im Bestand bei 25 von 44 Tasks, die dann fälschlich
+„→ scanner" als Bearbeiter zeigten. Ein Rückfall gilt deshalb nur, wenn `agent_id`
+weder ein Anleger-Sentinel (`""`/`default`/`scanner`) noch gleich `created_by` ist.
+Erst dann bleibt übrig, was der alte Wrapper dort hinterließ: ein echter
+Bearbeiter (`sonnet`, `claude-opus`, …). Der `created_by`-Vergleich allein genügt
+NICHT — 22 Alt-Tasks haben `agent_id='scanner'` bei leerem `created_by`.
+
+**2. Spalten werden gesnifft, nicht vorausgesetzt.** Der Adapter öffnet die Queue
+strikt read-only (`mode=ro`) und kann eine alte DB daher nie selbst migrieren — er
+hängt davon ab, dass ein anderes System das getan hat. Da die GUI ausdrücklich
+multi-system läuft [D08], wählt er die Spalten nach `PRAGMA table_info`: eine
+nicht migrierte Queue zeigt weniger, statt das Panel mit `no such column`
+stillzulegen. Beide Schemata sind getestet.
+
+**3. DB-Pfad: `configured_db_path()`, NICHT `get_default_db_path()`.** TODO.md nannte
+Letzteres. Dessen letzter Schritt fällt aber auf `~/.taskplan/taskplan.db` zurück —
+im Bestand eine LEERE DB (`taskplan doctor`: 0 Tasks) — und legt das Verzeichnis
+dabei auch noch an. Die GUI läse dann ohne Fehler und ohne Warnung eine leere Queue:
+dasselbe Drift-Risiko, nur andersherum. Reihenfolge daher `TASKPLAN_DB` >
+`[storage] path` > `RINNSAL_DB` > `~/.rinnsal/scanner_tasks.db` (Altpfad statt leerer
+Default-DB). Der Aufruf sitzt IN `_apply_discovery`, nicht im Modul-Literal — sonst
+fröre er beim Import ein. Ebenso entfernt: der explizite `db_path` in der geteilten
+`_control-center/unified-gui.config.json`. Er überstimmte jede Auflösung
+(explizite Werte schlagen die Discovery) und hätte den Fix wirkungslos gemacht.
+
 ## [D08] 2026-07-11 — Cloud-/Multi-System-Konfiguration: Kaskade + ~-Notation + Discovery
 
 Das Oekosystem synct via OneDrive auf mehrere Systeme mit ABWEICHENDEN

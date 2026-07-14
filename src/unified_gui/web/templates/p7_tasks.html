@@ -21,6 +21,29 @@
 <script>
 const PROV_LABEL = {bach: "BACH", scanner: "Scanner"};
 
+// Nur der Projektordner statt des vollen Pfades — der Rest steht im title-Tooltip.
+function projectName(path) {
+    const parts = (path || "").split(/[\\/]/).filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : "";
+}
+
+// effort/scope entscheiden, ob ein autonomer Loop die Aufgabe ueberhaupt anfasst:
+// Ohne effort bleibt sie liegen — das muss man sehen, sonst sucht man den Grund
+// vergeblich. Darum der Warn-Chip statt eines leeren Feldes.
+function taskChips(t) {
+    const chips = [];
+    if (t.effort) {
+        chips.push(`<span class="chip">${esc(t.effort)}</span>`);
+    } else if (t.provenance === "scanner") {
+        chips.push('<span class="chip verdict-ask" title="Kein effort gesetzt — die autonomen Loops fassen diese Aufgabe nicht an">uneingestuft</span>');
+    }
+    if (t.scope) chips.push(`<span class="chip">${esc(t.scope)}</span>`);
+    if (t.project_path) {
+        chips.push(`<span class="chip" title="${esc(t.project_path)}">${esc(t.root_id ? t.root_id + " / " : "")}${esc(projectName(t.project_path))}</span>`);
+    }
+    return chips.join("");
+}
+
 async function loadTasks() {
     try {
         const status = document.getElementById("t-status").value;
@@ -31,9 +54,12 @@ async function loadTasks() {
         document.getElementById("task-list").innerHTML = (data.tasks || []).map(t =>
             `<div class="rule">
                 <span>
-                    <span class="chip">${esc(PROV_LABEL[t.provenance] || t.provenance)}</span>
-                    <b>#${t.id}</b> ${esc(t.title)}
-                    <span class="muted small-text">${esc(t.status)}${t.priority ? " · " + esc(t.priority) : ""}${t.assigned_to ? " · → " + esc(t.assigned_to) : ""}</span>
+                    <div>
+                        <span class="chip">${esc(PROV_LABEL[t.provenance] || t.provenance)}</span>
+                        <b>#${t.id}</b> ${esc(t.title)}
+                        <span class="muted small-text">${esc(t.status)}${t.priority ? " · " + esc(t.priority) : ""}${t.assigned_to ? " · → " + esc(t.assigned_to) : ""}</span>
+                    </div>
+                    <div class="chips">${taskChips(t)}</div>
                 </span>
                 <span class="row">
                     <button class="btn tiny" onclick='assignTask(${JSON.stringify(t.provenance)}, ${t.id})'>Zuweisen</button>

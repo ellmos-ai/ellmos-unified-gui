@@ -17,6 +17,42 @@ from ..capabilities import Capability, HealthInfo
 from ..config import ScannerTasksConfig
 from .base import AdapterError, BaseAdapter
 
+# Spalten des Ur-Schemas (Rinnsal) und die, die TASKPLAN 0.3 ergaenzt hat.
+# Der Adapter liest strikt read-only (mode=ro) und kann eine alte DB deshalb
+# nie selbst migrieren — er muss mit ihr leben koennen. Ein harter SELECT auf
+# die neuen Spalten wuerde das Task-Panel auf einem noch nicht migrierten
+# System komplett stilllegen (no such column), statt bloss weniger zu zeigen.
+BASE_COLUMNS = ("id", "title", "description", "status", "priority", "agent_id",
+                "tags", "created_at", "updated_at")
+V03_COLUMNS = ("assigned_to", "created_by", "delegation_status", "effort",
+               "scope", "project_path", "root_id")
+
+# Werte, die in agent_id KEINEN Bearbeiter bezeichnen: Vor TASKPLAN 0.3 trug
+# agent_id drei Bedeutungen (Anleger, Bearbeiter, Rolle). Bei nicht zugewiesenen
+# Tasks steht dort der Anleger ("scanner") oder der Platzhalter ("default") —
+# der echte Bearbeiter landete dort nur, weil der alte Wrapper agent_id beim
+# Zuweisen ueberschrieb. Ein blosser `assigned_to or agent_id`-Fallback zeigt
+# deshalb den Anleger als Bearbeiter: im Bestand 25 von 44 Tasks.
+CREATOR_SENTINELS = frozenset({"", "default", "scanner"})
+
+
+def _assignee(data: dict) -> str:
+    """Der Bearbeiter — nie der Anleger.
+
+    `assigned_to` (TASKPLAN 0.3) ist die Wahrheit. Solange es leer ist, gilt
+    agent_id nur dann als Bearbeiter, wenn es weder ein Anleger-Sentinel noch
+    der Anleger selbst ist (Altbestand: dort ueberschrieb der alte Wrapper
+    agent_id beim Zuweisen, ein echter Bearbeiter steht also noch drin).
+    """
+    assigned = (data.get("assigned_to") or "").strip()
+    if assigned:
+        return assigned
+    legacy = (data.get("agent_id") or "").strip()
+    creator = (data.get("created_by") or "").strip()
+    if legacy in CREATOR_SENTINELS or legacy == creator:
+        return ""
+    return legacy
+
 
 class ScannerTasksAdapter(BaseAdapter):
     name = "scanner-tasks"
@@ -71,8 +107,13 @@ class ScannerTasksAdapter(BaseAdapter):
         try:
             conn = sqlite3.connect(uri, uri=True)
             conn.row_factory = sqlite3.Row
-            sql = ("SELECT id, title, description, status, priority, agent_id, tags, "
-                   "created_at, updated_at FROM rinnsal_tasks")
+            # Nur Spalten selektieren, die es in DIESER DB gibt: eine noch nicht
+            # auf TASKPLAN 0.3 migrierte Queue zeigt dann weniger, statt zu brechen.
+            present = {row[1] for row in conn.execute("PRAGMA table_info(rinnsal_tasks)")}
+            columns = [c for c in (*BASE_COLUMNS, *V03_COLUMNS) if c in present]
+            if not columns:
+                raise AdapterError("scanner_db_error", "Tabelle rinnsal_tasks fehlt")
+            sql = f"SELECT {', '.join(columns)} FROM rinnsal_tasks"
             params: list = []
             if status:
                 sql += " WHERE status = ?"
@@ -84,15 +125,27 @@ class ScannerTasksAdapter(BaseAdapter):
             conn.close()
         except sqlite3.Error as exc:
             raise AdapterError("scanner_db_error", str(exc)) from exc
-        return [{
-            "id": row["id"],
-            "title": row["title"],
-            "status": row["status"],
-            "priority": row["priority"],
-            "assigned_to": row["agent_id"] if row["agent_id"] != "default" else "",
-            "category": row["tags"] or "",
-            "provenance": "scanner",
-        } for row in rows]
+        result = []
+        for row in rows:
+            data = dict(row)
+            result.append({
+                "id": data["id"],
+                "title": data["title"],
+                "status": data["status"],
+                "priority": data["priority"],
+                "assigned_to": _assignee(data),
+                "created_by": (data.get("created_by") or "").strip(),
+                "delegation_status": (data.get("delegation_status") or "").strip(),
+                # effort/scope entscheiden, ob ein Loop die Aufgabe autonom anfasst:
+                # leeres effort = uneingestuft = wird nie bearbeitet.
+                "effort": (data.get("effort") or "").strip(),
+                "scope": (data.get("scope") or "").strip(),
+                "project_path": (data.get("project_path") or "").strip(),
+                "root_id": (data.get("root_id") or "").strip(),
+                "category": data.get("tags") or "",
+                "provenance": "scanner",
+            })
+        return result
 
     def _cli(self, args: list[str]) -> dict:
         tool = self._tool()

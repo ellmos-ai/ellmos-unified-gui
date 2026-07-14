@@ -25,7 +25,7 @@ description: |
 Routing, Berechtigungen, Routinen, Tasks, Tickets, Skills) über Adapter auf die
 vorhandenen Backends des Ökosystems.
 
-**Pfad:** `C:\Users\lukas\OneDrive\.TOPICS\.AI\.MODULES\ellmos-unified-gui`
+**Pfad:** `~/OneDrive/.TOPICS/.AI/.MODULES/.RUNTIME/ellmos-unified-gui`
 **Repository:** privat, kein Remote (Release später als `ellmos-ai/unified-gui` geplant)
 **Sprache/Stack:** Python 3.11+, FastAPI + Jinja2/HTMX + Vanilla-JS (KEIN Build-Schritt)
 
