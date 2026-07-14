@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- **P7-Taskliste gegen Attribut-Injection gehärtet.** Taskwerte aus Scanner-
+  und BACH-Backends werden nicht mehr als zusammengesetztes `innerHTML`
+  gerendert: DOM-Text, Tooltip-Property und Event-Listener halten selbst
+  Anführungszeichen in `project_path` als Daten statt als Attribute oder Code.
 - **P7 zeigte den Anleger als Bearbeiter.** Der Scanner-Adapter mappte `agent_id`
   auf `assigned_to`; seit TASKPLAN 0.3 ist `agent_id` aber der Anleger. Zudem holte
   die SELECT-Liste die neuen Spalten gar nicht erst — die GUI war für sie

@@ -23,25 +23,78 @@ const PROV_LABEL = {bach: "BACH", scanner: "Scanner"};
 
 // Nur der Projektordner statt des vollen Pfades — der Rest steht im title-Tooltip.
 function projectName(path) {
-    const parts = (path || "").split(/[\\/]/).filter(Boolean);
+    const parts = String(path || "").split(/[\\/]/).filter(Boolean);
     return parts.length ? parts[parts.length - 1] : "";
+}
+
+function text(value) {
+    return value == null ? "" : String(value);
+}
+
+function chip(label, className = "chip", title = "") {
+    const element = document.createElement("span");
+    element.className = className;
+    element.textContent = label;
+    if (title) element.title = title;
+    return element;
 }
 
 // effort/scope entscheiden, ob ein autonomer Loop die Aufgabe ueberhaupt anfasst:
 // Ohne effort bleibt sie liegen — das muss man sehen, sonst sucht man den Grund
 // vergeblich. Darum der Warn-Chip statt eines leeren Feldes.
 function taskChips(t) {
-    const chips = [];
+    const chips = document.createElement("div");
+    chips.className = "chips";
     if (t.effort) {
-        chips.push(`<span class="chip">${esc(t.effort)}</span>`);
+        chips.append(chip(text(t.effort)));
     } else if (t.provenance === "scanner") {
-        chips.push('<span class="chip verdict-ask" title="Kein effort gesetzt — die autonomen Loops fassen diese Aufgabe nicht an">uneingestuft</span>');
+        chips.append(chip("uneingestuft", "chip verdict-ask",
+            "Kein effort gesetzt — die autonomen Loops fassen diese Aufgabe nicht an"));
     }
-    if (t.scope) chips.push(`<span class="chip">${esc(t.scope)}</span>`);
+    if (t.scope) chips.append(chip(text(t.scope)));
     if (t.project_path) {
-        chips.push(`<span class="chip" title="${esc(t.project_path)}">${esc(t.root_id ? t.root_id + " / " : "")}${esc(projectName(t.project_path))}</span>`);
+        const label = (t.root_id ? text(t.root_id) + " / " : "") + projectName(t.project_path);
+        chips.append(chip(label, "chip", text(t.project_path)));
     }
-    return chips.join("");
+    return chips;
+}
+
+function taskRow(t) {
+    const row = document.createElement("div");
+    row.className = "rule";
+
+    const details = document.createElement("span");
+    const headline = document.createElement("div");
+    headline.append(chip(text(PROV_LABEL[t.provenance] || t.provenance)));
+    headline.append(document.createTextNode(" "));
+    const id = document.createElement("b");
+    id.textContent = "#" + text(t.id);
+    headline.append(id, document.createTextNode(" " + text(t.title)));
+
+    const metadata = [text(t.status), t.priority ? text(t.priority) : "",
+        t.assigned_to ? "→ " + text(t.assigned_to) : ""].filter(Boolean).join(" · ");
+    if (metadata) {
+        const muted = document.createElement("span");
+        muted.className = "muted small-text";
+        muted.textContent = " " + metadata;
+        headline.append(muted);
+    }
+    details.append(headline, taskChips(t));
+
+    const actions = document.createElement("span");
+    actions.className = "row";
+    const assign = document.createElement("button");
+    assign.className = "btn tiny";
+    assign.textContent = "Zuweisen";
+    assign.addEventListener("click", () => assignTask(t.provenance, t.id));
+    const done = document.createElement("button");
+    done.className = "btn tiny";
+    done.textContent = "Done";
+    done.addEventListener("click", () => doneTask(t.provenance, t.id));
+    actions.append(assign, done);
+
+    row.append(details, actions);
+    return row;
 }
 
 async function loadTasks() {
@@ -51,22 +104,16 @@ async function loadTasks() {
         document.getElementById("t-sources").textContent = data.sources.map(s =>
             `${s.name}: ${s.available ? s.count + " Tasks" : "offline"}${s.error ? " (" + s.error + ")" : ""}`
         ).join(" · ");
-        document.getElementById("task-list").innerHTML = (data.tasks || []).map(t =>
-            `<div class="rule">
-                <span>
-                    <div>
-                        <span class="chip">${esc(PROV_LABEL[t.provenance] || t.provenance)}</span>
-                        <b>#${t.id}</b> ${esc(t.title)}
-                        <span class="muted small-text">${esc(t.status)}${t.priority ? " · " + esc(t.priority) : ""}${t.assigned_to ? " · → " + esc(t.assigned_to) : ""}</span>
-                    </div>
-                    <div class="chips">${taskChips(t)}</div>
-                </span>
-                <span class="row">
-                    <button class="btn tiny" onclick='assignTask(${JSON.stringify(t.provenance)}, ${t.id})'>Zuweisen</button>
-                    <button class="btn tiny" onclick='doneTask(${JSON.stringify(t.provenance)}, ${t.id})'>Done</button>
-                </span>
-            </div>`
-        ).join("") || '<div class="muted">Keine Tasks.</div>';
+        const list = document.getElementById("task-list");
+        const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+        if (tasks.length) {
+            list.replaceChildren(...tasks.map(taskRow));
+        } else {
+            const empty = document.createElement("div");
+            empty.className = "muted";
+            empty.textContent = "Keine Tasks.";
+            list.replaceChildren(empty);
+        }
     } catch (e) { flash(e.message, true); }
 }
 

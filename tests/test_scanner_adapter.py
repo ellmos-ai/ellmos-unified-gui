@@ -179,3 +179,20 @@ def test_p7_aggregation_with_scanner_only(tmp_path):
     page = client.get("/p7")
     assert page.status_code == 200
     assert "taskChips" in page.text
+
+
+def test_p7_task_values_are_never_interpolated_as_html():
+    """Backend-Taskwerte muessen als DOM-Text statt als HTML gerendert werden.
+
+    project_path, title und weitere Taskfelder kommen aus externen Backends. Ein
+    `innerHTML`-Renderer oder Inline-Handler macht ein Anführungszeichen in
+    project_path zu einem Attribut-Injection-Sink.
+    """
+    template = (Path(__file__).parent.parent / "src" / "unified_gui" / "web"
+                / "templates" / "p7_tasks.html").read_text(encoding="utf-8")
+
+    assert 'document.getElementById("task-list").innerHTML' not in template
+    assert "insertAdjacentHTML" not in template
+    assert "onclick=" not in template
+    assert "replaceChildren(" in template
+    assert "addEventListener(" in template
