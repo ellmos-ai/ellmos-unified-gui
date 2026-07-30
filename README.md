@@ -1,3 +1,5 @@
+<img src="assets/banner.png" width="100%" alt="Ellmos Unified Gui banner">
+
 [🇩🇪 Deutsch](README_de.md) | 🇬🇧 English
 
 # ellmos Unified GUI
