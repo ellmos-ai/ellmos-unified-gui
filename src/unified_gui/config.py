@@ -77,6 +77,8 @@ DISCOVERY_DEFAULTS = {
     ("clutch", "module_id"): "clutch",
     ("clutch", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/clutch",
     ("controlcenter", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MCP/ellmos-controlcenter-mcp",
+    ("decisions", "index_path"):
+        "~/OneDrive/.TOPICS/_control-center/_DECISIONS/_tools/decisions.index.json",
 }
 
 
@@ -203,10 +205,20 @@ class TicketMasterConfig:
 
 
 @dataclass
+class DecisionsConfig:
+    module_id: str | None = None
+    # Pfad zur generierten decisions.index.json (_control-center/_DECISIONS/_tools).
+    # Nur gelesen, nie geschrieben -- die TO-DECIDE-*.txt-Quelldateien und der
+    # Index-Generator sind dem Adapter unbekannt (P10 ist strikt read-only).
+    index_path: str | None = None
+
+
+@dataclass
 class UnifiedGuiConfig:
     title: str = "Unified GUI"
     lock_master: LockMasterConfig = field(default_factory=LockMasterConfig)
     ticket_master: TicketMasterConfig = field(default_factory=TicketMasterConfig)
+    decisions: DecisionsConfig = field(default_factory=DecisionsConfig)
     bach: BachConfig = field(default_factory=BachConfig)
     scanner_tasks: ScannerTasksConfig = field(default_factory=ScannerTasksConfig)
     clutch: ClutchConfig = field(default_factory=ClutchConfig)
@@ -241,6 +253,7 @@ class UnifiedGuiConfig:
     def _from_dict(cls, data: dict) -> "UnifiedGuiConfig":
         lm = data.get("lock_master") or {}
         tm = data.get("ticket_master") or {}
+        dc = data.get("decisions") or {}
         bc = data.get("bach") or {}
         sc = data.get("scanner_tasks") or {}
         return cls(
@@ -258,6 +271,10 @@ class UnifiedGuiConfig:
                 module_id=tm.get("module_id"),
                 tickets_root=_expand(tm.get("tickets_root")),
                 config_dir=resolve_module_path(tm.get("module_id"), tm.get("config_dir"), "config"),
+            ),
+            decisions=DecisionsConfig(
+                module_id=dc.get("module_id"),
+                index_path=_expand(dc.get("index_path")),
             ),
             bach=BachConfig(
                 bach_root=_expand(bc.get("bach_root")),
@@ -336,6 +353,7 @@ def _apply_env(data: dict) -> None:
     mapping = {
         ENV_PREFIX + "TICKETS_ROOT": ("ticket_master", "tickets_root"),
         ENV_PREFIX + "TM_CONFIG_DIR": ("ticket_master", "config_dir"),
+        ENV_PREFIX + "DECISIONS_INDEX": ("decisions", "index_path"),
         ENV_PREFIX + "LOCK_MODULE": ("lock_master", "module_path"),
         ENV_PREFIX + "LOCK_ROOTS_FILE": ("lock_master", "roots_file"),
         ENV_PREFIX + "WATCHER_URL": ("lock_master", "watcher_url"),

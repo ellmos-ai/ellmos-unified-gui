@@ -74,6 +74,7 @@ Jedes Panel: eigenes Python-Modul unter `src/unified_gui/panels/`, deklariert
 | P7 | **Tasks** | BACH `tasks` · rinnsal `scanner_tasks.db` · homebase `hb_state_task_*` | Aufgaben aus allen Quellen aggregiert anzeigen, Status, **Zuordnung an Agent/Modell** (assign), Provenienz | BACH task-Handler, `_control-center/_tasks`-Scanner, homebase State |
 | P8 | **Tickets** | ticket-master (Dateisystem `tickets/`) | Intake-Formular (LLM-Aufgaben-Erfassung), Score-/Routing-Vorschau, Queues (PENDING/QUEUED/SOLVED), Claim-Status je Host | ticket-master v1.9 (Logik fertig, GUI fehlt) |
 | P9 | **Skills** | controlcenter-mcp (`list_skills`/`find_skill`) | Skill-Inventar, Intent→Skill-Matching, Bundle-Zuordnung | controlcenter-mcp (fertig) |
+| P10 | **Decisions** (read-only) | `decisions.index.json` (`_control-center/_DECISIONS/_tools/`) | TO-DECIDE-Übersicht: offen zuerst, dann entschieden-mit-offener-Umsetzung, DONE/ARCHIVIERT nur gezählt/gefiltert; Scope-/Status-Filter, ID-Kollisions-Warnung | Index-Generator (fertig) — GUI liest nur, schreibt nie |
 
 ### Antworten auf offene Konzeptfragen (2026-07-11)
 

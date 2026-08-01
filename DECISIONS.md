@@ -4,6 +4,24 @@ Format: `[ID] Datum — Entscheidung` mit Kontext/Begründung. Neueste oben.
 
 ---
 
+## [D10] 2026-08-01 — P10 Decisions: strikt read-only, keine zweite Wahrheit, mtime-Cache statt Live-Parse der Quelldateien
+
+Panel + Adapter lesen ausschließlich die bereits **generierte** `decisions.index.json`
+(`_control-center/_DECISIONS/_tools/`) — nicht die TO-DECIDE-*.txt-Quelldateien selbst.
+Damit bleibt der Index-Generator die einzige Stelle, die das Chain-/Kollisions-Parsing
+beherrscht [D04]; ein zweiter Parser in der GUI wäre eine zweite Wahrheit mit eigenem
+Drift-Risiko. Der Adapter cached nur nach `mtime` (kein Reparse derselben unveränderten
+Datei), schreibt nie und bietet keinen Schreibpfad — Panel-Router hat ausschließlich
+GET-Routen. Fehlt die Index-Datei oder ist sie kaputt (ungültiges JSON, falsches
+`schema`-Feld), liefert `probe()` eine leere Menge und `health()` `offline`/`degraded`;
+das Panel bleibt dann unsichtbar (Capability-driven, [D03]) statt abzustürzen.
+Default-Sicht zeigt `OFFEN` vor `ENTSCHIEDEN_UMSETZUNG_OFFEN`; `DONE`/`ARCHIVIERT`
+werden ausgeblendet, außer per explizitem `status_class`-Filter angefordert — sonst
+fluten sie die Ansicht (140 von 194 Einträgen im Live-Index waren zum Zeitpunkt der
+Entscheidung `DONE`/`ARCHIVIERT`). ID-Kollisionen aus dem Index (`collisions[]`) werden
+sichtbar als Warnung ausgewiesen, nicht stillschweigend deduped. **Quelle:** Auftrag
+„Read-only-Panel P10 Decisions" 2026-08-01.
+
 ## [D09] 2026-07-14 — Scanner-Tasks: Bearbeiter ≠ Anleger, Schema-tolerant lesen, DB-Pfad aus TASKPLAN
 
 Drei Festlegungen aus der Anpassung an TASKPLAN 0.3 (Tasks 40/41/42). Zwei davon

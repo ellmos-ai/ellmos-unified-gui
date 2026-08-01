@@ -61,6 +61,7 @@ Import-Fähigkeit. Sprache: Deutsch (Code/Identifier englisch), knapp, direkt.
 | clutch / Ollama | Routing-API / `:11434/api/tags` | P3/P4 |
 | homebase-mcp | stdio-MCP (`hb_state_task_*`, `hb_route_*`) | P4/P7 |
 | controlcenter-mcp | stdio-MCP (`controlcenter_list_skills`, …) | P9 + Discovery |
+| decisions.index.json | Dateisystem, read-only (`_control-center/_DECISIONS/_tools/`) | P10 |
 
 ## Tests
 

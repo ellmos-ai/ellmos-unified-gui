@@ -35,6 +35,7 @@ class Capability(str, Enum):
     TASKS_ASSIGN = "tasks.assign"
     TICKETS_RW = "tickets.rw"
     SKILLS_DISCOVERY = "skills.discovery"
+    DECISIONS_RO = "decisions.ro"
 
 
 @dataclass

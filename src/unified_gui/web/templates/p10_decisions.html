@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block subtitle %}Decisions{% endblock %}
+{% block content %}
+<h1>Decisions <span class="muted">TO-DECIDE-Index (read-only)</span></h1>
+<p class="muted small-text">Quelle: generierter Index <code>_control-center/_DECISIONS/_tools/decisions.index.json</code>.
+Dieses Panel schreibt nichts — Entscheidungen werden weiterhin in den TO-DECIDE-*.txt-Dateien getroffen.</p>
+
+<div class="card" id="summary-card">
+    <div class="muted">Lade Zusammenfassung ...</div>
+</div>
+
+<div id="collision-warning"></div>
+
+<div class="toolbar">
+    <label class="small-text muted">Scope
+        <select id="f-scope"><option value="">alle</option></select>
+    </label>
+    <label class="small-text muted">Status
+        <select id="f-status">
+            <option value="">offen + entschieden (Umsetzung offen)</option>
+            <option value="OFFEN">nur OFFEN</option>
+            <option value="ENTSCHIEDEN_UMSETZUNG_OFFEN">nur ENTSCHIEDEN_UMSETZUNG_OFFEN</option>
+            <option value="DONE">DONE</option>
+            <option value="ARCHIVIERT">ARCHIVIERT</option>
+        </select>
+    </label>
+    <button class="btn small" onclick="loadEntries()">Filtern</button>
+    <span id="e-count" class="muted small-text"></span>
+</div>
+
+<div id="entry-list"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function statusChipClass(status) {
+    if (status === "OFFEN") return "verdict-ask";
+    if (status === "ENTSCHIEDEN_UMSETZUNG_OFFEN") return "verdict-allow";
+    if (status === "ARCHIVIERT") return "muted";
+    return "";
+}
+
+async function loadSummary() {
+    const el = document.getElementById("summary-card");
+    try {
+        const data = await api("/api/p10/summary");
+        const byStatus = data.counts.by_status_class || {};
+        const byScope = data.counts.by_scope || {};
+        el.innerHTML = `
+            <div class="row">
+                <span class="chip">Gesamt ${esc(data.counts.total ?? "?")}</span>
+                ${Object.entries(byStatus).map(([k, v]) =>
+                    `<span class="chip ${statusChipClass(k)}">${esc(k)}: ${esc(v)}</span>`).join("")}
+            </div>
+            <div class="muted small-text">generiert ${esc(data.generated_at || "?")} · ${esc(data.root || "")}</div>`;
+
+        const scopeSelect = document.getElementById("f-scope");
+        const current = scopeSelect.value;
+        scopeSelect.innerHTML = '<option value="">alle</option>' +
+            Object.keys(byScope).sort().map(s =>
+                `<option value="${esc(s)}">${esc(s)} (${esc(byScope[s])})</option>`).join("");
+        scopeSelect.value = current;
+
+        const collisions = data.collisions || [];
+        const warnEl = document.getElementById("collision-warning");
+        if (collisions.length) {
+            warnEl.innerHTML = `<div class="card" style="border-color:var(--warn)">
+                <b class="ask-h">⚠ ${collisions.length} ID-Kollision(en) im Index</b> —
+                betroffene IDs: ${collisions.map(c =>
+                    `<span class="chip verdict-ask" title="${esc((c.occurrences || []).map(o => o.title).join(' · '))}">${esc(c.id)} (${esc(c.count)}×)</span>`
+                ).join(" ")}
+                </div>`;
+        } else {
+            warnEl.innerHTML = "";
+        }
+    } catch (e) {
+        el.innerHTML = '<span class="muted">Backend degradiert / Index nicht lesbar.</span>';
+        flash(e.message, true);
+    }
+}
+
+async function loadEntries() {
+    const scope = document.getElementById("f-scope").value;
+    const status = document.getElementById("f-status").value;
+    const params = new URLSearchParams();
+    if (scope) params.set("scope", scope);
+    if (status) params.set("status_class", status);
+    const el = document.getElementById("entry-list");
+    el.innerHTML = '<div class="muted">Lade ...</div>';
+    try {
+        const data = await api("/api/p10/entries" + (params.toString() ? "?" + params.toString() : ""));
+        document.getElementById("e-count").textContent = data.count + " Einträge";
+        if (!data.entries.length) {
+            el.innerHTML = '<div class="muted">Keine Einträge für diesen Filter.</div>';
+            return;
+        }
+        el.innerHTML = data.entries.map(e => `
+            <div class="card">
+                <div class="row" style="justify-content:space-between">
+                    <b>${esc(e.key || e.id || "?")}</b>
+                    <span class="chip ${statusChipClass(e.status_class)}">${esc(e.status_class || "?")}</span>
+                </div>
+                <div>${esc(e.title || "")}</div>
+                <div class="muted small-text">${esc(e.date || "")} · scope: ${esc(e.scope || "-")}</div>
+                ${e.question ? `<div class="small-text" style="margin-top:0.4rem"><b>Frage:</b> ${esc(e.question)}</div>` : ""}
+                ${e.options_excerpt ? `<div class="small-text"><b>Optionen:</b> ${esc(e.options_excerpt)}</div>` : ""}
+                ${e.recommendation_excerpt ? `<div class="small-text"><b>Empfehlung:</b> ${esc(e.recommendation_excerpt)}</div>` : ""}
+                <div class="muted small-text" style="margin-top:0.3rem">${esc(e.source_file || "")}:${esc(e.source_line ?? "")}</div>
+            </div>`).join("");
+    } catch (err) {
+        el.innerHTML = "";
+        flash(err.message, true);
+    }
+}
+
+loadSummary();
+loadEntries();
+</script>
+{% endblock %}

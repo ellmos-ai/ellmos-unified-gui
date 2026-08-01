@@ -39,6 +39,7 @@ class BaseAdapter(Protocol):
 | `TASKS_ASSIGN` | Task einem Agenten/Modell zuweisen | BACH, scanner_tasks.py |
 | `TICKETS_RW` | Tickets erfassen/routen/verschieben | ticket-master |
 | `SKILLS_DISCOVERY` | Skills inventarisieren/matchen | controlcenter-mcp |
+| `DECISIONS_RO` | TO-DECIDE-Index lesen (kein Schreibpfad) | decisions.index.json |
 
 Regeln: Enum ist **additiv** (nie umbenennen/loeschen). Ein Adapter meldet nur, was
 er JETZT wirklich bedienen kann (kein "geplant").
@@ -99,6 +100,13 @@ class ModelProvider(Protocol):
 class SkillIndex(Protocol):
     def list(self) -> list[SkillInfo]
     def find(self, intent) -> list[SkillMatch]
+
+class DecisionsIndex(Protocol):
+    # P10 -- strikt read-only, kein Schreibpfad im Protokoll.
+    def summary(self) -> dict                            # counts/collisions/files, ohne entries[]
+    def entries(self, scope=None, status_class=None) -> list[dict]  # gefiltert+sortiert
+    def collisions(self) -> list[dict]
+    def scopes(self) -> list[str]
 ```
 
 ## 4. Routine-Bindings (P6 — Routine an Modell/Rolle/Skills knüpfen)
