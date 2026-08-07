@@ -10,6 +10,11 @@ the existing backends. MIT licensed.
 
 > **Status: Phase 1 implemented (v0.1.0)** — panels P5 (permissions) and P8 (tickets) run
 > standalone (`python -m unified_gui`, port 8990) and embedded (`unified_gui.mount(app)`); 23 tests green.
+>
+> **V4-Einordnung:** `ellmos-unified-gui` ist ein `.RUNTIME`-Modul und wird über
+> `../../.BUNDLES/` in Stacks komponiert. Es konsumiert `.CONTROL` (Locks, Tickets,
+> Tasks) und `.ORCHESTRATION` (Routing) über Adapter, besitzt aber keine eigene
+> Fachlogik-Wahrheit.
 
 ## Core ideas
 

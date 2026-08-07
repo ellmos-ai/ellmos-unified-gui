@@ -34,7 +34,8 @@ PERMISSIONS_SKELETON = {
 }
 
 _MODULE_CANDIDATES = (
-    # OneDrive-Standardlayout dieses Oekosystems; per Config uebersteuerbar.
+    # Korrekter ControlRoom-Stack-Pfad; Fallback auf persoenliche Scripts.
+    "~/OneDrive/.TOPICS/.AI/.MODULES/.CONTROL/lock-master",
     "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",
     "~/OneDrive/_scripts",
 )
