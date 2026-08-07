@@ -79,7 +79,27 @@ DISCOVERY_DEFAULTS = {
     ("controlcenter", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MCP/ellmos-controlcenter-mcp",
     ("decisions", "index_path"):
         "~/OneDrive/.TOPICS/_control-center/_DECISIONS/_tools/decisions.index.json",
+    ("decisions", "chain_dir"): "~/OneDrive/.TOPICS/_control-center/_DECISIONS",
+    ("decisions", "clicker_path"): lambda: _first_existing(DECISION_CLICKER_CANDIDATES),
 }
+
+# decision-clicker liegt nach Plan D im lokalen Klon, NICHT in OneDrive — der
+# Pfad ist deshalb nicht ~-relativ und je System verschieden. probe() filtert
+# ohnehin, was nicht existiert.
+DECISION_CLICKER_CANDIDATES = (
+    "C:/_Local_DEV/repos/decision-clicker",
+    "~/_Local_DEV/repos/decision-clicker",
+    "~/repos/decision-clicker",
+    "~/decision-clicker",
+)
+
+
+def _first_existing(candidates: tuple[str, ...]) -> str | None:
+    for value in candidates:
+        path = Path(_expand(value))
+        if (path / "src" / "decision_clicker").is_dir():
+            return str(path)
+    return None
 
 
 def _module_catalog_candidates() -> list[Path]:
@@ -208,9 +228,14 @@ class TicketMasterConfig:
 class DecisionsConfig:
     module_id: str | None = None
     # Pfad zur generierten decisions.index.json (_control-center/_DECISIONS/_tools).
-    # Nur gelesen, nie geschrieben -- die TO-DECIDE-*.txt-Quelldateien und der
-    # Index-Generator sind dem Adapter unbekannt (P10 ist strikt read-only).
+    # Reicht fuer die reine Lesesicht (DECISIONS_RO).
     index_path: str | None = None
+    # Kettenordner (_control-center/_DECISIONS) -- Wurzel der TO-DECIDE-*.txt.
+    chain_dir: str | None = None
+    # decision-clicker-Repo (Ordner mit src/decision_clicker). Ist es da, kommt
+    # DECISIONS_RW dazu: Entscheiden/Einstellen/Postfach laufen ueber dessen
+    # Kernlogik. Fehlt es, bleibt P10 exakt wie zuvor read-only. [D11]
+    clicker_path: str | None = None
 
 
 @dataclass
@@ -275,6 +300,9 @@ class UnifiedGuiConfig:
             decisions=DecisionsConfig(
                 module_id=dc.get("module_id"),
                 index_path=_expand(dc.get("index_path")),
+                chain_dir=_expand(dc.get("chain_dir")),
+                clicker_path=resolve_module_path(
+                    dc.get("module_id") or "decision-clicker", dc.get("clicker_path")),
             ),
             bach=BachConfig(
                 bach_root=_expand(bc.get("bach_root")),

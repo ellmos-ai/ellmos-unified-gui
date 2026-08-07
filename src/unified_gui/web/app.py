@@ -73,7 +73,8 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
         p7_tasks.build(bach_adapter, scanner_adapter, registry),
         p8_tickets.build(ticket_adapter),
         p9_skills.build(controlcenter_adapter),
-        p10_decisions.build(decisions_adapter),
+        # lock_adapter mit: P10 schreibt und prueft dafuer LOCK.permissions.json
+        p10_decisions.build(decisions_adapter, lock_adapter),
     ]
 
     app.state.config = config

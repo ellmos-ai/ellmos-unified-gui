@@ -12,6 +12,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from unified_gui import create_app
+from unified_gui.adapters.base import AdapterError
 from unified_gui.adapters.decisions import DecisionsAdapter
 from unified_gui.capabilities import Capability
 from unified_gui.config import DecisionsConfig
@@ -246,18 +247,65 @@ def test_cache_survives_unchanged_mtime(index_path, sample_entries):
 
 
 # ------------------------------------------------------------------
-# Panel: Read-only-Nachweis (P10-Router bietet ausschliesslich GET-Routen)
+# Panel: Schreibrouten existieren, sind aber ohne Kernlogik wirkungslos [D11]
+#
+# Bis [D10] war P10 GET-only, und ein Test schrieb das fest. Seit [D11] gibt es
+# Schreibrouten — der Schutz liegt jetzt eine Ebene tiefer: Ohne den
+# decision-clicker meldet der Adapter nur DECISIONS_RO, und jeder Schreibweg
+# endet in einem AdapterError statt in einer Aenderung.
 # ------------------------------------------------------------------
-def test_panel_router_is_get_only(adapter):
+def test_panel_spec_unveraendert(adapter):
     spec = p10_decisions.build(adapter)
     assert spec.id == "p10"
-    assert spec.required == {Capability.DECISIONS_RO}
+    assert spec.required == {Capability.DECISIONS_RO}, \
+        "P10 muss auch ohne Schreibpfad sichtbar bleiben"
     assert spec.router is not None
-    write_verbs = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+def test_leseroute_bleibt_get_only(adapter):
+    """Die urspruenglichen Routen duerfen kein Schreib-Verb bekommen haben."""
+    spec = p10_decisions.build(adapter)
+    lesend = {"/api/p10/summary", "/api/p10/entries"}
     for route in spec.router.routes:
-        methods = getattr(route, "methods", set()) or set()
-        assert not (methods & write_verbs), f"{route.path} erlaubt Schreib-Verben: {methods}"
-        assert methods <= {"GET", "HEAD"}
+        if getattr(route, "path", "") in lesend:
+            assert (getattr(route, "methods", set()) or set()) <= {"GET", "HEAD"}
+
+
+def test_ohne_kernlogik_kein_schreibpfad(adapter):
+    """Degradierung [D03]: kein decision-clicker => nur Lesesicht."""
+    adapter.config.clicker_path = None
+    adapter._clicker = None
+    adapter._clicker_error = None
+    assert Capability.DECISIONS_RW not in adapter.probe()
+    for aufruf in (lambda: adapter.decide("D-20260101-001", "A"),
+                   lambda: adapter.create("Titel"),
+                   lambda: adapter.intake_apply(),
+                   lambda: adapter.status()):
+        with pytest.raises(AdapterError) as fehler:
+            aufruf()
+        assert fehler.value.kind == "decisions.readonly"
+
+
+def test_kaputter_clicker_pfad_degradiert_still(adapter, tmp_path):
+    adapter.config.clicker_path = str(tmp_path / "gibt-es-nicht")
+    adapter._clicker = None
+    adapter._clicker_error = None
+    assert adapter.probe() == {Capability.DECISIONS_RO}  # wirft nicht
+    assert adapter.health().status in ("ok", "degraded")
+
+
+def test_schreibrouten_antworten_409_statt_500(adapter):
+    """Fehlt die Kernlogik, sieht der Nutzer einen Konflikt, keinen Serverfehler."""
+    adapter.config.clicker_path = None
+    adapter._clicker = None
+    adapter._clicker_error = None
+    app = create_app({**_OTHER_BACKENDS_OFF,
+                      "decisions": {"index_path": adapter.config.index_path,
+                                    "clicker_path": None}})
+    client = TestClient(app)
+    antwort = client.post("/api/p10/decide", json={"key": "D-20260101-001", "choice": "A"})
+    assert antwort.status_code == 409
+    assert "decisions.readonly" in antwort.json()["detail"]
 
 
 # ------------------------------------------------------------------

@@ -36,6 +36,7 @@ class Capability(str, Enum):
     TICKETS_RW = "tickets.rw"
     SKILLS_DISCOVERY = "skills.discovery"
     DECISIONS_RO = "decisions.ro"
+    DECISIONS_RW = "decisions.rw"
 
 
 @dataclass

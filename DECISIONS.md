@@ -4,6 +4,46 @@ Format: `[ID] Datum — Entscheidung` mit Kontext/Begründung. Neueste oben.
 
 ---
 
+## [D11] 2026-08-07 — P10 wird interaktiv: Schreibpfad über die decision-clicker-Kernlogik, nicht über einen zweiten Parser
+
+Ergänzt [D10]: P10 kann jetzt entscheiden, einstellen und das Desktop-Postfach
+übernehmen. **Quelle:** Nutzer-Weichenstellung 2026-08-07 („GUI für
+Entscheidungsfindung" gehört in die Unified GUI, nicht in ein eigenes Werkzeug).
+
+**Der Kern von [D10] bleibt gültig** — und war der Grund für diesen Zuschnitt.
+D10 verbot den Schreibpfad, weil „ein zweiter Parser in der GUI eine zweite
+Wahrheit mit eigenem Drift-Risiko wäre" [D04]. Genau das passiert hier nicht:
+Der Adapter delegiert an das Modul `decision-clicker`, und dieses lädt den
+kanonischen Generator `_DECISIONS/_tools/decisions_index.py` als Modul. Es gibt
+weiterhin **einen** Parser; die GUI hat keinen eigenen und keinen Datenstore.
+Wahrheit bleibt die TO-DECIDE-Kette.
+
+**Degradierung statt Zwang** [D03]: `probe()` meldet `DECISIONS_RW` nur, wenn
+die Kernlogik importierbar UND die Kette bedienbar ist. Fehlt das Modul, ist P10
+exakt das read-only-Panel vom 01.08. — gleiche Routen, gleiches Verhalten. Das
+Panel bleibt deshalb bei `required={DECISIONS_RO}` sichtbar; die Schreibrouten
+antworten dann mit `409 decisions.readonly` statt mit einem Serverfehler.
+
+**Im Schreibbetrieb wird frisch aus der Kette gelesen, nicht aus der JSON.**
+Ein Klick schreibt an eine Zeilennummer — eine veraltete `decisions.index.json`
+zeigte auf die falsche Stelle und die Entscheidung landete im falschen Eintrag.
+Zusätzlich prüft der Schreibpfad die erwartete ID an der Zielzeile
+(`expected_id`) und bricht bei Abweichung mit „Ansicht ist veraltet" ab. Die
+mtime-gecachte JSON-Sicht aus D10 bleibt für den reinen Lesebetrieb bestehen.
+
+**Geschrieben wird konservativ und nachvollziehbar:** nur das Feld
+`ENTSCHEIDUNG DES USERS` plus eine Datumszeile, vorher Sicherung nach
+`_decision-archive/_bak/`, kein Überschreiben einer bereits getroffenen
+Entscheidung, keine Umformatierung. Fremde `LOCK*.txt` im Kettenordner
+blockieren jeden Schreibvorgang; zusätzlich läuft vor jeder Aktion die
+Rechteprüfung gegen `LOCK.permissions.json` (`deny` blockt, `ask` verlangt
+Bestätigung) — die harte Projektregel für schreibende Aktionen.
+
+**Ein Test weniger, zwei Zusagen mehr:** `test_panel_router_is_get_only` ist
+entfallen — er schrieb den alten Zustand fest. An seine Stelle treten Tests, die
+die Degradierung belegen (ohne Kernlogik kein `DECISIONS_RW`, Schreibrouten
+antworten 409) und dass die alten Leserouten GET-only geblieben sind.
+
 ## [D10] 2026-08-01 — P10 Decisions: strikt read-only, keine zweite Wahrheit, mtime-Cache statt Live-Parse der Quelldateien
 
 Panel + Adapter lesen ausschließlich die bereits **generierte** `decisions.index.json`

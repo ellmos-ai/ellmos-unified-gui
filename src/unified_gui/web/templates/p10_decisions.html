@@ -1,38 +1,77 @@
 {% extends "base.html" %}
 {% block subtitle %}Decisions{% endblock %}
 {% block content %}
-<h1>Decisions <span class="muted">TO-DECIDE-Index (read-only)</span></h1>
-<p class="muted small-text">Quelle: generierter Index <code>_control-center/_DECISIONS/_tools/decisions.index.json</code>.
-Dieses Panel schreibt nichts — Entscheidungen werden weiterhin in den TO-DECIDE-*.txt-Dateien getroffen.</p>
+<h1>Decisions <span class="muted" id="mode-badge">TO-DECIDE-Kette</span></h1>
+<p class="muted small-text">Quelle: <code>_control-center/_DECISIONS</code>.
+Ohne die decision-clicker-Kernlogik bleibt dieses Panel read-only; mit ihr kannst du
+hier entscheiden, einstellen und das Desktop-Postfach übernehmen.</p>
 
-<div class="card" id="summary-card">
-    <div class="muted">Lade Zusammenfassung ...</div>
-</div>
-
+<div class="card" id="summary-card"><div class="muted">Lade Zusammenfassung ...</div></div>
 <div id="collision-warning"></div>
+<div id="intake-banner"></div>
 
-<div class="toolbar">
-    <label class="small-text muted">Scope
-        <select id="f-scope"><option value="">alle</option></select>
-    </label>
-    <label class="small-text muted">Status
-        <select id="f-status">
-            <option value="">offen + entschieden (Umsetzung offen)</option>
-            <option value="OFFEN">nur OFFEN</option>
-            <option value="ENTSCHIEDEN_UMSETZUNG_OFFEN">nur ENTSCHIEDEN_UMSETZUNG_OFFEN</option>
-            <option value="DONE">DONE</option>
-            <option value="ARCHIVIERT">ARCHIVIERT</option>
-        </select>
-    </label>
-    <button class="btn small" onclick="loadEntries()">Filtern</button>
-    <span id="e-count" class="muted small-text"></span>
+<div class="toolbar" id="tabs">
+    <button class="btn small" data-tab="uebersicht" onclick="showTab('uebersicht')">Übersicht</button>
+    <button class="btn small rw-only" data-tab="klick" onclick="showTab('klick')">Durchklicken</button>
+    <button class="btn small rw-only" data-tab="neu" onclick="showTab('neu')">Einstellen</button>
+    <button class="btn small rw-only" data-tab="register" onclick="showTab('register')">Register</button>
 </div>
 
-<div id="entry-list"></div>
+<section id="tab-uebersicht">
+    <div class="toolbar">
+        <label class="small-text muted">Scope
+            <select id="f-scope"><option value="">alle</option></select>
+        </label>
+        <label class="small-text muted">Status
+            <select id="f-status">
+                <option value="">offen + entschieden (Umsetzung offen)</option>
+                <option value="OFFEN">nur OFFEN</option>
+                <option value="ENTSCHIEDEN_UMSETZUNG_OFFEN">nur ENTSCHIEDEN_UMSETZUNG_OFFEN</option>
+                <option value="DONE">DONE</option>
+                <option value="ARCHIVIERT">ARCHIVIERT</option>
+            </select>
+        </label>
+        <button class="btn small" onclick="loadEntries()">Filtern</button>
+        <span id="e-count" class="muted small-text"></span>
+    </div>
+    <div id="entry-list"></div>
+</section>
+
+<section id="tab-klick" hidden>
+    <div id="klick-card"><div class="muted">Lade ...</div></div>
+</section>
+
+<section id="tab-neu" hidden>
+    <div class="card">
+        <h2>Entscheidung einstellen</h2>
+        <div class="muted small-text" id="neu-hinweis"></div>
+        <label class="small-text muted">Titel<input id="n-title" placeholder="Wovon handelt die Entscheidung?"></label>
+        <label class="small-text muted">Frage<input id="n-frage" placeholder="Soll … oder …?"></label>
+        <label class="small-text muted">Kontext<textarea id="n-kontext" rows="5"></textarea></label>
+        <label class="small-text muted">Optionen (je Zeile eine, beginnend mit A/B/C)<textarea id="n-optionen" rows="3" placeholder="A — …&#10;B — …"></textarea></label>
+        <label class="small-text muted">Empfehlung<input id="n-empfehlung"></label>
+        <label class="small-text muted">Quelle<input id="n-quelle"></label>
+        <label class="small-text muted">Geltung (leer = global)<input id="n-scope" placeholder="global | host:ASUS-GEI | projekt:…"></label>
+        <div class="row" style="margin-top:0.6rem">
+            <button class="btn" onclick="einstellen()">In die Kette einstellen</button>
+        </div>
+    </div>
+</section>
+
+<section id="tab-register" hidden>
+    <div class="toolbar">
+        <input id="r-q" placeholder="ID, Titel, Entscheidungstext" style="min-width:18rem">
+        <button class="btn small" onclick="loadRegister()">Suchen</button>
+        <span id="r-count" class="muted small-text"></span>
+    </div>
+    <div id="register-list"></div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script>
+let RW = false;
+
 function statusChipClass(status) {
     if (status === "OFFEN") return "verdict-ask";
     if (status === "ENTSCHIEDEN_UMSETZUNG_OFFEN") return "verdict-allow";
@@ -40,6 +79,63 @@ function statusChipClass(status) {
     return "";
 }
 
+function showTab(name) {
+    ["uebersicht", "klick", "neu", "register"].forEach(t => {
+        document.getElementById("tab-" + t).hidden = (t !== name);
+    });
+    if (name === "klick") loadKlick();
+    if (name === "register") loadRegister();
+    if (name === "neu") loadNeuHinweis();
+}
+
+// --- Schreibpfad erkennen -------------------------------------------------
+async function detectMode() {
+    try {
+        const s = await api("/api/p10/status");
+        RW = true;
+        document.getElementById("mode-badge").textContent =
+            "schreibend · " + s.counts.offen + " offen";
+        document.querySelectorAll(".rw-only").forEach(b => b.hidden = false);
+        renderIntake(s.intake_pending, s.foreign_locks);
+    } catch (e) {
+        RW = false;
+        document.getElementById("mode-badge").textContent = "read-only (Index)";
+        document.querySelectorAll(".rw-only").forEach(b => b.hidden = true);
+    }
+}
+
+function renderIntake(pending, locks) {
+    const el = document.getElementById("intake-banner");
+    let html = "";
+    if (locks && locks.length) {
+        html += `<div class="card" style="border-color:var(--warn)">
+            <b class="ask-h">⚠ Fremde Sperre im Entscheidungsordner</b>
+            <div class="small-text">${esc(locks.join(", "))} — es wird nichts geschrieben.</div></div>`;
+    }
+    if (pending) {
+        html += `<div class="card">
+            <b>Desktop-Postfach: ${esc(pending)} neue Einträge</b>
+            <div class="small-text muted">Automationen schreiben weiterhin nach
+            <code>Desktop\\TO-DECIDE-USER.txt</code>. Die Einträge werden in die Kette
+            übernommen und dort vermerkt — im Postfach wird nichts gelöscht.</div>
+            <div class="row" style="margin-top:0.5rem">
+                <button class="btn" onclick="intakeApply()">Jetzt übernehmen</button>
+            </div></div>`;
+    }
+    el.innerHTML = html;
+}
+
+async function intakeApply() {
+    try {
+        const r = await api("/api/p10/intake", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({confirmed: true})});
+        flash(r.count + " Einträge übernommen");
+        await loadSummary(); await detectMode(); await loadEntries();
+    } catch (e) { flash(e.message, true); }
+}
+
+// --- Übersicht ------------------------------------------------------------
 async function loadSummary() {
     const el = document.getElementById("summary-card");
     try {
@@ -53,7 +149,6 @@ async function loadSummary() {
                     `<span class="chip ${statusChipClass(k)}">${esc(k)}: ${esc(v)}</span>`).join("")}
             </div>
             <div class="muted small-text">generiert ${esc(data.generated_at || "?")} · ${esc(data.root || "")}</div>`;
-
         const scopeSelect = document.getElementById("f-scope");
         const current = scopeSelect.value;
         scopeSelect.innerHTML = '<option value="">alle</option>' +
@@ -63,18 +158,13 @@ async function loadSummary() {
 
         const collisions = data.collisions || [];
         const warnEl = document.getElementById("collision-warning");
-        if (collisions.length) {
-            warnEl.innerHTML = `<div class="card" style="border-color:var(--warn)">
-                <b class="ask-h">⚠ ${collisions.length} ID-Kollision(en) im Index</b> —
-                betroffene IDs: ${collisions.map(c =>
-                    `<span class="chip verdict-ask" title="${esc((c.occurrences || []).map(o => o.title).join(' · '))}">${esc(c.id)} (${esc(c.count)}×)</span>`
-                ).join(" ")}
-                </div>`;
-        } else {
-            warnEl.innerHTML = "";
-        }
+        warnEl.innerHTML = collisions.length ? `<div class="card" style="border-color:var(--warn)">
+            <b class="ask-h">⚠ ${collisions.length} ID-Kollision(en) im Index</b> —
+            betroffene IDs: ${collisions.map(c =>
+                `<span class="chip verdict-ask" title="${esc((c.occurrences || []).map(o => o.title).join(' · '))}">${esc(c.id)} (${esc(c.count)}×)</span>`
+            ).join(" ")}</div>` : "";
     } catch (e) {
-        el.innerHTML = '<span class="muted">Backend degradiert / Index nicht lesbar.</span>';
+        el.innerHTML = '<span class="muted">Backend degradiert / Kette nicht lesbar.</span>';
         flash(e.message, true);
     }
 }
@@ -106,6 +196,8 @@ async function loadEntries() {
                 ${e.options_excerpt ? `<div class="small-text"><b>Optionen:</b> ${esc(e.options_excerpt)}</div>` : ""}
                 ${e.recommendation_excerpt ? `<div class="small-text"><b>Empfehlung:</b> ${esc(e.recommendation_excerpt)}</div>` : ""}
                 <div class="muted small-text" style="margin-top:0.3rem">${esc(e.source_file || "")}:${esc(e.source_line ?? "")}</div>
+                ${RW && e.status_class === "OFFEN" ? `<div class="row" style="margin-top:0.5rem">
+                    <button class="btn small" onclick="loadKlick('${esc(e.key)}')">Entscheiden</button></div>` : ""}
             </div>`).join("");
     } catch (err) {
         el.innerHTML = "";
@@ -113,7 +205,123 @@ async function loadEntries() {
     }
 }
 
+// --- Durchklicken ---------------------------------------------------------
+let QUEUE = [];
+let SKIPPED = new Set();
+
+async function loadKlick(key) {
+    showTabRaw("klick");
+    const el = document.getElementById("klick-card");
+    el.innerHTML = '<div class="muted">Lade ...</div>';
+    try {
+        const offen = (await api("/api/p10/open")).entries;
+        QUEUE = offen.filter(e => !SKIPPED.has(e.key));
+        if (!QUEUE.length) { SKIPPED.clear(); QUEUE = offen; }
+        const ziel = key || (QUEUE.length ? QUEUE[0].key : null);
+        if (!ziel) {
+            el.innerHTML = '<div class="card"><div class="muted">Alle Entscheidungen sind getroffen.</div></div>';
+            return;
+        }
+        const d = await api("/api/p10/detail/" + encodeURIComponent(ziel));
+        const knoepfe = (d.optionen || []).map(o => `
+            <button class="btn" style="display:block;width:100%;text-align:left;margin:.35rem 0"
+                    onclick="entscheiden('${esc(d.key)}','${esc(o.letter)}')">
+                <b>${esc(o.letter)}</b> — ${esc(o.text)}
+                ${o.letter === d.recommended ? '<span class="chip verdict-allow">empfohlen</span>' : ''}
+            </button>`).join("");
+        el.innerHTML = `
+            <div class="card">
+                <div class="row" style="justify-content:space-between">
+                    <b>${esc(d.key)}</b>
+                    <span class="muted small-text">noch ${esc(QUEUE.length)} offen</span>
+                </div>
+                <h2>${esc(d.title)}</h2>
+                <div class="muted small-text">${esc(d.date)} · ${esc(d.source_file)}:${esc(d.source_line)}</div>
+                <pre class="small-text" style="white-space:pre-wrap;max-height:22rem;overflow:auto">${esc(d.raw)}</pre>
+                ${d.recommendation_excerpt ? `<div class="small-text"><b>Empfehlung:</b> ${esc(d.recommendation_excerpt)}</div>` : ""}
+                <h3 class="small-text">Entscheidung</h3>
+                ${knoepfe || `<div class="row"><input id="k-frei" placeholder="freie Entscheidung">
+                    <button class="btn" onclick="entscheiden('${esc(d.key)}', document.getElementById('k-frei').value)">Eintragen</button></div>`}
+                <label class="small-text muted">Anmerkung (optional)<textarea id="k-note" rows="2"></textarea></label>
+                <div class="row" style="margin-top:0.5rem">
+                    <button class="btn small" onclick="spaeter('${esc(d.key)}')">Später</button>
+                </div>
+            </div>`;
+    } catch (e) {
+        el.innerHTML = '<div class="muted">Nicht verfügbar.</div>';
+        flash(e.message, true);
+    }
+}
+
+function showTabRaw(name) {
+    ["uebersicht", "klick", "neu", "register"].forEach(t => {
+        document.getElementById("tab-" + t).hidden = (t !== name);
+    });
+}
+
+function spaeter(key) { SKIPPED.add(key); loadKlick(); }
+
+async function entscheiden(key, choice) {
+    if (!choice) { flash("Ohne Auswahl wird nichts eingetragen.", true); return; }
+    const noteEl = document.getElementById("k-note");
+    try {
+        const r = await api("/api/p10/decide", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({key, choice, note: noteEl ? noteEl.value : "", confirmed: true})});
+        flash(r.id + " → " + r.value);
+        await loadSummary(); await detectMode(); await loadKlick();
+    } catch (e) { flash(e.message, true); }
+}
+
+// --- Einstellen -----------------------------------------------------------
+async function loadNeuHinweis() {
+    try {
+        const s = await api("/api/p10/status");
+        document.getElementById("neu-hinweis").textContent =
+            "Nächste freie ID: " + s.next_id + " · Ziel: " + s.target_file;
+    } catch (e) { /* read-only: Tab ist ohnehin verborgen */ }
+}
+
+async function einstellen() {
+    const v = id => document.getElementById(id).value;
+    try {
+        const r = await api("/api/p10/new", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                title: v("n-title"), frage: v("n-frage"), kontext: v("n-kontext"),
+                optionen: v("n-optionen"), empfehlung: v("n-empfehlung"),
+                quelle: v("n-quelle"), scope: v("n-scope"), confirmed: true})});
+        flash(r.id + " eingestellt");
+        ["n-title","n-frage","n-kontext","n-optionen","n-empfehlung","n-quelle","n-scope"]
+            .forEach(i => document.getElementById(i).value = "");
+        await loadSummary(); await detectMode(); loadKlick(r.id);
+    } catch (e) { flash(e.message, true); }
+}
+
+// --- Register -------------------------------------------------------------
+async function loadRegister() {
+    const el = document.getElementById("register-list");
+    el.innerHTML = '<div class="muted">Lade ...</div>';
+    try {
+        const q = document.getElementById("r-q").value;
+        const data = await api("/api/p10/register" + (q ? "?q=" + encodeURIComponent(q) : ""));
+        document.getElementById("r-count").textContent = data.count + " getroffene Entscheidungen";
+        el.innerHTML = data.entries.length ? `<table class="tbl">
+            <tr><th>ID</th><th>Datum</th><th>Titel</th><th>Entscheidung</th><th>Status</th><th>Fundstelle(n)</th></tr>
+            ${data.entries.map(e => `<tr>
+                <td><code>${esc(e.key)}</code></td><td>${esc(e.date)}</td><td>${esc(e.title)}</td>
+                <td>${esc(e.decision_field_raw || "—")}</td>
+                <td><span class="chip ${statusChipClass(e.status_class)}">${esc(e.status_class)}</span></td>
+                <td class="small-text">${(e.fundstellen || [e.source_file]).map(f => `<code>${esc(f)}</code>`).join(" ")}</td>
+            </tr>`).join("")}</table>` : '<div class="muted">Kein Treffer.</div>';
+    } catch (e) {
+        el.innerHTML = '<div class="muted">Nicht verfügbar (nur mit Schreibpfad).</div>';
+    }
+}
+
+document.querySelectorAll(".rw-only").forEach(b => b.hidden = true);
 loadSummary();
 loadEntries();
+detectMode();
 </script>
 {% endblock %}

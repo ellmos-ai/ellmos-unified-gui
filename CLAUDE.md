@@ -50,6 +50,8 @@ Import-Fähigkeit. Sprache: Deutsch (Code/Identifier englisch), knapp, direkt.
 - **Keine Klartext-API-Keys** in Config/Repo — nur Credential-Referenzen. (ARCHITECTURE §Sicherheit)
 - **Kein Framework-Frontend / kein Build-Schritt.** HTMX + Vanilla-JS. [D02]
 - Schreibende Aktionen prüfen vorab `LOCK.permissions.json` (lock-master-Adapter).
+- **P10 schreibt seit [D11]** — aber nur über die `decision-clicker`-Kernlogik, nie mit
+  eigenem Parser. Fehlt das Modul, degradiert P10 auf die read-only-Sicht von [D10].
 
 ## Verwandte Systeme (Anbindungsziele)
 
@@ -61,7 +63,7 @@ Import-Fähigkeit. Sprache: Deutsch (Code/Identifier englisch), knapp, direkt.
 | clutch / Ollama | Routing-API / `:11434/api/tags` | P3/P4 |
 | homebase-mcp | stdio-MCP (`hb_state_task_*`, `hb_route_*`) | P4/P7 |
 | controlcenter-mcp | stdio-MCP (`controlcenter_list_skills`, …) | P9 + Discovery |
-| decisions.index.json | Dateisystem, read-only (`_control-center/_DECISIONS/_tools/`) | P10 |
+| decision-clicker | Lib-Import (`src/decision_clicker/api.py`) + `decisions.index.json` als Rückfall | P10 |
 
 ## Tests
 
