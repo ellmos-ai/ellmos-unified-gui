@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import sys
 import tempfile
 import time
 import urllib.error
@@ -103,6 +104,12 @@ class LockMasterAdapter(BaseAdapter):
                     continue
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
+                # lock-masters permissions.py ist seit der Stack-Zerlegung
+                # (2026-07-26) ein selbstersetzender Shim: er laedt das reale
+                # Modul und setzt es unter sys.modules[<geladener Name>].
+                # Unsere lokale Variable zeigt dann noch auf die Shim-Huelle —
+                # deshalb das ersetzte Modul aus sys.modules bevorzugen.
+                module = sys.modules.get(spec.name, module)
                 self._engine = module
                 self._engine_error = None
                 return module

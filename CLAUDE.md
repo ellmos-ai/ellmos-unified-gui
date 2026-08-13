@@ -25,8 +25,9 @@ description: |
 Routing, Berechtigungen, Routinen, Tasks, Tickets, Skills) über Adapter auf die
 vorhandenen Backends des Ökosystems.
 
-**Pfad:** `~/OneDrive/.TOPICS/.AI/.MODULES/.RUNTIME/ellmos-unified-gui`
-**Repository:** privat, kein Remote (Release später als `ellmos-ai/unified-gui` geplant)
+**Kanonischer Klon (entwickeln/committen/pushen):** `C:\_Local_DEV\repos\unified-gui`
+**OneDrive-Arbeits-/Deploykopie (ohne `.git`, Plan D):** `~/OneDrive/.TOPICS/.AI/.MODULES/.RUNTIME/ellmos-unified-gui` — nach jedem Push per robocopy nachziehen (siehe `unified-gui.repo.md` dort)
+**Repository:** privat, `https://github.com/ellmos-ai/unified-gui` (seit 2026-08-13, D-20260808-005)
 **Sprache/Stack:** Python 3.11+, FastAPI + Jinja2/HTMX + Vanilla-JS (KEIN Build-Schritt)
 
 ## Rolle & Stil
