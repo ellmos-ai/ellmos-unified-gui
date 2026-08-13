@@ -4,6 +4,13 @@
 
 ### Fixed
 
+- **P5/lock-master-Adapter lud nach der lock-master-Stack-Zerlegung (2026-07-26)
+  nur noch die leere Shim-Hülle.** `permissions.py` ist dort seit der Zerlegung
+  ein selbstersetzender Shim (setzt das reale Modul unter `sys.modules[<Name>]`);
+  der Adapter behielt seine lokale Modulvariable und fand `load_permissions`
+  nicht mehr. Jetzt wird nach `exec_module` das ersetzte Modul aus `sys.modules`
+  übernommen (+ fehlender `sys`-Import). 3 rote Adapter-Tests wieder grün (85/85).
+
 - **P7-Taskliste gegen Attribut-Injection gehärtet.** Taskwerte aus Scanner-
   und BACH-Backends werden nicht mehr als zusammengesetztes `innerHTML`
   gerendert: DOM-Text, Tooltip-Property und Event-Listener halten selbst
@@ -19,6 +26,15 @@
   liest strikt read-only und kann nie selbst migrieren, wählt die Spalten deshalb
   nach `PRAGMA table_info` und zeigt notfalls weniger, statt mit `no such column`
   auszufallen. [D09]
+
+### Added
+
+- **START.bat** — installationsfreier Start aus jedem Checkout und jeder
+  Plan-D-Deploykopie (`src/` via `%~dp0` auf dem PYTHONPATH, Default-Port 8990).
+- **Plan-D-Migration (2026-08-13, D-20260808-005):** privates Repo
+  `ellmos-ai/unified-gui`, kanonischer Klon `C:\_Local_DEV\repos\unified-gui`,
+  OneDrive-Ordner ist `.git`-lose Quell-/Deploykopie mit Pointer
+  `unified-gui.repo.md`.
 
 ### Changed
 
