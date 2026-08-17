@@ -14,6 +14,14 @@
   Rollen). P5s Schreibpfade (Regeln ändern, Default setzen, Bulk-Lock/-Unlock)
   verlangen jetzt Rolle `admin`, wenn eine Host-Session vorliegt; Lesepfade
   bleiben offen. 16 neue Tests, Vollsuite 97/97 grün.
+- **P2 Rollen-Gating, gleiches Muster (Stufe 2, vierter Durchgang):** `start`/
+  `stop`/`steer`/`clear-steer`/`checkpoint` verlangen jetzt ebenfalls Rolle
+  `admin` bei vorliegender Host-Session (`list_agents` bleibt offen). P2 hatte
+  zuvor keine eigene Testsuite — 6 neue Tests (`test_p2_role_gating.py`)
+  decken zusätzlich zum Gating erstmals den Adapter-Aufrufpfad ab. Vollsuite
+  97 → 103/103 grün. **P9 (Skills) geprüft und bewusst nicht angebunden:**
+  alle drei Endpunkte sind lesend/abfragend, es gibt keinen Schreibpfad zum
+  Gaten — siehe `TODO.md` für den vollständigen Befund.
 
 ### Documentation
 

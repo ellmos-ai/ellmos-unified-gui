@@ -69,7 +69,7 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
 
     all_panels: list[PanelSpec] = [
         p1_prompts.build(bach_adapter),
-        p2_agents.build(bach_adapter),
+        p2_agents.build(bach_adapter, host_auth_adapter),
         p3_models.build(clutch_adapter, ollama_adapter, registry),
         p4_routing.build(ticket_adapter, clutch_adapter, registry),
         p5_permissions.build(lock_adapter, host_auth_adapter),

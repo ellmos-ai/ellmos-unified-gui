@@ -98,12 +98,25 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       `bulk-unlock`) jetzt auf Rolle `admin`, wenn eine Host-Session vorliegt; Lesepfade
       bleiben offen. 16 neue Tests (`test_host_auth_adapter.py`,
       `test_p5_role_gating.py`), Vollsuite weiterhin gruen (97/97).
-      **Bewusst NICHT in diesem Durchgang:** P2 (Agenten) und P9 (Skills) mit demselben
-      Muster anbinden — Team-Lead-Vorgabe war "ein Panel sauber statt drei halb"; der
-      Adapter ist wiederverwendbar (`build(adapter, auth_adapter=None)`-Signatur ist das
-      Muster fuer die naechsten Panels), aber P2/P9 brauchen eigene Entscheidungen
-      WELCHE Aktionen rollenabhaengig sein sollen (P5 hatte das mit "nur admin darf
-      Regeln aendern" vergleichsweise eindeutig).
+      **Fortgesetzt 2026-08-18 (vierter Durchgang, Nutzer-Prioritaetsansage
+      "Systemaufgaben zuerst"):** P2 (Agenten) nach demselben Muster angebunden —
+      `build(adapter, auth_adapter=None)` gaten `start`/`stop`/`steer`/`clear-steer`/
+      `checkpoint` jetzt auf Rolle `admin`, wenn eine Host-Session vorliegt; Entscheidung
+      war hier eindeutig (Agenten starten/stoppen/steuern ist die staerkere Aktion,
+      laufende Compute-Kosten + moegliche Stoerung fremder Sitzungen). `list_agents`
+      bleibt offen. P2 hatte zuvor GAR KEINE eigene Testsuite — 6 neue Tests
+      (`test_p2_role_gating.py`) decken jetzt zusaetzlich zum Gating erstmals ab, dass
+      die Schreibpfade den Adapter ueberhaupt korrekt aufrufen. Vollsuite 97 → **103/103
+      gruen**.
+      **P9 (Skills) GEMESSEN, bewusst NICHT angebunden — echter Befund, kein
+      Zeitmangel:** `p9_skills.py` hat drei Endpunkte (`GET /skills`, `POST /find`,
+      `GET /bundles`), **alle drei sind lesend/abfragend** — `find` ist ein POST nur
+      wegen des Anfrage-Bodys (Intent-String), keine Mutation. Es gibt schlicht keinen
+      Schreibpfad, den man auf `admin` gaten koennte. Eine Rollen-Sichtbarkeit auf
+      Skill-Ebene (nur bestimmte Rollen sehen bestimmte Skills) waere KEINE Anbindung
+      eines bestehenden Backends, sondern eine neue Zugriffskontrollschicht, die
+      `ellmos-controlcenter-mcp` heute nicht kennt — das waere Neubau statt
+      Wiederverwendung und damit bewusst NICHT in diesem Durchgang begonnen.
 - [ ] Watcher-Koexistenz: P5 gegen live :8095 vs. eingebettete permissions.py-Nutzung
       bei nicht laufendem Daemon (Fallback-Reihenfolge)
 - [ ] Schreibpfad Routine-Bindings in BACH (Job-Argumente vs. eigene Metadaten-Tabelle)
