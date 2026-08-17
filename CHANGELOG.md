@@ -2,6 +2,19 @@
 
 ## [Unreleased] (TASKPLAN v0.3)
 
+### Added
+
+- **P5 Rollen-Gating im Mount-Betrieb (Sovereign-Programm-Ticket
+  T-20260816-361197589, Stufe 2):** neuer `HostAuthAdapter`
+  (`adapters/host_auth.py`, Capability `AUTH_ROLE`) liest, wenn die GUI unter
+  `ellmos-core` gemountet ist, die eingeloggte Person + Rolle aus
+  `ellmos_core.web.get_current_user(request)` — lazy import, degradiert auf
+  `None` ohne Host/Session (Standalone, BACH-Mount: unverändertes Verhalten,
+  kein zweites Login, `ellmos-core` bleibt einzige Quelle der Wahrheit für
+  Rollen). P5s Schreibpfade (Regeln ändern, Default setzen, Bulk-Lock/-Unlock)
+  verlangen jetzt Rolle `admin`, wenn eine Host-Session vorliegt; Lesepfade
+  bleiben offen. 16 neue Tests, Vollsuite 97/97 grün.
+
 ### Documentation
 
 - **Statuszeile in `README.md`/`README_de.md`/`llms.txt` war seit der Erstanlage

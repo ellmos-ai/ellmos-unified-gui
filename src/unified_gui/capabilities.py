@@ -37,6 +37,7 @@ class Capability(str, Enum):
     SKILLS_DISCOVERY = "skills.discovery"
     DECISIONS_RO = "decisions.ro"
     DECISIONS_RW = "decisions.rw"
+    AUTH_ROLE = "auth.role"
 
 
 @dataclass

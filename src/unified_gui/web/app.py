@@ -23,6 +23,7 @@ from ..adapters.bach import BachAdapter
 from ..adapters.clutch import ClutchAdapter
 from ..adapters.controlcenter import ControlCenterAdapter
 from ..adapters.decisions import DecisionsAdapter
+from ..adapters.host_auth import HostAuthAdapter
 from ..adapters.lock_master import LockMasterAdapter
 from ..adapters.ollama import OllamaAdapter
 from ..adapters.scanner_tasks import ScannerTasksAdapter
@@ -58,9 +59,12 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
     ollama_adapter = OllamaAdapter(config.ollama)
     controlcenter_adapter = ControlCenterAdapter(config.controlcenter)
     decisions_adapter = DecisionsAdapter(config.decisions)
+    # Nur wirksam im ellmos-core-Mount-Betrieb (siehe adapters/host_auth.py);
+    # ueberall sonst probt sie leer und aendert nichts am bisherigen Verhalten.
+    host_auth_adapter = HostAuthAdapter()
     for adapter in (lock_adapter, ticket_adapter, bach_adapter, scanner_adapter,
                     clutch_adapter, ollama_adapter, controlcenter_adapter,
-                    decisions_adapter):
+                    decisions_adapter, host_auth_adapter):
         registry.register(adapter)
 
     all_panels: list[PanelSpec] = [
@@ -68,7 +72,7 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
         p2_agents.build(bach_adapter),
         p3_models.build(clutch_adapter, ollama_adapter, registry),
         p4_routing.build(ticket_adapter, clutch_adapter, registry),
-        p5_permissions.build(lock_adapter),
+        p5_permissions.build(lock_adapter, host_auth_adapter),
         p6_routines.build(bach_adapter),
         p7_tasks.build(bach_adapter, scanner_adapter, registry),
         p8_tickets.build(ticket_adapter),

@@ -87,7 +87,23 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 
 ## Offen / zu klären
 
-- [ ] Auth-Seam-Design im Mount-Betrieb (BACH-GUI hat kein Login; ellmos-core RBAC)
+- [x] **Auth-Seam-Design im Mount-Betrieb — P5 als erstes Panel angebunden
+      (2026-08-18, Sovereign-Programm-Ticket T-20260816-361197589, Stufe 2 Rest):**
+      neuer `HostAuthAdapter` (`adapters/host_auth.py`, Capability `AUTH_ROLE`) liest
+      die eingeloggte Person + Rolle aus `ellmos_core.web.get_current_user(request)`,
+      wenn die GUI unter ellmos-core gemountet ist (lazy import, degradiert auf `None`
+      wenn kein Host/keine Session — kein neuer Zwang wo bisher keiner war, kein
+      zweites Login, `ellmos-core` bleibt alleinige Quelle der Wahrheit fuer Rollen).
+      In P5 gaten Schreibpfade (`add_rule`/`remove_rule`/`set_default`/`bulk-lock`/
+      `bulk-unlock`) jetzt auf Rolle `admin`, wenn eine Host-Session vorliegt; Lesepfade
+      bleiben offen. 16 neue Tests (`test_host_auth_adapter.py`,
+      `test_p5_role_gating.py`), Vollsuite weiterhin gruen (97/97).
+      **Bewusst NICHT in diesem Durchgang:** P2 (Agenten) und P9 (Skills) mit demselben
+      Muster anbinden — Team-Lead-Vorgabe war "ein Panel sauber statt drei halb"; der
+      Adapter ist wiederverwendbar (`build(adapter, auth_adapter=None)`-Signatur ist das
+      Muster fuer die naechsten Panels), aber P2/P9 brauchen eigene Entscheidungen
+      WELCHE Aktionen rollenabhaengig sein sollen (P5 hatte das mit "nur admin darf
+      Regeln aendern" vergleichsweise eindeutig).
 - [ ] Watcher-Koexistenz: P5 gegen live :8095 vs. eingebettete permissions.py-Nutzung
       bei nicht laufendem Daemon (Fallback-Reihenfolge)
 - [ ] Schreibpfad Routine-Bindings in BACH (Job-Argumente vs. eigene Metadaten-Tabelle)

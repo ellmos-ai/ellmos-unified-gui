@@ -40,6 +40,7 @@ class BaseAdapter(Protocol):
 | `TICKETS_RW` | Tickets erfassen/routen/verschieben | ticket-master |
 | `SKILLS_DISCOVERY` | Skills inventarisieren/matchen | controlcenter-mcp |
 | `DECISIONS_RO` | TO-DECIDE-Index lesen (kein Schreibpfad) | decisions.index.json |
+| `AUTH_ROLE` | eingeloggte Person + Rolle des Host-Auftritts lesbar | ellmos-core (`request.session`), NUR im Mount-Betrieb |
 
 Regeln: Enum ist **additiv** (nie umbenennen/loeschen). Ein Adapter meldet nur, was
 er JETZT wirklich bedienen kann (kein "geplant").
