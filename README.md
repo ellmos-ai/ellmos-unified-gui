@@ -8,8 +8,13 @@
 routing, permissions, routines/cron, tasks, tickets and skills — one surface, fed by
 the existing backends. MIT licensed.
 
-> **Status: Phase 1 implemented (v0.1.0)** — panels P5 (permissions) and P8 (tickets) run
-> standalone (`python -m unified_gui`, port 8990) and embedded (`unified_gui.mount(app)`); 23 tests green.
+> **Status: Phase 1–3 implemented (v0.4.0, 2026-07-11; panel additions through 2026-08-07)**
+> — 10 panels run standalone (`python -m unified_gui`, port 8990) and embedded
+> (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
+> permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions.
+> 85/85 tests passing (measured 2026-08-17; some skip locally when a backend like
+> Ollama is unreachable). Phase 4 (BACH mount, homebase
+> adapter, audit log — see TODO.md) is still open.
 >
 > **V4-Einordnung:** `ellmos-unified-gui` ist ein `.RUNTIME`-Modul und wird über
 > `../../.BUNDLES/` in Stacks komponiert. Es konsumiert `.CONTROL` (Locks, Tickets,

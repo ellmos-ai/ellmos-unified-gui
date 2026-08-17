@@ -6,8 +6,13 @@
 Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets und Skills — in einer
 Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
-> **Status: Phase 1 umgesetzt (v0.1.0)** — Panels P5 (Berechtigungen) und P8 (Tickets) laufen
-> standalone (`python -m unified_gui`, Port 8990) und eingebettet (`unified_gui.mount(app)`); 23 Tests grün.
+> **Status: Phase 1–3 umgesetzt (v0.4.0, 2026-07-11; Panel-Ergänzungen bis 2026-08-07)**
+> — 10 Panels laufen standalone (`python -m unified_gui`, Port 8990) und eingebettet
+> (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
+> P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen.
+> 85/85 Tests grün (gemessen 2026-08-17; einzelne werden übersprungen, wenn ein
+> Backend wie Ollama lokal nicht erreichbar ist). Phase 4 (BACH-Mount, Homebase-
+> Adapter, Audit-Log — siehe TODO.md) ist noch offen.
 > Konfiguration: `unified-gui.config.example.json` kopieren oder `UNIFIED_GUI_*`-Env setzen.
 
 ## Idee in drei Sätzen

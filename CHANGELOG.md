@@ -2,6 +2,17 @@
 
 ## [Unreleased] (TASKPLAN v0.3)
 
+### Documentation
+
+- **Statuszeile in `README.md`/`README_de.md`/`llms.txt` war seit der Erstanlage
+  (2026-07-11, „Phase 1, v0.1.0, nur P5+P8") eingefroren, obwohl seither P1-P4,
+  P6, P7, P9 (Phase 2/3, 2026-07-11) und P10 (2026-08-07, [D11]) dazukamen —
+  gemessen im Rahmen des Sovereign-Ampel-Re-Checks (Ticket T-20260816-361197589):
+  `src/unified_gui/panels/` enthält 10 Panel-Module, `tests/` läuft 85/85 grün.
+  Statuszeile auf den gemessenen Stand korrigiert (10 Panels, v0.4.0+, Phase 4
+  offen). `KONZEPT.md` war bereits korrekt (P10 dort schon dokumentiert) und
+  blieb unverändert.
+
 ### Fixed
 
 - **P5/lock-master-Adapter lud nach der lock-master-Stack-Zerlegung (2026-07-26)
