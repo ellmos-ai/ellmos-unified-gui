@@ -8,11 +8,11 @@
 routing, permissions, routines/cron, tasks, tickets and skills — one surface, fed by
 the existing backends. MIT licensed.
 
-> **Status: Phase 1–3 implemented (v0.6.0, 2026-07-11; panel additions through 2026-08-18)**
+> **Status: Phase 1–3 implemented (v0.7.0, 2026-07-11; panel additions through 2026-08-18)**
 > — 11 panels run standalone (`python -m unified_gui`, port 8990) and embedded
 > (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
 > permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions, P11
-> skill wizard. 128/128 tests passing (measured 2026-08-18; some skip locally
+> skill wizard. 155/155 tests passing (measured 2026-08-18; some skip locally
 > when a backend like Ollama is unreachable). Real-mounted into `ellmos-core`
 > as of 2026-08-18 (`console_enabled` there, see
 > `ellmos-core/src/ellmos_core/console.py`) — the earlier "mount() exists but
@@ -21,8 +21,13 @@ the existing backends. MIT licensed.
 > Wizard (2026-08-18, Sovereign-Programm-Ticket T-20260816-361197589, Stufe 3
 > "Skillgenerator mit Wizard"):** structured scaffold + description + static
 > S-Tests via `catalog.py` (skills repo), never the skill body/eval loop —
-> that stays `skill-creator`'s job, see TODO.md. Phase 4 remainder (BACH
-> mount, homebase adapter, audit log — see TODO.md) is still open.
+> that stays `skill-creator`'s job, see TODO.md. **Audit log for write actions
+> (2026-08-18, same ticket, Restpaket 2c):** every state-changing request
+> (POST/PUT/PATCH/DELETE) across every panel is appended to
+> `~/.ellmos/unified-gui/audit.jsonl` — who/role, panel+action, outcome,
+> duration, argument names only (never values), modeled on
+> `ellmos-controlcenter-mcp`'s `gateway-audit.jsonl`, see TODO.md. Phase 4
+> remainder (BACH mount, homebase adapter — see TODO.md) is still open.
 >
 > **V4-Einordnung:** `ellmos-unified-gui` ist ein `.RUNTIME`-Modul und wird über
 > `../../.BUNDLES/` in Stacks komponiert. Es konsumiert `.CONTROL` (Locks, Tickets,

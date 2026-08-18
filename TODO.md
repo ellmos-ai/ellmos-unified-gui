@@ -115,7 +115,27 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       `.AI/.STACKS/sovereign-private/_reports/SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md`.
       **Bewusst NICHT in diesem Durchgang:** Audit-Log fürs Mounten selbst (separater
       Punkt unten), Installer-/Docker-Verdrahtung (eigener Punkt in `sovereign-private`).
-- [ ] Audit-Log für schreibende Aktionen (Muster ellmos-core)
+- [x] Audit-Log für schreibende Aktionen (2026-08-18, Sovereign-Programm-Ticket
+      T-20260816-361197589, Rest-Paket 2c — Muster gemessen: `ellmos-controlcenter-mcp`
+      0.5.1s `gateway-audit.jsonl`, siehe `audit_log.py`-Docstring für den vollen Vergleich
+      inkl. bewusster Abweichungen). Neu: `audit_log.py` (JSONL-Writer,
+      `~/.ellmos/unified-gui/audit.jsonl`, Env `UNIFIED_GUI_AUDIT_LOG`, `off` schaltet ab,
+      wirft nie) + `audit_middleware.py` (`AuditMiddleware`, loggt jede schreibende
+      HTTP-Methode POST/PUT/PATCH/DELETE — dieselbe Menge, die `security._WRITE_METHODS`
+      bereits definiert, wiederverwendet statt dupliziert). Registriert in
+      `web/app.py::create_app()`, wirkt dadurch automatisch auch im Mount-Betrieb
+      (`mount()` ruft `create_app()` intern auf) — deckt ALLE Panels ab, nicht nur die
+      drei rollen-gegateten (P2/P5/P11), ohne Panel-für-Panel-Nacharbeit. Nur
+      Argumentnamen im Log, nie -werte; nur Status-Code, nie Response-Inhalt. Ein Fehler
+      im Audit-Pfad darf die echte Antwort nie verhindern (zwei dedizierte
+      Load-bearing-Tests: werfender Auth-Adapter, unschreibbarer Log-Pfad — beide beweisen
+      `resp.status_code == 200` bleibt unverändert). 27 neue Tests
+      (`test_audit_log.py`, `test_audit_middleware.py`, `test_audit_integration.py` —
+      Letzterer mit einem echten E2E-Beweis gegen den realen skills-Klon: P11-Create landet
+      real im Audit-Log). Vollsuite 128 -> 155/155 grün. `tests/conftest.py` fixt dabei
+      einen selbst gefundenen Bug: ein erster Testlauf schrieb ohne Isolierung echte
+      Zeilen in `~/.ellmos/unified-gui/audit.jsonl` — global `UNIFIED_GUI_AUDIT_LOG=off`
+      für die Testsuite ergänzt.
 - [ ] README-Sprachen, Release als `ellmos-ai/unified-gui` (MIT) prüfen
 
 ## Offen / zu klären

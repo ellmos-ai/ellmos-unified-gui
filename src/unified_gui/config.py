@@ -280,6 +280,10 @@ class UnifiedGuiConfig:
     skills_catalog: SkillsCatalogConfig = field(default_factory=SkillsCatalogConfig)
     # Standalone-Guard: nur lokale Origins/Clients (im Mount-Betrieb Sache des Hosts)
     local_only: bool = True
+    # Audit-Log-Zielpfad fuer zustandsaendernde Aktionen; None -> audit_log.py
+    # loest selbst auf (Env UNIFIED_GUI_AUDIT_LOG > ~/.ellmos/unified-gui/audit.jsonl).
+    # "off" schaltet ab (siehe audit_log.py).
+    audit_log_path: str | None = None
 
     @classmethod
     def load(cls, overrides: dict | None = None, config_file: str | Path | None = None) -> "UnifiedGuiConfig":
@@ -313,6 +317,7 @@ class UnifiedGuiConfig:
         return cls(
             title=data.get("title", "Unified GUI"),
             local_only=bool(data.get("local_only", True)),
+            audit_log_path=data.get("audit_log_path"),
             lock_master=LockMasterConfig(
                 module_id=lm.get("module_id"),
                 module_path=resolve_module_path(lm.get("module_id"), lm.get("module_path")),

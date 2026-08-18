@@ -4,6 +4,19 @@
 
 ### Added
 
+- **Audit-Log für schreibende Aktionen (2026-08-18, Sovereign-Programm-Ticket
+  T-20260816-361197589, Rest-Paket 2c):** neue `audit_log.py` (append-only JSONL,
+  `~/.ellmos/unified-gui/audit.jsonl`, Env `UNIFIED_GUI_AUDIT_LOG`, `off` schaltet ab) +
+  `audit_middleware.py` (`AuditMiddleware`, loggt jede POST/PUT/PATCH/DELETE-Anfrage —
+  wer/Rolle, was/Panel+Aktion, wann, Ergebnis, Dauer, nur Argument**namen** nie -werte).
+  Vorbild `ellmos-controlcenter-mcp` 0.5.1s `gateway-audit.jsonl`, gemessen vor dem Bau
+  (Ort/Format/PII-Disziplin übernommen; keine Rotation, kein Fail-closed-Modus — beide
+  bewusst nicht Teil des Vorbilds bzw. dieses Pakets, siehe Modul-Docstring). In
+  `create_app()` registriert, wirkt dadurch auch im `mount()`-Betrieb und deckt jeden
+  Panel-Schreibpfad ab, nicht nur die drei bereits rollen-gegateten (P2/P5/P11). Ein
+  Fehler im Audit-Pfad selbst kann eine echte Konsolen-Aktion nie verhindern (zwei
+  Load-bearing-Tests dafür). 27 neue Tests, Vollsuite 128 -> 155/155 grün; echter E2E-Beweis
+  gegen den realen skills-Klon (P11-Create landet real im Log).
 - **P11 Skill-Wizard (2026-08-18, Sovereign-Programm-Ticket
   T-20260816-361197589, Stufe 3 "Skillgenerator mit Wizard"):** neuer
   `SkillsCatalogAdapter` (`adapters/skills_catalog.py`, Subprozess-Wrapper um

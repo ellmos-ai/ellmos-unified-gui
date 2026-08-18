@@ -6,11 +6,11 @@
 Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets und Skills — in einer
 Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
-> **Status: Phase 1–3 umgesetzt (v0.6.0, 2026-07-11; Panel-Ergänzungen bis 2026-08-18)**
+> **Status: Phase 1–3 umgesetzt (v0.7.0, 2026-07-11; Panel-Ergänzungen bis 2026-08-18)**
 > — 11 Panels laufen standalone (`python -m unified_gui`, Port 8990) und eingebettet
 > (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
-> P11 Skill-Wizard. 128/128 Tests grün (gemessen 2026-08-18; einzelne werden
+> P11 Skill-Wizard. 155/155 Tests grün (gemessen 2026-08-18; einzelne werden
 > übersprungen, wenn ein Backend wie Ollama lokal nicht erreichbar ist). Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
@@ -20,8 +20,13 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > T-20260816-361197589, Stufe 3 "Skillgenerator mit Wizard"):** strukturiertes
 > Gerüst + Beschreibung + statische S-Tests über `catalog.py` (skills-Repo) —
 > NICHT der Skill-Körper/die Eval-Schleife, das bleibt Aufgabe von
-> `skill-creator`, siehe TODO.md. Restlicher Phase-4-Umfang (BACH-Mount,
-> Homebase-Adapter, Audit-Log — siehe TODO.md) ist weiter offen.
+> `skill-creator`, siehe TODO.md. **Audit-Log für Schreibaktionen (2026-08-18,
+> dasselbe Ticket, Restpaket 2c):** jede zustandsändernde Anfrage
+> (POST/PUT/PATCH/DELETE) über alle Panels hinweg landet in
+> `~/.ellmos/unified-gui/audit.jsonl` — wer/Rolle, Panel+Aktion, Ergebnis,
+> Dauer, nur Argumentnamen (nie -werte), nach dem Vorbild von
+> `ellmos-controlcenter-mcp`s `gateway-audit.jsonl`, siehe TODO.md. Restlicher
+> Phase-4-Umfang (BACH-Mount, Homebase-Adapter — siehe TODO.md) ist weiter offen.
 > Konfiguration: `unified-gui.config.example.json` kopieren oder `UNIFIED_GUI_*`-Env setzen.
 
 ## Idee in drei Sätzen

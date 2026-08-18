@@ -29,6 +29,7 @@ from ..adapters.ollama import OllamaAdapter
 from ..adapters.scanner_tasks import ScannerTasksAdapter
 from ..adapters.skills_catalog import SkillsCatalogAdapter
 from ..adapters.ticket_master import TicketMasterAdapter
+from ..audit_middleware import AuditMiddleware
 from ..capabilities import CapabilityRegistry
 from ..config import UnifiedGuiConfig
 from ..panels import (p1_prompts, p2_agents, p3_models, p4_routing,
@@ -94,6 +95,11 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
     guard = config.local_only if standalone_guard is None else standalone_guard
     if guard:
         app.add_middleware(LocalOnlyMiddleware)
+    # Audit-Log fuer zustandsaendernde Aktionen (Sovereign-Programm-Ticket
+    # T-20260816-361197589, Rest-Paket 2c) -- wirkt automatisch auch im
+    # Mount-Betrieb, da mount() diese Funktion aufruft (siehe deren Docstring).
+    app.add_middleware(AuditMiddleware, auth_adapter=host_auth_adapter,
+                       audit_log_path=config.audit_log_path)
 
     templates = Jinja2Templates(directory=str(_WEB_DIR / "templates"))
     app.mount("/static", StaticFiles(directory=str(_WEB_DIR / "static")), name="static")
