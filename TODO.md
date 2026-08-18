@@ -75,6 +75,23 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       Advisor-Editor (legt Config aus .example an) + clutch-Stats & Route-Vorschau
 - [x] Adapter `controlcenter` (eigener minimaler stdio-MCP-Client, mcp_client.py)
       + **P9 Skills** (Inventar 109 Skills, Intent-Matching, Bundles)
+- [x] Adapter `skills_catalog` (Subprozess-Wrapper um `catalog.py`, skills-Repo)
+      + **P11 Skill-Wizard** (2026-08-18, Sovereign-Programm-Ticket
+      T-20260816-361197589 Stufe 3 "Skillgenerator mit Wizard", Ampel-Zeile 6
+      gelb->grün): Gerüst anlegen (`catalog.py create`), das bisher als
+      `{{Beschreibung der Faehigkeit}}`-Platzhalter stehenbleibende
+      `description:`-Pflichtfeld ausfüllen (Read-Modify-Write mit
+      Rundlauf-Beweis über `catalog.py`s eigenen `parse_frontmatter()`,
+      nicht nur "die Datei enthält meinen String"), statische S-Tests
+      (`--type static`, kein LLM-Aufruf). Bewusste Grenze: der eigentliche
+      Skill-Körper (Anweisungen) + Testfälle/Subagent-Evals/
+      Beschreibungs-Optimierung bleiben Aufgabe der konversationellen
+      `skill-creator`-Skill — kein halbfertiger Nachbau ihrer Eval-Schleife.
+      Rollen-Gating wie P5/P2 (admin bei Host-Session). 21 neue Tests
+      (`test_skills_catalog_adapter.py`, `test_p11_skill_wizard.py`),
+      Vollsuite 107 -> 128/128 grün. Real-E2E-Beweis gegen den echten
+      skills-Klon (Wegwerf-Kategorie `_wizard-smoke-test`, danach entfernt):
+      create+describe+quality liefen gegen echte Daten, Score 5.0/Exzellent.
 
 ## Phase 4 — Konsolidierung
 

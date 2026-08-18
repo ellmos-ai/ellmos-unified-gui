@@ -77,6 +77,7 @@ DISCOVERY_DEFAULTS = {
     ("clutch", "module_id"): "clutch",
     ("clutch", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/clutch",
     ("controlcenter", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MCP/ellmos-controlcenter-mcp",
+    ("skills_catalog", "repo_path"): lambda: _first_existing_file(SKILLS_CATALOG_CANDIDATES, "catalog.py"),
     ("decisions", "index_path"):
         "~/OneDrive/.TOPICS/_control-center/_DECISIONS/_tools/decisions.index.json",
     ("decisions", "chain_dir"): "~/OneDrive/.TOPICS/_control-center/_DECISIONS",
@@ -98,6 +99,24 @@ def _first_existing(candidates: tuple[str, ...]) -> str | None:
     for value in candidates:
         path = Path(_expand(value))
         if (path / "src" / "decision_clicker").is_dir():
+            return str(path)
+    return None
+
+
+# Die kanonische skills-Bibliothek liegt ebenfalls nach Plan D lokal (nicht
+# OneDrive) -- gleicher Grund, gleiches Discovery-Muster wie decision-clicker.
+SKILLS_CATALOG_CANDIDATES = (
+    "C:/_Local_DEV/repos/skills",
+    "~/_Local_DEV/repos/skills",
+    "~/repos/skills",
+    "~/skills",
+)
+
+
+def _first_existing_file(candidates: tuple[str, ...], filename: str) -> str | None:
+    for value in candidates:
+        path = Path(_expand(value))
+        if (path / filename).is_file():
             return str(path)
     return None
 
@@ -215,6 +234,15 @@ class ControlCenterConfig:
 
 
 @dataclass
+class SkillsCatalogConfig:
+    # Klon mit catalog.py (kanonisch C:\_Local_DEV\repos\skills, Plan D --
+    # nicht OneDrive, siehe SKILLS_CATALOG_CANDIDATES).
+    repo_path: str | None = None
+    python_exe: str | None = None
+    timeout_s: float = 45.0
+
+
+@dataclass
 class TicketMasterConfig:
     module_id: str | None = None
     # Verzeichnis mit T-*.txt + QUEUED/PENDING/SOLVED (live: _control-center/_TICKETS
@@ -249,6 +277,7 @@ class UnifiedGuiConfig:
     clutch: ClutchConfig = field(default_factory=ClutchConfig)
     ollama: OllamaConfig = field(default_factory=OllamaConfig)
     controlcenter: ControlCenterConfig = field(default_factory=ControlCenterConfig)
+    skills_catalog: SkillsCatalogConfig = field(default_factory=SkillsCatalogConfig)
     # Standalone-Guard: nur lokale Origins/Clients (im Mount-Betrieb Sache des Hosts)
     local_only: bool = True
 
@@ -333,6 +362,11 @@ class UnifiedGuiConfig:
                 repo_path=_expand((data.get("controlcenter") or {}).get("repo_path")),
                 node_exe=(data.get("controlcenter") or {}).get("node_exe", "node"),
                 timeout_s=float((data.get("controlcenter") or {}).get("timeout_s", 30.0)),
+            ),
+            skills_catalog=SkillsCatalogConfig(
+                repo_path=_expand((data.get("skills_catalog") or {}).get("repo_path")),
+                python_exe=_expand((data.get("skills_catalog") or {}).get("python_exe")),
+                timeout_s=float((data.get("skills_catalog") or {}).get("timeout_s", 45.0)),
             ),
         )
 

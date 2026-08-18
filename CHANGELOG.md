@@ -4,6 +4,24 @@
 
 ### Added
 
+- **P11 Skill-Wizard (2026-08-18, Sovereign-Programm-Ticket
+  T-20260816-361197589, Stufe 3 "Skillgenerator mit Wizard"):** neuer
+  `SkillsCatalogAdapter` (`adapters/skills_catalog.py`, Subprozess-Wrapper um
+  `catalog.py` im kanonischen skills-Klon) + neue Capability `SKILLS_CREATE`.
+  Schließt Ampel-Zeile 6 (gelb -> grün, siehe
+  `sovereign-private/_reports/SOVEREIGN_AMPEL_RECHECK_2026-08-17.md`): bisher
+  gab es nur read-only Inventar (P9), keinen GUI-Weg für eine echte
+  Skill-Neuanlage. Der Wizard schließt den strukturierten Teil — Gerüst
+  anlegen, das `description:`-Pflichtfeld ausfüllen (die CLI ließ es bisher
+  als `{{Beschreibung der Faehigkeit}}`-Platzhalter stehen), statische
+  S-Tests (`--type static`) — und lässt den Skill-Körper bewusst der
+  konversationellen `skill-creator`-Skill (Interview, Testfälle,
+  Subagent-Evals, Beschreibungs-Optimierung braucht ein LLM in der Schleife,
+  kein zustandsloses Panel kann das nachbauen; siehe Modul-Docstrings für die
+  genaue Grenze). Rollen-Gating wie P5/P2. 21 neue Tests, Vollsuite
+  107 -> 128/128 grün; Real-E2E-Beweis gegen den echten skills-Klon
+  (Wegwerf-Kategorie, danach entfernt).
+
 - **Real gemountet in ellmos-core, nicht nur kompatibel (Sovereign-Programm-Ticket
   T-20260816-361197589, Stufe 4 "zusammenbinden"):** `ellmos-core` mountet diese
   Konsole jetzt tatsächlich (neues `console.py`/`console_enabled` dort, Extra

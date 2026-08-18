@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block subtitle %}Skill-Wizard{% endblock %}
+{% block content %}
+<h1>Skill-Wizard <span class="muted">Geruest + Beschreibung anlegen, Struktur pruefen</span></h1>
+
+<div class="card">
+    <div id="guidance-next" class="muted small-text"></div>
+</div>
+
+<div class="card">
+    <h3>1. Geruest</h3>
+    <div class="row">
+        <input id="w-name" placeholder="skill-name (kebab-case)" style="flex:1">
+        <select id="w-category"></select>
+        <select id="w-type">
+            <option value="skill">skill</option>
+            <option value="agent">agent</option>
+            <option value="expert">expert</option>
+        </select>
+        <button class="btn" onclick="createSkill()">Anlegen</button>
+    </div>
+    <div id="create-result" class="small-text" style="margin-top:0.5rem;"></div>
+</div>
+
+<div class="card">
+    <h3>2. Beschreibung</h3>
+    <div class="muted small-text" id="hint-what"></div>
+    <textarea id="w-what" rows="2" style="width:100%; margin-top:0.25rem;"></textarea>
+    <div class="muted small-text" id="hint-when" style="margin-top:0.5rem;"></div>
+    <textarea id="w-when" rows="2" style="width:100%; margin-top:0.25rem;"></textarea>
+    <div class="row" style="margin-top:0.5rem;">
+        <button class="btn" onclick="describeSkill()">Beschreibung schreiben</button>
+    </div>
+    <div id="describe-result" class="small-text" style="margin-top:0.5rem;"></div>
+</div>
+
+<div class="card">
+    <h3>3. Struktur pruefen</h3>
+    <div class="muted small-text">Fuehrt nur die S-Tests aus (Frontmatter/Struktur, kein LLM-Aufruf).</div>
+    <div class="row" style="margin-top:0.5rem;">
+        <button class="btn" onclick="validateSkill()">S-Tests laufen lassen</button>
+    </div>
+    <div id="validate-result" class="small-text" style="margin-top:0.5rem;"></div>
+</div>
+
+<div class="card">
+    <h3>4. Weiter geht's</h3>
+    <div id="guidance-anatomy" class="muted small-text"></div>
+    <div class="muted small-text" style="margin-top:0.5rem;">
+        Der Skill-Koerper (die eigentlichen Anweisungen) entsteht am besten zusammen mit der
+        konversationellen <code>skill-creator</code>-Skill -- inkl. Testfaellen und
+        Beschreibungs-Optimierung. Danach: <code>catalog.py readme-sync</code> (nur im
+        git-Klon) und ein normaler Commit im skills-Repo.
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadGuidance() {
+    try {
+        const g = await api("/api/p11/guidance");
+        document.getElementById("guidance-next").textContent = g.next_steps || "";
+        document.getElementById("hint-what").textContent = g.what || "";
+        document.getElementById("hint-when").textContent = g.when || "";
+        document.getElementById("guidance-anatomy").textContent = g.anatomy || "";
+    } catch (e) { /* Guidance ist Hinweistext, kein Fehler wert */ }
+}
+async function loadCategories() {
+    const sel = document.getElementById("w-category");
+    try {
+        const cats = await api("/api/p11/categories");
+        sel.innerHTML = cats.map(c => `<option value="${esc(c.name)}">${esc(c.name)} (${c.count})</option>`).join("")
+            || '<option value="general">general</option>';
+    } catch (e) {
+        sel.innerHTML = '<option value="general">general</option>';
+        flash(e.message, true);
+    }
+}
+async function createSkill() {
+    const el = document.getElementById("create-result");
+    try {
+        const r = await api("/api/p11/create", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                name: document.getElementById("w-name").value.trim(),
+                category: document.getElementById("w-category").value,
+                type: document.getElementById("w-type").value,
+            }),
+        });
+        el.innerHTML = `<span class="chip">angelegt</span> ${esc(r.path)}`;
+        flash("Skill-Geruest angelegt.");
+    } catch (e) { el.innerHTML = `<span class="chip error">${esc(e.message)}</span>`; }
+}
+async function describeSkill() {
+    const el = document.getElementById("describe-result");
+    try {
+        const r = await api("/api/p11/describe", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                name: document.getElementById("w-name").value.trim(),
+                category: document.getElementById("w-category").value,
+                what: document.getElementById("w-what").value,
+                when: document.getElementById("w-when").value,
+            }),
+        });
+        el.innerHTML = `<span class="chip">geschrieben</span> ${esc(r.description)}`;
+        flash("Beschreibung gespeichert (per parse_frontmatter zurueckgelesen).");
+    } catch (e) { el.innerHTML = `<span class="chip error">${esc(e.message)}</span>`; }
+}
+async function validateSkill() {
+    const el = document.getElementById("validate-result");
+    try {
+        const r = await api("/api/p11/validate", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({name: document.getElementById("w-name").value.trim()}),
+        });
+        el.innerHTML = `Score: <b>${esc(r.quality_score)}/5</b> (${esc(r.rating)})`;
+    } catch (e) { el.innerHTML = `<span class="chip error">${esc(e.message)}</span>`; }
+}
+loadGuidance();
+loadCategories();
+</script>
+{% endblock %}
