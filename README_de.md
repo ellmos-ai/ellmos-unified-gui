@@ -6,11 +6,11 @@
 Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets und Skills — in einer
 Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
-> **Status: Phase 1–3 umgesetzt (v0.7.0, 2026-07-11; Panel-Ergänzungen bis 2026-08-18)**
-> — 11 Panels laufen standalone (`python -m unified_gui`, Port 8990) und eingebettet
-> (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
+> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, 2026-08-19; Panel-Ergänzungen bis
+> 2026-08-19)** — 12 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
+> eingebettet (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
-> P11 Skill-Wizard. 155/155 Tests grün (gemessen 2026-08-18; einzelne werden
+> P11 Skill-Wizard, P12 Races. 170/170 Tests grün (gemessen 2026-08-19; einzelne werden
 > übersprungen, wenn ein Backend wie Ollama lokal nicht erreichbar ist). Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
@@ -25,8 +25,14 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > (POST/PUT/PATCH/DELETE) über alle Panels hinweg landet in
 > `~/.ellmos/unified-gui/audit.jsonl` — wer/Rolle, Panel+Aktion, Ergebnis,
 > Dauer, nur Argumentnamen (nie -werte), nach dem Vorbild von
-> `ellmos-controlcenter-mcp`s `gateway-audit.jsonl`, siehe TODO.md. Restlicher
-> Phase-4-Umfang (BACH-Mount, Homebase-Adapter — siehe TODO.md) ist weiter offen.
+> `ellmos-controlcenter-mcp`s `gateway-audit.jsonl`, siehe TODO.md. **P12 Races
+> (2026-08-19, dasselbe Ticket, Restpaket 2a):** read-only Browser über bereits
+> gelaufene `compare-race`-Races (`PROMPT.md`/`RACE.md`/`RUN-*.md`, inkl.
+> Judge-Urteil wo ausgefüllt) — bewusst kein Race-Trigger/Judge-Automatismus,
+> siehe TODO.md. Restlicher Phase-4-Umfang (BACH mountet diese GUI,
+> Homebase-Adapter) ist weiter offen — siehe TODO.md für die konkreten,
+> gemessenen Gründe (BACH-Schreibsperre; homebase' `hb_route_*`/
+> `hb_state_task_*`-Werkzeuge noch nicht kanonisch).
 > Konfiguration: `unified-gui.config.example.json` kopieren oder `UNIFIED_GUI_*`-Env setzen.
 
 ## Idee in drei Sätzen
@@ -46,7 +52,8 @@ Modelle (Ollama + proprietäre APIs via clutch) · Routing (ticket-master-Score/
 Berechtigungen (`LOCK.permissions.json`-Editor, lock-master) · Routinen/Cron
 (BACH-Scheduler; Routine → Modell + Rolle + Skills) · Tasks (BACH/Scanner/homebase,
 zuweisbar) · Tickets (ticket-master-Intake/Router/Queues) · Skills (controlcenter-mcp) ·
-Skill-Wizard (Gerüst + Beschreibung + S-Tests über `catalog.py`, skills-Repo).
+Skill-Wizard (Gerüst + Beschreibung + S-Tests über `catalog.py`, skills-Repo) ·
+Races (read-only `compare-race`-Report-Browser).
 
 ## Multi-System / Cloud (OneDrive)
 
@@ -75,6 +82,6 @@ einmalig `~/OneDrive`-Symlink setzen oder Host-Override nutzen.
 
 `ellmos-core` (Suite-Kern/Endnutzer-UI, wird als Gerüst-Vorbild importiert) ·
 `lock-master` · `ticket-master` · `clutch` · `ellmos-homebase-mcp` ·
-`ellmos-controlcenter-mcp` · BACH (`.AI/.OS/BACH`).
+`ellmos-controlcenter-mcp` · `compare-race` · BACH (`.AI/.OS/BACH`).
 
 **Autor:** Lukas Geiger · **Lizenz:** MIT

@@ -95,7 +95,36 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 
 ## Phase 4 — Konsolidierung
 
-- [ ] Adapter `homebase` (hb_route_stats, hb_state_task_*) sobald Execution-Backends real
+- [ ] **Adapter `homebase` (hb_route_stats, hb_state_task_*) — BLOCKED, mit konkretem
+      Befund (2026-08-19, Sovereign-Programm-Ticket T-20260816-361197589, Restpaket 3;
+      vormals "sobald Execution-Backends real"):** nachgemessen statt weiter vage
+      formuliert. `hb_route_stats` gehört zu `hb_route_*`, das laut
+      `ellmos-homebase-mcp/CHANGELOG.md` (Alpha.14, 2026-07-04, seither ohne Folgeeintrag)
+      weiterhin explizit "bundled-only (canonical requested, no seam implemented yet)"
+      ist — ein Adapter dagegen würde eine disconnected Kopie statt echter
+      Routing-Daten zeigen, redundant zum bereits vorhandenen echten `clutch`-Adapter
+      (Phase 3). `hb_state_task_*` deklariert zwar seit Alpha.14 einen canonical-Seam
+      auf Rinnsals `TaskClient` (`~/.rinnsal/scanner_tasks.db`) — **dieser Pfad
+      existiert auf diesem Host nicht** (Rinnsal ist tot, task-master/`taskplan.db`
+      ist der reale Nachfolger; Seam-Fix `hb_state_task_*` → `taskplan.db` ist
+      Ticket T-20260814-01, Stand unbestätigt). Ein Adapter heute würde also
+      bundled/stale Daten zeigen. Präzise Vorbedingung für den Bau: entweder ein
+      `hb_route_*`-canonical-Seam entsteht in homebase-mcp, oder T-20260814-01 landet
+      UND wird hier verifiziert (Import-Test gegen echte `taskplan.db`) — beides liegt
+      ausserhalb dieses Repos, kein Nebenbei-Schritt.
+
+- [ ] **BACH mountet Unified GUI; überlappende BACH-Panels deprecaten — WAITING
+      (2026-08-19, dasselbe Ticket): BACH-Repo ist bis ~2026-08-22 read-only/kein
+      Push gesperrt** (Judging-Hold, siehe globale Regeln). Der Mount-Teil braucht
+      denselben Eingriff wie ellmos-core bekam (`console.py`/`mount_console()`,
+      Settings, `pip install .[console]`-Extra) — das ist ein Schreibzugriff auf
+      BACHs eigenen Code, also NICHT vor Lock-Aufhebung machbar. Lesen aus BACH
+      (z. B. um den Mount-Punkt zu identifizieren) wäre erlaubt gewesen, wurde aber
+      bewusst zurückgestellt, bis der Bau selbst wieder möglich ist — ein reiner
+      Lese-Vorlauf ohne baldigen Bau hätte keinen Mehrwert. Nach Lock-Aufhebung:
+      denselben `console.py`-Ansatz wie in `ellmos-core` spiegeln, dann überlappende
+      BACH-eigene Panels (Agenten-Dispatch, Skills, Routinen — soweit BACH eigene
+      GUI-Ansichten dafür hat) als deprecated markieren, nicht sofort entfernen.
 
 - [ ] BACH mountet Unified GUI; überlappende BACH-Panels deprecaten
 - [x] **ellmos-core: Operator-Bereich = Unified-GUI-Mount (2026-08-18, Sovereign-Ticket
@@ -136,7 +165,24 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       einen selbst gefundenen Bug: ein erster Testlauf schrieb ohne Isolierung echte
       Zeilen in `~/.ellmos/unified-gui/audit.jsonl` — global `UNIFIED_GUI_AUDIT_LOG=off`
       für die Testsuite ergänzt.
-- [ ] README-Sprachen, Release als `ellmos-ai/unified-gui` (MIT) prüfen
+- [x] **README-Sprachen, Release als `ellmos-ai/unified-gui` (MIT) geprüft (2026-08-19,
+      dasselbe Ticket, Restpaket 3).** Befund: `README_de.md` war seit längerem
+      inhaltlich reicher als `README.md` (80 vs. 53 Zeilen) — drei Abschnitte fehlten
+      im Englischen komplett (Panels-Zielbild, Multi-System/Cloud-Konfiguration,
+      Verwandte Module) und die Statuszeile war auf beiden Seiten stale (v0.7.0/
+      11 Panels/155 Tests statt real v0.8.0/12 Panels/170 Tests) — dasselbe
+      Stale-Doku-Muster wie zuvor in diesem Ticket schon mehrfach gefunden. Beide
+      Dateien jetzt auf 1:1-Parität + aktuellen Stand gebracht (siehe P-006
+      Sprachstufen-Policy). MIT-Lizenz bereits korrekt gesetzt: `LICENSE`-Datei
+      vorhanden, `pyproject.toml` `license = {text = "MIT"}`. **Beobachtung, NICHT
+      umgesetzt:** kein Repo in diesem Ökosystem (auch nicht `agent-launcher`,
+      `skills`, `ellmos-core`) nutzt Git-Tags/GitHub-Releases — "Release ... prüfen"
+      war daher als Verifikation gelesen, nicht als neue Tagging-Konvention (hätte
+      sonst einen Parallelstandard erzeugt). Getrennt davon: `VISIBILITY-POLICY.md`s
+      Grundsatz "Werkzeug-Module bleiben öffentlich" würde für dieses generische
+      Konsolen-Tool eigentlich sprechen — Sichtbarkeit bewusst NICHT geändert
+      (PRIVATE bleibt PRIVATE bis zu einer expliziten Entscheidung, siehe
+      `repo-publish-check`-Skill für den Prüfweg, falls das später ansteht).
 
 ## Offen / zu klären
 

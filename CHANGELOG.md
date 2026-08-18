@@ -2,6 +2,16 @@
 
 ## [Unreleased] (TASKPLAN v0.3)
 
+### Fixed
+
+- **README-Sprachparität + Statuszeile (2026-08-19, Sovereign-Programm-Ticket
+  T-20260816-361197589, Rest-Paket 3):** `README.md` (EN) fehlten drei Abschnitte, die
+  `README_de.md` bereits hatte (Panels-Zielbild, Multi-System/Cloud-Konfiguration,
+  Verwandte Module) — jetzt auf 1:1-Parität gebracht. Statuszeile in beiden Dateien war
+  stale (v0.7.0/11 Panels/155 Tests statt real v0.8.0/12 Panels/170 Tests) und
+  korrigiert. Phase-4-TODO-Einträge (`homebase`-Adapter, BACH-Mount) mit konkreten,
+  gemessenen Blockern statt vager Formulierung versehen.
+
 ### Added
 
 - **P12 Races: read-only compare-race-Reportbrowser (2026-08-19, Sovereign-Programm-Ticket
