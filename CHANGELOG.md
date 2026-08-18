@@ -4,6 +4,18 @@
 
 ### Added
 
+- **P12 Races: read-only compare-race-Reportbrowser (2026-08-19, Sovereign-Programm-Ticket
+  T-20260816-361197589, Rest-Paket 2a):** neuer `CompareRaceAdapter` +
+  Panel `p12_races` zeigen echte, bereits gelaufene Races (`PROMPT.md`/`RACE.md`/`RUN-*.md`,
+  inkl. modellmanuellem Judge-Urteil, falls ausgefüllt) — Auto-Discovery findet auf diesem
+  Host real 18 Races. Bewusst NUR lesend: `run`/`record`/`olympiade` bleiben aussen vor,
+  weil ein "Race starten"-Knopf in einem Web-Panel echte Mehrmodell-API-Kosten auslösen
+  würde und wer den Judge stellt eine Produktentscheidung ist, keine Verdrahtungsfrage
+  (Messung dazu: `SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md`). `read_race_dir()` wird per
+  echtem Paket-Import aus dem konfigurierten compare-race-Klon genutzt (kein Re-Implement).
+  Neue Capability `races.ro`. 15 neue Tests (8 Adapter, 7 Panel-E2E), Vollsuite 155 → 170/170
+  grün. KnowledgeDigest-Teil desselben Restpakets bewusst NICHT gebaut — echte
+  Produktentscheidung nötig (Detail im Ticket-VERLAUF).
 - **Audit-Log für schreibende Aktionen (2026-08-18, Sovereign-Programm-Ticket
   T-20260816-361197589, Rest-Paket 2c):** neue `audit_log.py` (append-only JSONL,
   `~/.ellmos/unified-gui/audit.jsonl`, Env `UNIFIED_GUI_AUDIT_LOG`, `off` schaltet ab) +

@@ -82,6 +82,8 @@ DISCOVERY_DEFAULTS = {
         "~/OneDrive/.TOPICS/_control-center/_DECISIONS/_tools/decisions.index.json",
     ("decisions", "chain_dir"): "~/OneDrive/.TOPICS/_control-center/_DECISIONS",
     ("decisions", "clicker_path"): lambda: _first_existing(DECISION_CLICKER_CANDIDATES),
+    ("compare_race", "repo_path"): lambda: _first_existing_file(COMPARE_RACE_CANDIDATES, "src/compare_race/report.py"),
+    ("compare_race", "races_dir"): lambda: _compare_race_races_dir(),
 }
 
 # decision-clicker liegt nach Plan D im lokalen Klon, NICHT in OneDrive — der
@@ -119,6 +121,35 @@ def _first_existing_file(candidates: tuple[str, ...], filename: str) -> str | No
         if (path / filename).is_file():
             return str(path)
     return None
+
+
+# compare-race liegt ebenfalls nach Plan D lokal (nicht OneDrive) — gleiches
+# Discovery-Muster wie skills/decision-clicker (Sovereign-Programm-Ticket
+# T-20260816-361197589, Rest-Paket 2a).
+COMPARE_RACE_CANDIDATES = (
+    "C:/_Local_DEV/repos/compare-race",
+    "~/_Local_DEV/repos/compare-race",
+    "~/repos/compare-race",
+    "~/compare-race",
+)
+
+
+def _compare_race_races_dir() -> str | None:
+    """Liest races_dir aus compare-races EIGENER Config (~/.compare-race/...) —
+    keine Neuerfindung/Kopie des Pfads, sondern dieselbe Quelle, die auch die
+    CLI benutzt (`compare_race.config.load()`s HOME_PLACEHOLDER-Logik nachgebildet,
+    ohne das Paket importieren zu muessen, falls nur races_dir gebraucht wird)."""
+    cfg_path = Path(_expand("~/.compare-race/compare-race.config.json"))
+    if not cfg_path.is_file():
+        return None
+    try:
+        data = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    races_dir = data.get("races_dir")
+    if not isinstance(races_dir, str) or not races_dir:
+        return None
+    return races_dir.replace("<HOME>", str(Path.home()))
 
 
 def _module_catalog_candidates() -> list[Path]:
@@ -243,6 +274,20 @@ class SkillsCatalogConfig:
 
 
 @dataclass
+class CompareRaceConfig:
+    # Klon mit src/compare_race/report.py (Plan D, siehe COMPARE_RACE_CANDIDATES).
+    # Nur fuer read_race_dir() (reines Lesen) -- kein Race-Trigger, kein Judge
+    # aus der Konsole (Sovereign-Programm-Ticket T-20260816-361197589,
+    # Rest-Paket 2a: Messung ergab, wer den Judge stellt und ob echte
+    # LLM-Kosten aus einem Web-Panel ausgeloest werden sollen, ist eine
+    # Produktentscheidung -- siehe SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md).
+    repo_path: str | None = None
+    # Ordner mit den Race-Unterordnern (PROMPT.md/RACE.md/RUN-*.md); Default
+    # kommt aus compare-races EIGENER Config, nicht dupliziert.
+    races_dir: str | None = None
+
+
+@dataclass
 class TicketMasterConfig:
     module_id: str | None = None
     # Verzeichnis mit T-*.txt + QUEUED/PENDING/SOLVED (live: _control-center/_TICKETS
@@ -278,6 +323,7 @@ class UnifiedGuiConfig:
     ollama: OllamaConfig = field(default_factory=OllamaConfig)
     controlcenter: ControlCenterConfig = field(default_factory=ControlCenterConfig)
     skills_catalog: SkillsCatalogConfig = field(default_factory=SkillsCatalogConfig)
+    compare_race: CompareRaceConfig = field(default_factory=CompareRaceConfig)
     # Standalone-Guard: nur lokale Origins/Clients (im Mount-Betrieb Sache des Hosts)
     local_only: bool = True
     # Audit-Log-Zielpfad fuer zustandsaendernde Aktionen; None -> audit_log.py
@@ -372,6 +418,10 @@ class UnifiedGuiConfig:
                 repo_path=_expand((data.get("skills_catalog") or {}).get("repo_path")),
                 python_exe=_expand((data.get("skills_catalog") or {}).get("python_exe")),
                 timeout_s=float((data.get("skills_catalog") or {}).get("timeout_s", 45.0)),
+            ),
+            compare_race=CompareRaceConfig(
+                repo_path=_expand((data.get("compare_race") or {}).get("repo_path")),
+                races_dir=_expand((data.get("compare_race") or {}).get("races_dir")),
             ),
         )
 

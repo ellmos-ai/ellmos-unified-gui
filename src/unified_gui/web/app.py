@@ -21,6 +21,7 @@ from fastapi.templating import Jinja2Templates
 
 from ..adapters.bach import BachAdapter
 from ..adapters.clutch import ClutchAdapter
+from ..adapters.compare_race import CompareRaceAdapter
 from ..adapters.controlcenter import ControlCenterAdapter
 from ..adapters.decisions import DecisionsAdapter
 from ..adapters.host_auth import HostAuthAdapter
@@ -34,7 +35,7 @@ from ..capabilities import CapabilityRegistry
 from ..config import UnifiedGuiConfig
 from ..panels import (p1_prompts, p2_agents, p3_models, p4_routing,
                       p5_permissions, p6_routines, p7_tasks, p8_tickets,
-                      p9_skills, p10_decisions, p11_skill_wizard)
+                      p9_skills, p10_decisions, p11_skill_wizard, p12_races)
 from ..panels.base import PanelSpec
 from ..security import LocalOnlyMiddleware
 
@@ -62,12 +63,14 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
     controlcenter_adapter = ControlCenterAdapter(config.controlcenter)
     decisions_adapter = DecisionsAdapter(config.decisions)
     skills_catalog_adapter = SkillsCatalogAdapter(config.skills_catalog)
+    compare_race_adapter = CompareRaceAdapter(config.compare_race)
     # Nur wirksam im ellmos-core-Mount-Betrieb (siehe adapters/host_auth.py);
     # ueberall sonst probt sie leer und aendert nichts am bisherigen Verhalten.
     host_auth_adapter = HostAuthAdapter()
     for adapter in (lock_adapter, ticket_adapter, bach_adapter, scanner_adapter,
                     clutch_adapter, ollama_adapter, controlcenter_adapter,
-                    decisions_adapter, skills_catalog_adapter, host_auth_adapter):
+                    decisions_adapter, skills_catalog_adapter, compare_race_adapter,
+                    host_auth_adapter):
         registry.register(adapter)
 
     all_panels: list[PanelSpec] = [
@@ -83,6 +86,7 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
         # lock_adapter mit: P10 schreibt und prueft dafuer LOCK.permissions.json
         p10_decisions.build(decisions_adapter, lock_adapter),
         p11_skill_wizard.build(skills_catalog_adapter, host_auth_adapter),
+        p12_races.build(compare_race_adapter),
     ]
 
     app.state.config = config

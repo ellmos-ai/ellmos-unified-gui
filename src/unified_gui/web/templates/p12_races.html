@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block subtitle %}Races{% endblock %}
+{% block content %}
+<h1>Races <span class="muted">compare-race Ergebnisse (read-only)</span></h1>
+
+<div class="card">
+    <p class="muted small-text">
+        Zeigt bereits gelaufene Races (PROMPT.md/RACE.md/RUN-*.md). Diese Ansicht
+        startet KEIN neues Race und loest KEIN Judge-Urteil aus — beides bleibt
+        bewusst modellmanuell/ausserhalb der Konsole (Sovereign-Programm-Ticket
+        T-20260816-361197589, Rest-Paket 2a).
+    </p>
+</div>
+
+<div class="toolbar">
+    <button class="btn" onclick="loadRaces()">Races laden</button>
+    <span id="r-count" class="muted small-text"></span>
+</div>
+<div id="race-list" class="card"><div class="muted">Noch nicht geladen.</div></div>
+<div id="race-detail"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadRaces() {
+    const el = document.getElementById("race-list");
+    el.innerHTML = '<div class="muted">Laedt ...</div>';
+    try {
+        const races = await api("/api/p12/races");
+        document.getElementById("r-count").textContent = races.length ? races.length + " Races" : "keine Races gefunden";
+        if (!races.length) { el.innerHTML = '<div class="muted">Noch keine Race-Ordner unter races_dir.</div>'; return; }
+        el.innerHTML = races.map(r =>
+            `<div class="rule">
+                <span>
+                    <b>${esc(r.race_id)}</b>
+                    <div class="muted small-text">${esc(r.prompt_preview)}${r.prompt_preview && r.prompt_preview.length >= 160 ? "…" : ""}</div>
+                </span>
+                <span>
+                    <span class="chip">${r.run_count} Run(s)</span>
+                    ${r.has_race_md ? `<button class="btn small" onclick="loadDetail('${esc(r.race_id)}')">Öffnen</button>` : '<span class="muted small-text">kein RACE.md</span>'}
+                </span>
+            </div>`
+        ).join("");
+    } catch (e) { el.innerHTML = ""; flash(e.message, true); }
+}
+
+async function loadDetail(raceId) {
+    const el = document.getElementById("race-detail");
+    el.innerHTML = '<div class="card muted">Laedt ...</div>';
+    try {
+        const data = await api("/api/p12/races/" + encodeURIComponent(raceId));
+        const runsRows = (data.runs || []).map(r =>
+            `<tr><td>${esc(r.model || "?")}</td><td>${esc(r.run ?? "?")}</td><td>${esc(r._file || "")}</td></tr>`
+        ).join("");
+        el.innerHTML = `
+            <div class="card">
+                <h3>${esc(data.race_id)}</h3>
+                <table class="small-text"><thead><tr><th>Modell</th><th>Lauf</th><th>Datei</th></tr></thead>
+                <tbody>${runsRows || '<tr><td colspan="3" class="muted">keine Runs</td></tr>'}</tbody></table>
+                <pre class="small-text" style="white-space:pre-wrap;margin-top:0.75rem">${esc(data.race_md)}</pre>
+            </div>`;
+    } catch (e) { el.innerHTML = ""; flash(e.message, true); }
+}
+</script>
+{% endblock %}
