@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Real gemountet in ellmos-core, nicht nur kompatibel (Sovereign-Programm-Ticket
+  T-20260816-361197589, Stufe 4 "zusammenbinden"):** `ellmos-core` mountet diese
+  Konsole jetzt tatsächlich (neues `console.py`/`console_enabled` dort, Extra
+  `pip install .[console]`). Neuer Cross-Repo-Test
+  `tests/test_ellmos_core_integration.py`: ein echter ellmos-core-Prozess (kein
+  Fake-Auth-Double) beweist, dass Login+Rolle real auf P5-Schreibpfade wirken
+  (`user`→403, `admin`→durch). Vollsuite 103 → 107/107 grün.
 - **P5 Rollen-Gating im Mount-Betrieb (Sovereign-Programm-Ticket
   T-20260816-361197589, Stufe 2):** neuer `HostAuthAdapter`
   (`adapters/host_auth.py`, Capability `AUTH_ROLE`) liest, wenn die GUI unter

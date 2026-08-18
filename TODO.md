@@ -81,7 +81,23 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 - [ ] Adapter `homebase` (hb_route_stats, hb_state_task_*) sobald Execution-Backends real
 
 - [ ] BACH mountet Unified GUI; überlappende BACH-Panels deprecaten
-- [ ] ellmos-core: Operator-Bereich = Unified-GUI-Mount (Abgrenzung Endnutzer/Operator)
+- [x] **ellmos-core: Operator-Bereich = Unified-GUI-Mount (2026-08-18, Sovereign-Ticket
+      T-20260816-361197589 Stufe 4 "zusammenbinden"):** `ellmos-core` mountet diese GUI
+      jetzt tatsächlich, nicht mehr nur theoretisch kompatibel. Auf der ellmos-core-Seite:
+      neuer `console.py` (`mount_console(app, prefix)`, lazy import + graceful
+      degradation, exakt das Muster von `auth_providers.py`/LDAP), neue Settings
+      `console_enabled`/`console_prefix` (Default AUS), Aufruf am Ende von `app.py`,
+      optionaler Extra `pip install .[console]` in `pyproject.toml` (git-URL, gepinnter
+      Commit — wie `clutch-router`). Neuer Cross-Repo-Beweis
+      `tests/test_ellmos_core_integration.py` hier im Repo (skip-if-sibling-missing wie
+      `test_p5_role_gating.py`): ein ECHTER ellmos-core-Prozess (kein Fake-Adapter) mit
+      echtem Login+Session zeigt, dass Rolle `user` bei P5-Schreibpfaden real 403 bekommt
+      und Rolle `admin` real durchkommt — plus ein manueller uvicorn-Boot-Smoke (echter
+      Prozess auf Port 8811, echte Logins über curl, `/control/` erreichbar, `/chat`
+      unverändert funktionsfähig). Details/Auftrag/Belege:
+      `.AI/.STACKS/sovereign-private/_reports/SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md`.
+      **Bewusst NICHT in diesem Durchgang:** Audit-Log fürs Mounten selbst (separater
+      Punkt unten), Installer-/Docker-Verdrahtung (eigener Punkt in `sovereign-private`).
 - [ ] Audit-Log für schreibende Aktionen (Muster ellmos-core)
 - [ ] README-Sprachen, Release als `ellmos-ai/unified-gui` (MIT) prüfen
 

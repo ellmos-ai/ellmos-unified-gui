@@ -5,7 +5,7 @@ Standalone:  from unified_gui import create_app; app = create_app()
 Eingebettet: from unified_gui import mount; mount(host_app, prefix="/control")
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 from .web.app import create_app, mount  # noqa: E402,F401  (Re-Export der API)
 

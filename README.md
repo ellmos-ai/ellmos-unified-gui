@@ -12,9 +12,13 @@ the existing backends. MIT licensed.
 > — 10 panels run standalone (`python -m unified_gui`, port 8990) and embedded
 > (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
 > permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions.
-> 85/85 tests passing (measured 2026-08-17; some skip locally when a backend like
-> Ollama is unreachable). Phase 4 (BACH mount, homebase
-> adapter, audit log — see TODO.md) is still open.
+> 107/107 tests passing (measured 2026-08-18; some skip locally when a backend
+> like Ollama is unreachable). Real-mounted into `ellmos-core` as of 2026-08-18
+> (`console_enabled` there, see `ellmos-core/src/ellmos_core/console.py`) —
+> the earlier "mount() exists but nobody calls it" gap is closed; proven by a
+> cross-repo integration test with a genuine ellmos-core login (no fake
+> adapter), see TODO.md. Phase 4 remainder (BACH mount, homebase adapter,
+> audit log — see TODO.md) is still open.
 >
 > **V4-Einordnung:** `ellmos-unified-gui` ist ein `.RUNTIME`-Modul und wird über
 > `../../.BUNDLES/` in Stacks komponiert. Es konsumiert `.CONTROL` (Locks, Tickets,
