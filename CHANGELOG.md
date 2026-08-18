@@ -15,7 +15,10 @@
   echtem Paket-Import aus dem konfigurierten compare-race-Klon genutzt (kein Re-Implement).
   Neue Capability `races.ro`. 15 neue Tests (8 Adapter, 7 Panel-E2E), Vollsuite 155 → 170/170
   grün. KnowledgeDigest-Teil desselben Restpakets bewusst NICHT gebaut — echte
-  Produktentscheidung nötig (Detail im Ticket-VERLAUF).
+  Produktentscheidung nötig (Detail im Ticket-VERLAUF). Version 0.7.0 → 0.8.0.
+  Nebenbefund korrigiert: `src/unified_gui/__init__.py`s `__version__` stand auf 0.5.0
+  (zwei Restpaket-Versionsbumps in pyproject.toml nicht nachgezogen) — jetzt wieder
+  synchron.
 - **Audit-Log für schreibende Aktionen (2026-08-18, Sovereign-Programm-Ticket
   T-20260816-361197589, Rest-Paket 2c):** neue `audit_log.py` (append-only JSONL,
   `~/.ellmos/unified-gui/audit.jsonl`, Env `UNIFIED_GUI_AUDIT_LOG`, `off` schaltet ab) +
