@@ -13,7 +13,7 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > 2026-08-19)** — 12 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
 > eingebettet (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
-> P11 Skill-Wizard, P12 Races. 175/175 Tests grün (gemessen 2026-08-21; einzelne werden
+> P11 Skill-Wizard, P12 Races. 176/176 Tests grün (gemessen 2026-08-21; einzelne werden
 > übersprungen, wenn ein Backend wie Ollama lokal nicht erreichbar ist). Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
@@ -22,13 +22,13 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > siehe TODO.md. **P11 Skill-Wizard (2026-08-18):** strukturiertes
 > Gerüst + Beschreibung + statische S-Tests über `catalog.py` (skills-Repo) —
 > NICHT der Skill-Körper/die Eval-Schleife, das bleibt Aufgabe von
-> `skill-creator`, siehe TODO.md. **Audit-Log für Schreibaktionen (2026-08-18,
-> dasselbe Ticket, Restpaket 2c):** jede zustandsändernde Anfrage
+> `skill-creator`, siehe TODO.md. **Audit-Log für Schreibaktionen (2026-08-18):**
+> jede zustandsändernde Anfrage
 > (POST/PUT/PATCH/DELETE) über alle Panels hinweg landet in
 > `~/.ellmos/unified-gui/audit.jsonl` — wer/Rolle, Panel+Aktion, Ergebnis,
 > Dauer, nur Argumentnamen (nie -werte), nach dem Vorbild von
 > `ellmos-controlcenter-mcp`s `gateway-audit.jsonl`, siehe TODO.md. **P12 Races
-> (2026-08-19, dasselbe Ticket, Restpaket 2a):** read-only Browser über bereits
+> (2026-08-19):** read-only Browser über bereits
 > gelaufene `compare-race`-Races (`PROMPT.md`/`RACE.md`/`RUN-*.md`, inkl.
 > Judge-Urteil wo ausgefüllt) — bewusst kein Race-Trigger/Judge-Automatismus,
 > siehe TODO.md. Restlicher Phase-4-Umfang (BACH mountet diese GUI,
@@ -84,6 +84,19 @@ einmalig `~/OneDrive`-Symlink setzen oder Host-Override nutzen.
 | [DECISIONS.md](DECISIONS.md) | Entscheidungslog (D01–D11) |
 | [TODO.md](TODO.md) | Phasenplan 0–4 |
 | [SECURITY.md](SECURITY.md) | Vertrauensgrenzen und Meldung von Schwachstellen |
+| [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) | Inventar der Abhängigkeiten und Asset-Provenienz |
+| [docs/ai-act-note.md](docs/ai-act-note.md) | Komponentengrenze für KI-bezogene Einsätze |
+
+## Lizenz und Provenienz
+
+Sofern eine Datei nichts Abweichendes angibt, stehen der im Repository erstellte Code,
+die Dokumentation, Prompts und Assets unter der [MIT-Lizenz](LICENSE). Drittanbieterpakete
+werden nicht neu lizenziert; ihre eigenen Bedingungen sind in
+[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) aufgeführt. Das Repository enthält
+KI-unterstützte Beiträge, die ein menschlicher Maintainer geprüft und bearbeitet hat.
+Vor einer öffentlichen oder kommerziellen Nutzung muss der Eigentümer die Herkunftsrechte
+von `assets/banner.png` noch bestätigen; die bloße Aufnahme in Git gilt in dieser
+Vorbereitung nicht als Freigabe des Assets.
 
 ## Verwandte Module
 

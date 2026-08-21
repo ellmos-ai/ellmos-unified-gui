@@ -46,6 +46,8 @@ def test_canonical_repository_is_declared() -> None:
 def test_release_hygiene_files_exist() -> None:
     required = (
         "SECURITY.md",
+        "THIRD_PARTY_LICENSES.md",
+        "docs/ai-act-note.md",
         ".github/workflows/ci.yml",
         ".github/workflows/codeql.yml",
     )

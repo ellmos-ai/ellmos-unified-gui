@@ -11,7 +11,9 @@
   Standalone-/Mount-Vertrauensgrenzen. Gemeinsames STATUS-/Release-Gate und dedizierte
   Metadaten-Regression verhindern die belegte Dokumentationsdrift. Vier vorhandene
   Ruff-Befunde in Tests wurden ohne Fachlogikänderung behoben; Kopf- und
-  Untermoduldokumente sind auf P1–P12/0.8.0 abgeglichen. Repository bleibt privat;
+  Untermoduldokumente sind auf P1–P12/0.8.0 abgeglichen. Ein Drittanbieter-/
+  Asset-Provenienzinventar und eine enge EU-AI-Act-Komponentennotiz grenzen
+  Paketlizenz, externe Abhängigkeiten und Betreiberpflichten ab. Repository bleibt privat;
   Sichtbarkeit, Tag, Release und Registry-Upload sind ausdrücklich nicht Teil dieses
   Schritts.
 

@@ -15,7 +15,7 @@ the existing backends. MIT licensed.
 > 2026-08-19)** — 12 panels run standalone (`python -m unified_gui`, port 8990) and
 > embedded (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
 > permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions, P11 skill
-> wizard, P12 races. 175/175 tests passing (measured 2026-08-21; some skip locally
+> wizard, P12 races. 176/176 tests passing (measured 2026-08-21; some skip locally
 > when a backend like Ollama is unreachable). Real-mounted into `ellmos-core`
 > as of 2026-08-18 (`console_enabled` there, see
 > `ellmos-core/src/ellmos_core/console.py`) — the earlier "mount() exists but
@@ -24,12 +24,12 @@ the existing backends. MIT licensed.
 > Wizard (2026-08-18):** structured scaffold + description + static
 > S-Tests via `catalog.py` (skills repo), never the skill body/eval loop —
 > that stays `skill-creator`'s job, see TODO.md. **Audit log for write actions
-> (2026-08-18, same ticket, Restpaket 2c):** every state-changing request
+> (2026-08-18):** every state-changing request
 > (POST/PUT/PATCH/DELETE) across every panel is appended to
 > `~/.ellmos/unified-gui/audit.jsonl` — who/role, panel+action, outcome,
 > duration, argument names only (never values), modeled on
 > `ellmos-controlcenter-mcp`'s `gateway-audit.jsonl`, see TODO.md. **P12 Races
-> (2026-08-19, same ticket, Restpaket 2a):** read-only browser over already-run
+> (2026-08-19):** read-only browser over already-run
 > `compare-race` races (`PROMPT.md`/`RACE.md`/`RUN-*.md`, judge verdict included
 > where filled in) — deliberately no race-trigger/judge automation, see TODO.md.
 > Phase 4 remainder (BACH mounting this GUI, homebase adapter) is still open —
@@ -82,6 +82,18 @@ there — set a one-time `~/OneDrive` symlink, or use a host override.
 | [DECISIONS.md](DECISIONS.md) | Decision log (D01–D11) |
 | [TODO.md](TODO.md) | Phase plan 0–4 |
 | [SECURITY.md](SECURITY.md) | Trust boundaries and vulnerability reporting |
+| [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) | Dependency and asset provenance inventory |
+| [docs/ai-act-note.md](docs/ai-act-note.md) | Component boundary for AI-related deployments |
+
+## License and provenance
+
+Unless a file says otherwise, the repository-authored code, documentation, prompts and
+assets are offered under the [MIT License](LICENSE). Third-party packages are not
+relicensed; their own terms are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+The repository includes AI-assisted contributions that were reviewed and edited by a
+human maintainer. Before public or commercial use, the owner must still confirm the
+source rights for `assets/banner.png`; this preparation does not treat that asset as
+cleared merely because it is currently tracked.
 
 ## Related modules
 
