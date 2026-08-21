@@ -2,17 +2,20 @@
 
 [🇩🇪 Deutsch](README_de.md) | 🇬🇧 English
 
+[![CI](https://github.com/ellmos-ai/unified-gui/actions/workflows/ci.yml/badge.svg)](https://github.com/ellmos-ai/unified-gui/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 # ellmos Unified GUI
 
 **Importable operator console** for the ellmos/BACH ecosystem: models, agents, prompts,
 routing, permissions, routines/cron, tasks, tickets and skills — one surface, fed by
 the existing backends. MIT licensed.
 
-> **Status: Phase 1–4 mostly implemented (v0.8.0, 2026-08-19; panel additions through
+> **Status: Phase 1–4 mostly implemented (v0.8.0, verified 2026-08-21; panel additions through
 > 2026-08-19)** — 12 panels run standalone (`python -m unified_gui`, port 8990) and
 > embedded (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
 > permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions, P11 skill
-> wizard, P12 races. 170/170 tests passing (measured 2026-08-19; some skip locally
+> wizard, P12 races. 175/175 tests passing (measured 2026-08-21; some skip locally
 > when a backend like Ollama is unreachable). Real-mounted into `ellmos-core`
 > as of 2026-08-18 (`console_enabled` there, see
 > `ellmos-core/src/ellmos_core/console.py`) — the earlier "mount() exists but
@@ -34,10 +37,9 @@ the existing backends. MIT licensed.
 > see TODO.md for the concrete, measured reasons (BACH write-lock; homebase's
 > `hb_route_*`/`hb_state_task_*` tools not canonical yet).
 >
-> **V4-Einordnung:** `ellmos-unified-gui` ist ein `.RUNTIME`-Modul und wird über
-> `../../.BUNDLES/` in Stacks komponiert. Es konsumiert `.CONTROL` (Locks, Tickets,
-> Tasks) und `.ORCHESTRATION` (Routing) über Adapter, besitzt aber keine eigene
-> Fachlogik-Wahrheit.
+> **V4 classification:** `ellmos-unified-gui` is a `.RUNTIME` module composed into
+> stacks through `../../.BUNDLES/`. It consumes `.CONTROL` (locks, tickets, tasks)
+> and `.ORCHESTRATION` (routing) through adapters and owns no domain source of truth.
 
 ## Core ideas
 
@@ -63,8 +65,8 @@ Races (read-only `compare-race` race/report browser).
 
 Configuration is **host-neutral**: paths in `~` notation (or `$VAR`/`%VAR%`), the base
 config lives shared in `~/OneDrive/.TOPICS/_control-center/unified-gui.config.json` and
-syncs to every system — independent of whether the home is `lukas`, `User`, or anything
-else. Per-system overrides: `unified-gui.config.<HOSTNAME>.json` alongside it (shared) or
+syncs to every system, independent of its account name. Per-system overrides:
+`unified-gui.config.<HOSTNAME>.json` alongside it (shared) or
 under `~/.unified_gui/` (local). Missing fields are filled in by auto-discovery of the
 standard layout; backends absent on a given system simply disappear via capability probe.
 Start anywhere: `_control-center/START-UNIFIED-GUI.bat` (Windows) or `python -m
@@ -78,8 +80,9 @@ there — set a one-time `~/OneDrive` symlink, or use a host override.
 | [KONZEPT.md](KONZEPT.md) | Problem, goal, principles, panel catalogue, transition path (German, canonical) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Layers, capability registry, mount vs. standalone, non-goals |
 | [docs/ADAPTER-CONTRACT.md](docs/ADAPTER-CONTRACT.md) | Adapter contract, capabilities, domain mixins |
-| [DECISIONS.md](DECISIONS.md) | Decision log (D01–D06) |
+| [DECISIONS.md](DECISIONS.md) | Decision log (D01–D11) |
 | [TODO.md](TODO.md) | Phase plan 0–4 |
+| [SECURITY.md](SECURITY.md) | Trust boundaries and vulnerability reporting |
 
 ## Related modules
 

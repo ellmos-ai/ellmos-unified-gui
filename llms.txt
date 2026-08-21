@@ -3,22 +3,24 @@
 > Importable operator console for the ellmos/BACH ecosystem: one capability-driven
 > web UI (FastAPI + HTMX, no build step) over existing backends — models, agents,
 > prompts, routing, permissions, routines/cron, tasks, tickets, skills.
-> Status: Phase 1-3 implemented (v0.7.0, 2026-07-11; panel additions through 2026-08-18),
-> 11 panels (P1-P11), 155/155 tests passing (measured 2026-08-18). Real-mounted
+> Status: Phase 1-4 mostly implemented (v0.8.0, verified 2026-08-21),
+> 12 panels (P1-P12), 175/175 tests passing (measured 2026-08-21). Real-mounted
 > into ellmos-core since 2026-08-18 (console_enabled there). P11 skill wizard
 > (structured scaffold+description+static tests via catalog.py, not the skill
 > body/eval loop -- that stays skill-creator's job). Audit log for every
 > write action across all panels (~/.ellmos/unified-gui/audit.jsonl, modeled
 > on ellmos-controlcenter-mcp's gateway-audit.jsonl). Phase 4 remainder
-> (BACH mount, homebase adapter) open. German docs are canonical.
+> (BACH mount, homebase adapter) open. P12 provides a read-only compare-race
+> report browser. German technical planning docs are canonical.
 
 ## Docs
 
-- [KONZEPT.md](KONZEPT.md): problem, goals, panel catalog P1-P11, migration path
+- [KONZEPT.md](KONZEPT.md): problem, goals, panel catalog P1-P12, migration path
 - [ARCHITECTURE.md](ARCHITECTURE.md): layers, capability registry, mount vs. standalone
 - [docs/ADAPTER-CONTRACT.md](docs/ADAPTER-CONTRACT.md): adapter protocol, capabilities, mixins
-- [DECISIONS.md](DECISIONS.md): decision log D01-D06
+- [DECISIONS.md](DECISIONS.md): decision log D01-D11
 - [TODO.md](TODO.md): phased roadmap
+- [SECURITY.md](SECURITY.md): trust boundaries and vulnerability reporting
 
 ## Key facts
 

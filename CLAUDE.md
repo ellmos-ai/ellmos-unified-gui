@@ -2,16 +2,17 @@
 name: "ellmos-unified-gui"
 type: project-docs
 profile: "STANDARD"
-version: 0.1.0
+version: 0.8.0
 created: "2026-07-11"
-updated: "2026-07-11"
-reason_last_change: "Initiale Anlage (Konzept + Ordnerstruktur)"
-last_verified: "2026-07-11"
+updated: "2026-08-21"
+reason_last_change: "Private Public-Readiness und Vertragsabgleich"
+last_verified: "2026-08-21"
 author: "Lukas Geiger"
 anthropic_compatible: true
 description: |
   Project-specific instructions for AI coding agents in ellmos-unified-gui.
-  Primary audience: Claude Code. Other agents redirect here via AGENTS.md.
+  Provider-neutral project contract under a compatibility filename. Other
+  agents enter through AGENTS.md.
 ---
 
 # CLAUDE.md — Instructions für AI Coding Agents
@@ -28,7 +29,7 @@ vorhandenen Backends des Ökosystems.
 **Kanonischer Klon (entwickeln/committen/pushen):** `C:\_Local_DEV\repos\unified-gui`
 **OneDrive-Arbeits-/Deploykopie (ohne `.git`, Plan D):** `~/OneDrive/.TOPICS/.AI/.MODULES/.RUNTIME/ellmos-unified-gui` — nach jedem Push per robocopy nachziehen (siehe `unified-gui.repo.md` dort)
 **Repository:** privat, `https://github.com/ellmos-ai/unified-gui` (seit 2026-08-13, D-20260808-005)
-**Sprache/Stack:** Python 3.11+, FastAPI + Jinja2/HTMX + Vanilla-JS (KEIN Build-Schritt)
+**Sprache/Stack:** Python 3.10+, FastAPI + Jinja2/HTMX + Vanilla-JS (KEIN Build-Schritt)
 
 ## Rolle & Stil
 

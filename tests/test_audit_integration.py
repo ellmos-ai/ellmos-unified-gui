@@ -78,7 +78,7 @@ def test_real_p11_write_reaches_the_audit_log_end_to_end(tmp_path):
         assert (skill_dir / name / "SKILL.md").is_file()
 
         lines = audit_target.read_text(encoding="utf-8").splitlines()
-        entries = [json.loads(l) for l in lines]
+        entries = [json.loads(line) for line in lines]
         create_entries = [e for e in entries if e["panel"] == "p11" and e["action"] == "create"]
         assert len(create_entries) == 1
         entry = create_entries[0]

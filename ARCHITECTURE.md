@@ -1,6 +1,6 @@
 # ARCHITECTURE — ellmos Unified GUI
 
-**Stand:** 2026-07-11 · **Status:** Konzept — beschreibt das Zielbild, kein Ist-Code.
+**Stand:** 2026-08-21 · **Status:** v0.8.0 — Schichtenmodell des implementierten Kerns und der offenen Phase-4-Seams.
 
 ## Schichtenmodell
 
@@ -18,13 +18,15 @@
 |  PANELS  src/unified_gui/panels/                             |
 |  P1 Prompts · P2 Agenten · P3 Modelle · P4 Routing ·          |
 |  P5 Berechtigungen · P6 Routinen · P7 Tasks · P8 Tickets ·    |
-|  P9 Skills                                                    |
+|  P9 Skills · P10 Entscheidungen · P11 Skill-Wizard ·          |
+|  P12 Races                                                    |
 |  Jedes Panel: required_capabilities + Router + Fragment       |
 +--------------------------------------------------------------+
 |  ADAPTER  src/unified_gui/adapters/                          |
 |  probe()/health()/Domänen-Methoden je Backend                 |
-|  bach · lock_master · ticket_master · clutch · ollama ·       |
-|  homebase · controlcenter · api_models                        |
+|  bach · lock_master · ticket_master · scanner_tasks · clutch ·|
+|  ollama · controlcenter · decisions · host_auth ·             |
+|  skills_catalog · compare_race                                |
 +--------------------------------------------------------------+
 |  BACKENDS (extern, autoritativ)                              |
 |  BACH (~/.bach/bach.db via CLI/REST) · LOCK*.txt +            |
@@ -41,7 +43,8 @@ class Capability(str, Enum):
     PROMPTS_RW, PROMPTS_VERSIONS, AGENT_DISPATCH, AGENT_STEER,
     MODELS_LOCAL, MODELS_API, ROUTING_CONFIG, PERMISSIONS_RW,
     LOCKS_RW, SCHEDULER_RW, TASKS_RO, TASKS_ASSIGN, TICKETS_RW,
-    SKILLS_DISCOVERY = ...
+    SKILLS_DISCOVERY, SKILLS_CREATE, DECISIONS_RO, DECISIONS_RW,
+    AUTH_ROLE, RACES_RO = ...
 
 registry = CapabilityRegistry()
 for adapter in discover_adapters(config):

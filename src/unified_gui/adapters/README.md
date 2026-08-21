@@ -1,5 +1,7 @@
 # adapters/ — Backend-Adapter
 
 Ein Adapter pro Backend. Vertrag: `../../../docs/ADAPTER-CONTRACT.md`.
-Geplant (Phase 1-3): base.py, lock_master.py, ticket_master.py, bach.py,
-clutch.py, ollama.py, homebase.py, controlcenter.py, api_models.py
+Implementiert: `base.py`, `lock_master.py`, `ticket_master.py`, `bach.py`,
+`scanner_tasks.py`, `clutch.py`, `ollama.py`, `controlcenter.py`, `decisions.py`,
+`host_auth.py`, `skills_catalog.py` und `compare_race.py`. Der Homebase-Adapter
+bleibt bis zu einem kanonischen Backend-Seam blockiert; siehe `../../../TODO.md`.

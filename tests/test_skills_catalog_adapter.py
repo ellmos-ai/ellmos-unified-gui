@@ -11,7 +11,6 @@ aufruft/den Exit-Code/das Ergebnis-JSON richtig interpretiert.
 Wenn der kanonische skills-Klon auf diesem System fehlt, werden diese Tests
 uebersprungen (gleiche Konvention wie test_p5_role_gating.py fuer lock-master).
 """
-import json
 import shutil
 import sys
 from pathlib import Path

@@ -1,6 +1,16 @@
 # TODO — ellmos Unified GUI
 
-**Stand:** 2026-07-11 · Phasen aus KONZEPT.md §7. `[ ]` offen · `[~]` in Arbeit · `[x]` fertig
+**Stand:** 2026-08-21 · Phasen aus KONZEPT.md §7. `[ ]` offen · `[~]` in Arbeit · `[x]` fertig
+
+## STATUS
+
+| Category | Status | Evidence / next gate |
+|---|---|---|
+| Core console | DONE | Twelve capability-driven panels and 175 local tests are green. |
+| Packaging and security | DONE | Pinned private CI, security policy, build and metadata regression are present. |
+| Homebase adapter | BLOCKED | Requires a canonical `hb_route_*` seam or a verified taskplan-backed state seam. |
+| BACH integration | WAITING | Requires the separate BACH repository write gate to be open. |
+| Public release | USER | Repository history/privacy choice and explicit visibility approval remain owner gates. |
 
 ## TASKPLAN v0.3 — Anpassung  ✅ (2026-07-14, TASKSOLVER; Tasks 40/41/42)
 
@@ -126,7 +136,6 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       BACH-eigene Panels (Agenten-Dispatch, Skills, Routinen — soweit BACH eigene
       GUI-Ansichten dafür hat) als deprecated markieren, nicht sofort entfernen.
 
-- [ ] BACH mountet Unified GUI; überlappende BACH-Panels deprecaten
 - [x] **ellmos-core: Operator-Bereich = Unified-GUI-Mount (2026-08-18, Sovereign-Ticket
       T-20260816-361197589 Stufe 4 "zusammenbinden"):** `ellmos-core` mountet diese GUI
       jetzt tatsächlich, nicht mehr nur theoretisch kompatibel. Auf der ellmos-core-Seite:

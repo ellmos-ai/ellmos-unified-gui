@@ -62,7 +62,7 @@ def test_append_is_append_only_not_overwrite(tmp_path):
     append_audit_entry({"seq": 1}, str(target))
     append_audit_entry({"seq": 2}, str(target))
     lines = target.read_text(encoding="utf-8").splitlines()
-    assert [json.loads(l)["seq"] for l in lines] == [1, 2]
+    assert [json.loads(line)["seq"] for line in lines] == [1, 2]
 
 
 def test_off_disables_without_writing(tmp_path):

@@ -1,16 +1,19 @@
 🇩🇪 Deutsch | [🇬🇧 English](README.md)
 
+[![CI](https://github.com/ellmos-ai/unified-gui/actions/workflows/ci.yml/badge.svg)](https://github.com/ellmos-ai/unified-gui/actions/workflows/ci.yml)
+[![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-yellow.svg)](LICENSE)
+
 # ellmos Unified GUI
 
 **Importierbare Operator-Konsole** für das ellmos-/BACH-Ökosystem: Modelle, Agenten,
 Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets und Skills — in einer
 Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
-> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, 2026-08-19; Panel-Ergänzungen bis
+> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, verifiziert 2026-08-21; Panel-Ergänzungen bis
 > 2026-08-19)** — 12 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
 > eingebettet (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
-> P11 Skill-Wizard, P12 Races. 170/170 Tests grün (gemessen 2026-08-19; einzelne werden
+> P11 Skill-Wizard, P12 Races. 175/175 Tests grün (gemessen 2026-08-21; einzelne werden
 > übersprungen, wenn ein Backend wie Ollama lokal nicht erreichbar ist). Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
@@ -33,7 +36,11 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > Homebase-Adapter) ist weiter offen — siehe TODO.md für die konkreten,
 > gemessenen Gründe (BACH-Schreibsperre; homebase' `hb_route_*`/
 > `hb_state_task_*`-Werkzeuge noch nicht kanonisch).
-> Konfiguration: `unified-gui.config.example.json` kopieren oder `UNIFIED_GUI_*`-Env setzen.
+>
+> **V4-Einordnung:** `ellmos-unified-gui` ist ein `.RUNTIME`-Modul und wird über
+> `../../.BUNDLES/` in Stacks komponiert. Es konsumiert `.CONTROL` (Locks, Tickets,
+> Tasks) und `.ORCHESTRATION` (Routing) über Adapter, besitzt aber keine eigene
+> Fachlogik-Wahrheit.
 
 ## Idee in drei Sätzen
 
@@ -52,18 +59,18 @@ Modelle (Ollama + proprietäre APIs via clutch) · Routing (ticket-master-Score/
 Berechtigungen (`LOCK.permissions.json`-Editor, lock-master) · Routinen/Cron
 (BACH-Scheduler; Routine → Modell + Rolle + Skills) · Tasks (BACH/Scanner/homebase,
 zuweisbar) · Tickets (ticket-master-Intake/Router/Queues) · Skills (controlcenter-mcp) ·
-Skill-Wizard (Gerüst + Beschreibung + S-Tests über `catalog.py`, skills-Repo) ·
+Entscheidungen · Skill-Wizard (Gerüst + Beschreibung + S-Tests über `catalog.py`, skills-Repo) ·
 Races (read-only `compare-race`-Report-Browser).
 
 ## Multi-System / Cloud (OneDrive)
 
 Die Konfiguration ist **host-neutral**: Pfade in `~`-Notation (oder `$VAR`/`%VAR%`),
 Basis-Config liegt geteilt in `~/OneDrive/.TOPICS/_control-center/unified-gui.config.json`
-und synct auf alle Systeme — unabhaengig davon, ob das Home `lukas`, `User` oder
-etwas anderes ist. Abweichungen pro System: `unified-gui.config.<HOSTNAME>.json`
-daneben (shared) oder unter `~/.unified_gui/` (lokal). Fehlende Felder ergaenzt
+und synct auf alle Systeme — unabhängig vom Namen des Benutzerkontos. Abweichungen
+pro System: `unified-gui.config.<HOSTNAME>.json` daneben (geteilt) oder unter
+`~/.unified_gui/` (lokal). Fehlende Felder ergänzt
 eine Auto-Discovery des Standard-Layouts; Backends, die es auf einem System nicht
-gibt, verschwinden ohnehin per Capability-Probe. Start ueberall:
+gibt, verschwinden ohnehin per Capability-Probe. Start überall:
 `_control-center/START-UNIFIED-GUI.bat` (Windows) bzw. `python -m unified_gui`.
 **Mac-Hinweis:** OneDrive liegt dort meist unter `~/Library/CloudStorage/...` —
 einmalig `~/OneDrive`-Symlink setzen oder Host-Override nutzen.
@@ -75,8 +82,9 @@ einmalig `~/OneDrive`-Symlink setzen oder Host-Override nutzen.
 | [KONZEPT.md](KONZEPT.md) | Problem, Ziel, Prinzipien, Panel-Katalog, Übergangspfad |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Schichten, Capability-Registry, Mount vs. Standalone, Nicht-Ziele |
 | [docs/ADAPTER-CONTRACT.md](docs/ADAPTER-CONTRACT.md) | Adapter-Vertrag, Capabilities, Domänen-Mixins |
-| [DECISIONS.md](DECISIONS.md) | Entscheidungslog (D01–D06) |
+| [DECISIONS.md](DECISIONS.md) | Entscheidungslog (D01–D11) |
 | [TODO.md](TODO.md) | Phasenplan 0–4 |
+| [SECURITY.md](SECURITY.md) | Vertrauensgrenzen und Meldung von Schwachstellen |
 
 ## Verwandte Module
 

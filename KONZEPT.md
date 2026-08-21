@@ -1,6 +1,6 @@
 # KONZEPT — ellmos Unified GUI
 
-**Produktname:** Unified GUI · **Modul:** `ellmos-unified-gui` · **Stand:** 2026-07-11 · **Status:** Konzept (v0.1.0)
+**Produktname:** Unified GUI · **Modul:** `ellmos-unified-gui` · **Stand:** 2026-08-21 · **Status:** weitgehend umgesetzt (v0.8.0)
 
 ---
 
@@ -76,6 +76,7 @@ Jedes Panel: eigenes Python-Modul unter `src/unified_gui/panels/`, deklariert
 | P9 | **Skills** | controlcenter-mcp (`list_skills`/`find_skill`) | Skill-Inventar, Intent→Skill-Matching, Bundle-Zuordnung | controlcenter-mcp (fertig) |
 | P10 | **Decisions** | TO-DECIDE-Kette über `decision-clicker` · Rückfall: `decisions.index.json` | Übersicht (offen zuerst, Scope-/Status-Filter, Kollisions-Warnung) **plus** Durchklicken, Einstellen, Register und Desktop-Postfach-Übernahme — sobald die Kernlogik da ist; sonst unverändert read-only | decision-clicker (Lib + CLI) über `DECISIONS_RW`; Index-Generator bleibt der eine Parser [D11] |
 | P11 | **Skill-Wizard** | `catalog.py` (skills-Repo, Subprozess) | Gerüst anlegen, Pflichtfeld `description:` ausfüllen (Wizard-Fragen "was tut er"/"wann triggert er", gemined aus `skill-creator`s Capture-Intent), statische S-Tests (`--type static`, kein LLM-Aufruf) — der Skill-Körper/die Eval-Schleife bleibt bewusst `skill-creator`s Aufgabe | catalog.py `create`/`quality` (fertig, Wizard schließt nur die Beschreibungs-Lücke) [Sovereign-Programm T-20260816-361197589 Stufe 3] |
+| P12 | **Races** | `compare-race` (read-only) | Vorhandene Race-Berichte, Läufe und vorhandene Judge-Urteile anzeigen; kein kostenpflichtiger Start- oder Judge-Automatismus | kanonischer `compare_race.report`-Import |
 
 ### Antworten auf offene Konzeptfragen (2026-07-11)
 

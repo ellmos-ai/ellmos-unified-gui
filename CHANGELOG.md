@@ -2,6 +2,20 @@
 
 ## [Unreleased] (TASKPLAN v0.3)
 
+### Changed
+
+- **Private Public-Readiness (2026-08-21, Programm-Ticket
+  T-20260816-933818854):** versionsynchrones Paket (`VERSION`, Python-Paket und
+  `pyproject.toml` jetzt 0.8.0), kanonische Repository-Metadaten, SPDX-Lizenzsyntax,
+  reproduzierbare Entwicklungsabhängigkeiten, gepinnte plattformübergreifende CI und
+  nicht hochladendes CodeQL ergänzt. `SECURITY.md` dokumentiert die tatsächlichen
+  Standalone-/Mount-Vertrauensgrenzen. Gemeinsames STATUS-/Release-Gate und dedizierte
+  Metadaten-Regression verhindern die belegte Dokumentationsdrift. Vier vorhandene
+  Ruff-Befunde in Tests wurden ohne Fachlogikänderung behoben; Kopf- und
+  Untermoduldokumente sind auf P1–P12/0.8.0 abgeglichen. Repository bleibt privat;
+  Sichtbarkeit, Tag, Release und Registry-Upload sind ausdrücklich nicht Teil dieses
+  Schritts.
+
 ### Fixed
 
 - **README-Sprachparität + Statuszeile (2026-08-19, Sovereign-Programm-Ticket

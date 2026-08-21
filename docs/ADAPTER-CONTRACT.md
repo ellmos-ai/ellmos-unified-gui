@@ -1,6 +1,6 @@
 # ADAPTER-CONTRACT — Unified GUI Backend-Adapter
 
-**Stand:** 2026-07-11 · **Status:** Spezifikation v0.1 (Konzept)
+**Stand:** 2026-08-21 · **Status:** additiver Vertrag v0.8 (implementierter Kern)
 
 Jedes Backend wird über genau einen Adapter angebunden. Panels kennen nur diesen
 Vertrag — nie das Backend selbst.
@@ -39,8 +39,11 @@ class BaseAdapter(Protocol):
 | `TASKS_ASSIGN` | Task einem Agenten/Modell zuweisen | BACH, scanner_tasks.py |
 | `TICKETS_RW` | Tickets erfassen/routen/verschieben | ticket-master |
 | `SKILLS_DISCOVERY` | Skills inventarisieren/matchen | controlcenter-mcp |
+| `SKILLS_CREATE` | Skill-Gerüst/Beschreibung über den kanonischen Katalog anlegen | skills `catalog.py` |
 | `DECISIONS_RO` | TO-DECIDE-Index lesen (kein Schreibpfad) | decisions.index.json |
+| `DECISIONS_RW` | Entscheiden/Anlegen/Intake über die decision-clicker-Kernlogik | decision-clicker |
 | `AUTH_ROLE` | eingeloggte Person + Rolle des Host-Auftritts lesbar | ellmos-core (`request.session`), NUR im Mount-Betrieb |
+| `RACES_RO` | vorhandene Race-Berichte lesen | compare-race |
 
 Regeln: Enum ist **additiv** (nie umbenennen/loeschen). Ein Adapter meldet nur, was
 er JETZT wirklich bedienen kann (kein "geplant").
@@ -103,11 +106,13 @@ class SkillIndex(Protocol):
     def find(self, intent) -> list[SkillMatch]
 
 class DecisionsIndex(Protocol):
-    # P10 -- strikt read-only, kein Schreibpfad im Protokoll.
+    # DECISIONS_RO: Indexsicht; DECISIONS_RW nur über decision-clicker.
     def summary(self) -> dict                            # counts/collisions/files, ohne entries[]
     def entries(self, scope=None, status_class=None) -> list[dict]  # gefiltert+sortiert
     def collisions(self) -> list[dict]
     def scopes(self) -> list[str]
+    def decide(self, key, choice, note="") -> dict       # nur DECISIONS_RW
+    def create(self, title, **fields) -> dict             # nur DECISIONS_RW
 ```
 
 ## 4. Routine-Bindings (P6 — Routine an Modell/Rolle/Skills knüpfen)
