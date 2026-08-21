@@ -1,0 +1,3 @@
+include ARCHITECTURE.md CHANGELOG.md DECISIONS.md KONZEPT.md
+include SECURITY.md THIRD_PARTY_LICENSES.md TODO.md VERSION
+recursive-include docs *.md

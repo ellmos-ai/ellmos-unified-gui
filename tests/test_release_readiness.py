@@ -45,6 +45,7 @@ def test_canonical_repository_is_declared() -> None:
 
 def test_release_hygiene_files_exist() -> None:
     required = (
+        "MANIFEST.in",
         "SECURITY.md",
         "THIRD_PARTY_LICENSES.md",
         "docs/ai-act-note.md",
@@ -52,6 +53,14 @@ def test_release_hygiene_files_exist() -> None:
         ".github/workflows/codeql.yml",
     )
     assert all((ROOT / relative).is_file() for relative in required)
+    metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert metadata["project"]["license-files"] == [
+        "LICENSE",
+        "THIRD_PARTY_LICENSES.md",
+    ]
+    manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
+    assert "recursive-include docs *.md" in manifest
+    assert "include SECURITY.md THIRD_PARTY_LICENSES.md" in manifest
 
 
 def test_todo_exposes_machine_readable_status_table() -> None:

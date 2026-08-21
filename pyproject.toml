@@ -9,6 +9,7 @@ description = "Importable operator console for the ellmos/BACH ecosystem (capabi
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
 authors = [{ name = "Lukas Geiger" }]
 dependencies = [
     "fastapi>=0.110",
