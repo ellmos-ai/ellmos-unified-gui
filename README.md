@@ -21,8 +21,7 @@ the existing backends. MIT licensed.
 > `ellmos-core/src/ellmos_core/console.py`) — the earlier "mount() exists but
 > nobody calls it" gap is closed; proven by a cross-repo integration test with
 > a genuine ellmos-core login (no fake adapter), see TODO.md. **P11 Skill
-> Wizard (2026-08-18, Sovereign-Programm-Ticket T-20260816-361197589, Stufe 3
-> "Skillgenerator mit Wizard"):** structured scaffold + description + static
+> Wizard (2026-08-18):** structured scaffold + description + static
 > S-Tests via `catalog.py` (skills repo), never the skill body/eval loop —
 > that stays `skill-creator`'s job, see TODO.md. **Audit log for write actions
 > (2026-08-18, same ticket, Restpaket 2c):** every state-changing request

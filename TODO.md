@@ -86,9 +86,7 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 - [x] Adapter `controlcenter` (eigener minimaler stdio-MCP-Client, mcp_client.py)
       + **P9 Skills** (Inventar 109 Skills, Intent-Matching, Bundles)
 - [x] Adapter `skills_catalog` (Subprozess-Wrapper um `catalog.py`, skills-Repo)
-      + **P11 Skill-Wizard** (2026-08-18, Sovereign-Programm-Ticket
-      T-20260816-361197589 Stufe 3 "Skillgenerator mit Wizard", Ampel-Zeile 6
-      gelb->grün): Gerüst anlegen (`catalog.py create`), das bisher als
+      + **P11 Skill-Wizard** (2026-08-18): Gerüst anlegen (`catalog.py create`), das bisher als
       `{{Beschreibung der Faehigkeit}}`-Platzhalter stehenbleibende
       `description:`-Pflichtfeld ausfüllen (Read-Modify-Write mit
       Rundlauf-Beweis über `catalog.py`s eigenen `parse_frontmatter()`,
@@ -106,8 +104,7 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 ## Phase 4 — Konsolidierung
 
 - [ ] **Adapter `homebase` (hb_route_stats, hb_state_task_*) — BLOCKED, mit konkretem
-      Befund (2026-08-19, Sovereign-Programm-Ticket T-20260816-361197589, Restpaket 3;
-      vormals "sobald Execution-Backends real"):** nachgemessen statt weiter vage
+      Befund (2026-08-19; vormals "sobald Execution-Backends real"):** nachgemessen statt weiter vage
       formuliert. `hb_route_stats` gehört zu `hb_route_*`, das laut
       `ellmos-homebase-mcp/CHANGELOG.md` (Alpha.14, 2026-07-04, seither ohne Folgeeintrag)
       weiterhin explizit "bundled-only (canonical requested, no seam implemented yet)"
@@ -116,10 +113,10 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       (Phase 3). `hb_state_task_*` deklariert zwar seit Alpha.14 einen canonical-Seam
       auf Rinnsals `TaskClient` (`~/.rinnsal/scanner_tasks.db`) — **dieser Pfad
       existiert auf diesem Host nicht** (Rinnsal ist tot, task-master/`taskplan.db`
-      ist der reale Nachfolger; Seam-Fix `hb_state_task_*` → `taskplan.db` ist
-      Ticket T-20260814-01, Stand unbestätigt). Ein Adapter heute würde also
+      ist der reale Nachfolger; der Seam-Fix `hb_state_task_*` → `taskplan.db` ist
+      noch nicht verifiziert). Ein Adapter heute würde also
       bundled/stale Daten zeigen. Präzise Vorbedingung für den Bau: entweder ein
-      `hb_route_*`-canonical-Seam entsteht in homebase-mcp, oder T-20260814-01 landet
+      `hb_route_*`-canonical-Seam entsteht in homebase-mcp, oder der taskplan-Seam landet
       UND wird hier verifiziert (Import-Test gegen echte `taskplan.db`) — beides liegt
       ausserhalb dieses Repos, kein Nebenbei-Schritt.
 
@@ -136,8 +133,7 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       BACH-eigene Panels (Agenten-Dispatch, Skills, Routinen — soweit BACH eigene
       GUI-Ansichten dafür hat) als deprecated markieren, nicht sofort entfernen.
 
-- [x] **ellmos-core: Operator-Bereich = Unified-GUI-Mount (2026-08-18, Sovereign-Ticket
-      T-20260816-361197589 Stufe 4 "zusammenbinden"):** `ellmos-core` mountet diese GUI
+- [x] **ellmos-core: Operator-Bereich = Unified-GUI-Mount (2026-08-18):** `ellmos-core` mountet diese GUI
       jetzt tatsächlich, nicht mehr nur theoretisch kompatibel. Auf der ellmos-core-Seite:
       neuer `console.py` (`mount_console(app, prefix)`, lazy import + graceful
       degradation, exakt das Muster von `auth_providers.py`/LDAP), neue Settings
@@ -149,12 +145,10 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       echtem Login+Session zeigt, dass Rolle `user` bei P5-Schreibpfaden real 403 bekommt
       und Rolle `admin` real durchkommt — plus ein manueller uvicorn-Boot-Smoke (echter
       Prozess auf Port 8811, echte Logins über curl, `/control/` erreichbar, `/chat`
-      unverändert funktionsfähig). Details/Auftrag/Belege:
-      `.AI/.STACKS/sovereign-private/_reports/SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md`.
+      unverändert funktionsfähig).
       **Bewusst NICHT in diesem Durchgang:** Audit-Log fürs Mounten selbst (separater
-      Punkt unten), Installer-/Docker-Verdrahtung (eigener Punkt in `sovereign-private`).
-- [x] Audit-Log für schreibende Aktionen (2026-08-18, Sovereign-Programm-Ticket
-      T-20260816-361197589, Rest-Paket 2c — Muster gemessen: `ellmos-controlcenter-mcp`
+      Punkt unten) sowie Installer-/Docker-Verdrahtung.
+- [x] Audit-Log für schreibende Aktionen (2026-08-18 — Muster gemessen: `ellmos-controlcenter-mcp`
       0.5.1s `gateway-audit.jsonl`, siehe `audit_log.py`-Docstring für den vollen Vergleich
       inkl. bewusster Abweichungen). Neu: `audit_log.py` (JSONL-Writer,
       `~/.ellmos/unified-gui/audit.jsonl`, Env `UNIFIED_GUI_AUDIT_LOG`, `off` schaltet ab,
@@ -196,7 +190,7 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 ## Offen / zu klären
 
 - [x] **Auth-Seam-Design im Mount-Betrieb — P5 als erstes Panel angebunden
-      (2026-08-18, Sovereign-Programm-Ticket T-20260816-361197589, Stufe 2 Rest):**
+      (2026-08-18):**
       neuer `HostAuthAdapter` (`adapters/host_auth.py`, Capability `AUTH_ROLE`) liest
       die eingeloggte Person + Rolle aus `ellmos_core.web.get_current_user(request)`,
       wenn die GUI unter ellmos-core gemountet ist (lazy import, degradiert auf `None`

@@ -2,8 +2,7 @@
 """skills-catalog-Adapter: strukturierte Skill-Neuanlage ueber `catalog.py`
 (kanonischer Klon `C:\\_Local_DEV\\repos\\skills`).
 
-Schliesst Ampel-Zeile 6 ("Skillgenerator mit Wizard", CORPORATE-LLM-KONZEPT
-Sec. 2, Re-Check `SOVEREIGN_AMPEL_RECHECK_2026-08-17.md`): bisher lieferte
+Schliesst die dokumentierte Skill-Wizard-Lücke: bisher lieferte
 `p9_skills.py` nur Inventar + Intent-Matching (rein lesend, ControlCenterAdapter
 gegen den MCP-Server); es gab keinen GUI-Weg, tatsaechlich einen neuen Skill
 anzulegen. `skill-creator`/`skill-extractor` bleiben bewusst die konversationellen

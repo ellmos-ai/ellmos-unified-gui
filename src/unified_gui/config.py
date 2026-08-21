@@ -124,8 +124,7 @@ def _first_existing_file(candidates: tuple[str, ...], filename: str) -> str | No
 
 
 # compare-race liegt ebenfalls nach Plan D lokal (nicht OneDrive) — gleiches
-# Discovery-Muster wie skills/decision-clicker (Sovereign-Programm-Ticket
-# T-20260816-361197589, Rest-Paket 2a).
+# Discovery-Muster wie skills/decision-clicker.
 COMPARE_RACE_CANDIDATES = (
     "C:/_Local_DEV/repos/compare-race",
     "~/_Local_DEV/repos/compare-race",
@@ -277,10 +276,8 @@ class SkillsCatalogConfig:
 class CompareRaceConfig:
     # Klon mit src/compare_race/report.py (Plan D, siehe COMPARE_RACE_CANDIDATES).
     # Nur fuer read_race_dir() (reines Lesen) -- kein Race-Trigger, kein Judge
-    # aus der Konsole (Sovereign-Programm-Ticket T-20260816-361197589,
-    # Rest-Paket 2a: Messung ergab, wer den Judge stellt und ob echte
-    # LLM-Kosten aus einem Web-Panel ausgeloest werden sollen, ist eine
-    # Produktentscheidung -- siehe SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md).
+    # aus der Konsole. Wer den Judge stellt und ob echte LLM-Kosten aus einem
+    # Web-Panel ausgeloest werden sollen, ist eine Produktentscheidung.
     repo_path: str | None = None
     # Ordner mit den Race-Unterordnern (PROMPT.md/RACE.md/RUN-*.md); Default
     # kommt aus compare-races EIGENER Config, nicht dupliziert.

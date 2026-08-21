@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Audit-Log fuer zustandsaendernde Aktionen ueber die Konsole (Sovereign-
-Programm-Ticket T-20260816-361197589, Rest-Paket 2c).
+"""Audit-Log fuer zustandsaendernde Aktionen ueber die Konsole.
 
 Vorbild, gemessen vor dem Bau statt geraten: `ellmos-controlcenter-mcp`
 0.5.1s `gateway-audit.jsonl` (`.AI/.MCP/ellmos-controlcenter-mcp/src/gateway.ts`,

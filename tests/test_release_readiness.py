@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ast
 import json
+import re
+import subprocess
 from pathlib import Path
 
 try:
@@ -61,3 +63,39 @@ def test_german_readme_uses_real_umlauts() -> None:
     for transliteration in ("unabhaengig", "ergaenzt", "ueberall"):
         assert transliteration not in readme
     assert all(character in readme for character in "äöü")
+
+
+def test_tracked_text_has_no_private_program_provenance() -> None:
+    forbidden_literals = (
+        "sovereign" + "-private",
+        "SOVEREIGN" + "_ZUSAMMENBINDEN",
+        "SOVEREIGN" + "_AMPEL_RECHECK",
+    )
+    ticket_pattern = re.compile(r"T-202608(?:14|16)-\d{6,}")
+    text_suffixes = {
+        ".html",
+        ".json",
+        ".md",
+        ".py",
+        ".toml",
+        ".txt",
+        ".yaml",
+        ".yml",
+    }
+
+    violations: list[str] = []
+    tracked_files = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout.decode("utf-8").split("\0")
+    for relative in tracked_files:
+        path = ROOT / relative
+        if not relative or path.suffix.lower() not in text_suffixes:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if any(value in text for value in forbidden_literals) or ticket_pattern.search(text):
+            violations.append(str(path.relative_to(ROOT)))
+
+    assert violations == []

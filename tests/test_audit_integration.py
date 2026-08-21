@@ -52,8 +52,7 @@ def test_real_p11_write_reaches_the_audit_log_end_to_end(tmp_path):
     """End-to-end gegen den echten skills-Klon (wie test_skills_catalog_adapter.py):
     ein echter P11-Schreibpfad durch die volle create_app() liefert sein
     normales Ergebnis UND landet im Audit-Log mit panel=p11/action=create.
-    Wegwerf-Kategorie, danach entfernt -- gleiche Disziplin wie der P11-Bau
-    selbst (Ticket T-20260816-361197589)."""
+    Wegwerf-Kategorie, danach entfernt -- gleiche Disziplin wie der P11-Bau."""
     if not (SKILLS_REPO / "catalog.py").is_file():
         import pytest
         pytest.skip("skills-Repo (catalog.py) nicht vorhanden")

@@ -99,8 +99,7 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
     guard = config.local_only if standalone_guard is None else standalone_guard
     if guard:
         app.add_middleware(LocalOnlyMiddleware)
-    # Audit-Log fuer zustandsaendernde Aktionen (Sovereign-Programm-Ticket
-    # T-20260816-361197589, Rest-Paket 2c) -- wirkt automatisch auch im
+    # Audit-Log fuer zustandsaendernde Aktionen -- wirkt automatisch auch im
     # Mount-Betrieb, da mount() diese Funktion aufruft (siehe deren Docstring).
     app.add_middleware(AuditMiddleware, auth_adapter=host_auth_adapter,
                        audit_log_path=config.audit_log_path)

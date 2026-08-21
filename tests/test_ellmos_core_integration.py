@@ -3,8 +3,7 @@
 kein Fake-Auth-Double (siehe test_host_auth_adapter.py, test_p5_role_gating.py,
 test_p2_role_gating.py), sondern das reale Login/Session/RBAC von ellmos-core.
 
-Beweist die "Verdrahtung" fuer Sovereign-Ticket T-20260816-361197589 Stufe 4
-(sovereign-private zusammenbinden): ein Nutzer loggt sich bei ellmos-core ein,
+Beweist die reale Mount-Verdrahtung: ein Nutzer loggt sich bei ellmos-core ein,
 die Rolle aus GENAU DIESER Session entscheidet, ob P5/P2-Schreibpfade in der
 eingehaengten Konsole erlaubt sind -- ohne zweites Login, ohne zweite
 Nutzerverwaltung. Ergaenzt (ersetzt nicht) die Fake-Adapter-Tests: die pruefen
@@ -76,7 +75,7 @@ def mounted_client(tmp_path_factory):
     zweiter mount() auf demselben Praefix wuerde vom Router ignoriert, weil
     die erste Registrierung gewinnt -- siehe Starlette-Routing)."""
     mp = pytest.MonkeyPatch()
-    tmp_path = tmp_path_factory.mktemp("sovereign_e2e")
+    tmp_path = tmp_path_factory.mktemp("host_mount_e2e")
 
     # Erst hier, zur Ausfuehrungszeit dieser Fixture, auf sys.path legen
     # (siehe Kommentar oben am Modulkopf) -- mp.undo() entfernt es wieder.

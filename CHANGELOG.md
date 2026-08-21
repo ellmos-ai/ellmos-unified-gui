@@ -4,8 +4,7 @@
 
 ### Changed
 
-- **Private Public-Readiness (2026-08-21, Programm-Ticket
-  T-20260816-933818854):** versionsynchrones Paket (`VERSION`, Python-Paket und
+- **Private Public-Readiness (2026-08-21):** versionsynchrones Paket (`VERSION`, Python-Paket und
   `pyproject.toml` jetzt 0.8.0), kanonische Repository-Metadaten, SPDX-Lizenzsyntax,
   reproduzierbare Entwicklungsabhängigkeiten, gepinnte plattformübergreifende CI und
   nicht hochladendes CodeQL ergänzt. `SECURITY.md` dokumentiert die tatsächlichen
@@ -18,8 +17,7 @@
 
 ### Fixed
 
-- **README-Sprachparität + Statuszeile (2026-08-19, Sovereign-Programm-Ticket
-  T-20260816-361197589, Rest-Paket 3):** `README.md` (EN) fehlten drei Abschnitte, die
+- **README-Sprachparität + Statuszeile (2026-08-19):** `README.md` (EN) fehlten drei Abschnitte, die
   `README_de.md` bereits hatte (Panels-Zielbild, Multi-System/Cloud-Konfiguration,
   Verwandte Module) — jetzt auf 1:1-Parität gebracht. Statuszeile in beiden Dateien war
   stale (v0.7.0/11 Panels/155 Tests statt real v0.8.0/12 Panels/170 Tests) und
@@ -28,14 +26,13 @@
 
 ### Added
 
-- **P12 Races: read-only compare-race-Reportbrowser (2026-08-19, Sovereign-Programm-Ticket
-  T-20260816-361197589, Rest-Paket 2a):** neuer `CompareRaceAdapter` +
+- **P12 Races: read-only compare-race-Reportbrowser (2026-08-19):** neuer `CompareRaceAdapter` +
   Panel `p12_races` zeigen echte, bereits gelaufene Races (`PROMPT.md`/`RACE.md`/`RUN-*.md`,
   inkl. modellmanuellem Judge-Urteil, falls ausgefüllt) — Auto-Discovery findet auf diesem
   Host real 18 Races. Bewusst NUR lesend: `run`/`record`/`olympiade` bleiben aussen vor,
   weil ein "Race starten"-Knopf in einem Web-Panel echte Mehrmodell-API-Kosten auslösen
-  würde und wer den Judge stellt eine Produktentscheidung ist, keine Verdrahtungsfrage
-  (Messung dazu: `SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md`). `read_race_dir()` wird per
+  würde und wer den Judge stellt eine Produktentscheidung ist, keine Verdrahtungsfrage.
+  `read_race_dir()` wird per
   echtem Paket-Import aus dem konfigurierten compare-race-Klon genutzt (kein Re-Implement).
   Neue Capability `races.ro`. 15 neue Tests (8 Adapter, 7 Panel-E2E), Vollsuite 155 → 170/170
   grün. KnowledgeDigest-Teil desselben Restpakets bewusst NICHT gebaut — echte
@@ -43,8 +40,7 @@
   Nebenbefund korrigiert: `src/unified_gui/__init__.py`s `__version__` stand auf 0.5.0
   (zwei Restpaket-Versionsbumps in pyproject.toml nicht nachgezogen) — jetzt wieder
   synchron.
-- **Audit-Log für schreibende Aktionen (2026-08-18, Sovereign-Programm-Ticket
-  T-20260816-361197589, Rest-Paket 2c):** neue `audit_log.py` (append-only JSONL,
+- **Audit-Log für schreibende Aktionen (2026-08-18):** neue `audit_log.py` (append-only JSONL,
   `~/.ellmos/unified-gui/audit.jsonl`, Env `UNIFIED_GUI_AUDIT_LOG`, `off` schaltet ab) +
   `audit_middleware.py` (`AuditMiddleware`, loggt jede POST/PUT/PATCH/DELETE-Anfrage —
   wer/Rolle, was/Panel+Aktion, wann, Ergebnis, Dauer, nur Argument**namen** nie -werte).
@@ -56,12 +52,10 @@
   Fehler im Audit-Pfad selbst kann eine echte Konsolen-Aktion nie verhindern (zwei
   Load-bearing-Tests dafür). 27 neue Tests, Vollsuite 128 -> 155/155 grün; echter E2E-Beweis
   gegen den realen skills-Klon (P11-Create landet real im Log).
-- **P11 Skill-Wizard (2026-08-18, Sovereign-Programm-Ticket
-  T-20260816-361197589, Stufe 3 "Skillgenerator mit Wizard"):** neuer
+- **P11 Skill-Wizard (2026-08-18):** neuer
   `SkillsCatalogAdapter` (`adapters/skills_catalog.py`, Subprozess-Wrapper um
   `catalog.py` im kanonischen skills-Klon) + neue Capability `SKILLS_CREATE`.
-  Schließt Ampel-Zeile 6 (gelb -> grün, siehe
-  `sovereign-private/_reports/SOVEREIGN_AMPEL_RECHECK_2026-08-17.md`): bisher
+  Schließt die dokumentierte Skill-Wizard-Lücke: bisher
   gab es nur read-only Inventar (P9), keinen GUI-Weg für eine echte
   Skill-Neuanlage. Der Wizard schließt den strukturierten Teil — Gerüst
   anlegen, das `description:`-Pflichtfeld ausfüllen (die CLI ließ es bisher
@@ -74,15 +68,13 @@
   107 -> 128/128 grün; Real-E2E-Beweis gegen den echten skills-Klon
   (Wegwerf-Kategorie, danach entfernt).
 
-- **Real gemountet in ellmos-core, nicht nur kompatibel (Sovereign-Programm-Ticket
-  T-20260816-361197589, Stufe 4 "zusammenbinden"):** `ellmos-core` mountet diese
+- **Real gemountet in ellmos-core, nicht nur kompatibel (2026-08-18):** `ellmos-core` mountet diese
   Konsole jetzt tatsächlich (neues `console.py`/`console_enabled` dort, Extra
   `pip install .[console]`). Neuer Cross-Repo-Test
   `tests/test_ellmos_core_integration.py`: ein echter ellmos-core-Prozess (kein
   Fake-Auth-Double) beweist, dass Login+Rolle real auf P5-Schreibpfade wirken
   (`user`→403, `admin`→durch). Vollsuite 103 → 107/107 grün.
-- **P5 Rollen-Gating im Mount-Betrieb (Sovereign-Programm-Ticket
-  T-20260816-361197589, Stufe 2):** neuer `HostAuthAdapter`
+- **P5 Rollen-Gating im Mount-Betrieb (2026-08-18):** neuer `HostAuthAdapter`
   (`adapters/host_auth.py`, Capability `AUTH_ROLE`) liest, wenn die GUI unter
   `ellmos-core` gemountet ist, die eingeloggte Person + Rolle aus
   `ellmos_core.web.get_current_user(request)` — lazy import, degradiert auf
@@ -105,7 +97,7 @@
 - **Statuszeile in `README.md`/`README_de.md`/`llms.txt` war seit der Erstanlage
   (2026-07-11, „Phase 1, v0.1.0, nur P5+P8") eingefroren, obwohl seither P1-P4,
   P6, P7, P9 (Phase 2/3, 2026-07-11) und P10 (2026-08-07, [D11]) dazukamen —
-  gemessen im Rahmen des Sovereign-Ampel-Re-Checks (Ticket T-20260816-361197589):
+  bei einem Statusabgleich gemessen:
   `src/unified_gui/panels/` enthält 10 Panel-Module, `tests/` läuft 85/85 grün.
   Statuszeile auf den gemessenen Stand korrigiert (10 Panels, v0.4.0+, Phase 4
   offen). `KONZEPT.md` war bereits korrekt (P10 dort schon dokumentiert) und

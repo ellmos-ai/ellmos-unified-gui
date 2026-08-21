@@ -19,8 +19,7 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
 > existiert, aber niemand ruft es auf" ist geschlossen; belegt durch einen
 > Cross-Repo-Integrationstest mit echtem ellmos-core-Login (kein Fake-Adapter),
-> siehe TODO.md. **P11 Skill-Wizard (2026-08-18, Sovereign-Programm-Ticket
-> T-20260816-361197589, Stufe 3 "Skillgenerator mit Wizard"):** strukturiertes
+> siehe TODO.md. **P11 Skill-Wizard (2026-08-18):** strukturiertes
 > Gerüst + Beschreibung + statische S-Tests über `catalog.py` (skills-Repo) —
 > NICHT der Skill-Körper/die Eval-Schleife, das bleibt Aufgabe von
 > `skill-creator`, siehe TODO.md. **Audit-Log für Schreibaktionen (2026-08-18,

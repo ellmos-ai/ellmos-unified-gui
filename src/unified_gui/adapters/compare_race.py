@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: MIT
 """compare-race-Adapter: read-only Race-Report-Browser.
 
-Schliesst einen Teil von Ampel-Zeile 9 ("Modelle gegeneinander antreten
-lassen") an die Konsole an -- Sovereign-Programm-Ticket
-T-20260816-361197589, Rest-Paket 2a. Bewusste Grenze, per Messung
-gezogen (siehe SOVEREIGN_ZUSAMMENBINDEN_2026-08-18.md):
+Schliesst den read-only Teil des Anwendungsfalls "Modelle gegeneinander
+antreten lassen" an die Konsole an. Bewusste Grenze:
 
 - Race-Daten sind bereits real vorhanden (races_dir, echte PROMPT.md/RACE.md/
   RUN-*.md aus mehreren Modellen) -- das Lesen ist ein normaler, sicherer
