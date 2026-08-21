@@ -70,6 +70,7 @@ def test_tracked_text_has_no_private_program_provenance() -> None:
         "sovereign" + "-private",
         "SOVEREIGN" + "_ZUSAMMENBINDEN",
         "SOVEREIGN" + "_AMPEL_RECHECK",
+        "ASUS" + "-GEI",
     )
     ticket_pattern = re.compile(r"T-202608(?:14|16)-\d{6,}")
     text_suffixes = {
