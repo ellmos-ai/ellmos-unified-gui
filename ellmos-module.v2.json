@@ -8,7 +8,8 @@
   "visibility": "public-candidate",
   "provides": [
     "operator.ui",
-    "control.dashboard"
+    "control.dashboard",
+    "unified-gui.host"
   ],
   "requires": [],
   "optional": [
