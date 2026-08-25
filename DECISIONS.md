@@ -99,7 +99,7 @@ fröre er beim Import ein. Ebenso entfernt: der explizite `db_path` in der getei
 ## [D08] 2026-07-11 — Cloud-/Multi-System-Konfiguration: Kaskade + ~-Notation + Discovery
 
 Das Oekosystem synct via OneDrive auf mehrere Systeme mit ABWEICHENDEN
-Home-Pfaden (WORKSTATION: lukas, LAPTOP: User, Mac). Deshalb: (1) alle
+Home-Pfaden (WORKSTATION: `<account-1>`, LAPTOP: `<account-2>`, Mac: `<account-3>`). Deshalb: (1) alle
 Pfadfelder expandieren ~/$VAR/%VAR% — Configs werden in ~-Notation
 geschrieben und funktionieren unveraendert auf jedem System; (2) Config-
 Kaskade Shared(OneDrive, synct) < Shared-Host < User(~/.unified_gui) <
