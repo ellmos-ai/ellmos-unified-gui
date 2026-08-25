@@ -78,7 +78,7 @@ class TaskSource(Protocol):
 class TicketStore(Protocol):
     def intake(self, t: TicketDraft) -> TicketInfo   # schreibt T-*.txt
     def score_preview(self, t: TicketDraft) -> RoutingSuggestion  # Score + Kandidaten
-    def queues(self) -> dict[str, list[TicketInfo]]  # PENDING/QUEUED/SOLVED/.USER
+    def queues(self) -> dict[str, list[TicketInfo]]  # v1: INBOX/ACTIONABLE/QUEUED/BLOCKED/WAITING/USER/PARKED/SOLVED + legacy PENDING/.USER
     def move(self, ticket_id, queue) -> None
     def claim_status(self, ticket_id) -> str | None  # Host aus Dateinamen
 

@@ -19,7 +19,18 @@ from ..capabilities import Capability, HealthInfo
 from ..config import TicketMasterConfig
 from .base import AdapterError, BaseAdapter
 
-QUEUES = ("OPEN", "QUEUED", "PENDING", "SOLVED", ".USER")
+# Kategorien v1 (verbindlich seit 2026-07-31, ticket-master docs/CATEGORIES.de.md):
+# 8 Cluster + 2 rueckwaertskompatible Legacy-Ordner (lesbar, keine neuen Eintraege
+# laut Doku). "INBOX" deckt zwei physische Quellen ab: lose T-*.txt-Dateien direkt
+# im Root (dokumentierter Alias von INBOX) und der echte INBOX/-Unterordner.
+# "OPEN" war nie ein echter Ordnername -- ticket-master fuehrt es selbst nur als
+# Legacy-Clustername (lib/ticket_writer.py _LEGACY_LIFECYCLE_CLUSTERS).
+# T-20260825-608373032: die alte Vor-v1-Liste ("OPEN", "QUEUED", "PENDING",
+# "SOLVED", ".USER") machte 129 reale Tickets in ACTIONABLE/BLOCKED/WAITING/
+# USER/PARKED/INBOX im P8-Panel unsichtbar.
+LIFECYCLE_QUEUES = ("INBOX", "ACTIONABLE", "QUEUED", "BLOCKED", "WAITING", "USER", "PARKED", "SOLVED")
+LEGACY_QUEUES = ("PENDING", ".USER")
+QUEUES = LIFECYCLE_QUEUES + LEGACY_QUEUES
 _TICKET_RE = re.compile(r"^(T-\d{8}-\d{2,})(?:\.([A-Za-z0-9_-]+))?\.txt$")
 
 # Fallback-Schwellen (Score 0-50) — Quelle: ticket-master.config.example.json
@@ -32,7 +43,7 @@ TICKET
 ID:            {ticket_id}
 TITLE:         {title}
 CREATED:       {created}
-STATUS:        OPEN
+STATUS:        INBOX
 PRIORITY:      {priority}
 
 --------------------------------------------------------------
@@ -149,12 +160,14 @@ class TicketMasterAdapter(BaseAdapter):
     def queues(self) -> dict[str, list[dict]]:
         root = self._require_root()
         result: dict[str, list[dict]] = {q: [] for q in QUEUES}
-        # OPEN = unclaimed/claimed Tickets direkt im Root
+        # INBOX = unclaimed/claimed Tickets direkt im Root (dokumentierter Alias)
+        # PLUS der echte INBOX/-Unterordner, gescannt im Loop unten wie jeder
+        # andere Cluster.
         for path in sorted(root.glob("T-*.txt")):
-            info = self._parse(path, "OPEN")
+            info = self._parse(path, "INBOX")
             if info:
-                result["OPEN"].append(info.as_dict())
-        for queue in ("QUEUED", "PENDING", "SOLVED", ".USER"):
+                result["INBOX"].append(info.as_dict())
+        for queue in QUEUES:
             folder = root / queue
             if not folder.is_dir():
                 continue
@@ -184,18 +197,18 @@ class TicketMasterAdapter(BaseAdapter):
         )
         path = root / f"{ticket_id}.txt"
         path.write_text(content, encoding="utf-8")
-        info = self._parse(path, "OPEN")
+        info = self._parse(path, "INBOX")
         return info.as_dict() if info else {"id": ticket_id, "path": str(path)}
 
     def move(self, ticket_id: str, queue: str) -> dict:
-        queue = queue.upper() if queue.upper() != ".USER" else ".USER"
-        if queue not in QUEUES:
-            raise AdapterError("invalid_queue", f"{queue} (erlaubt: {', '.join(QUEUES)})")
+        queue = queue.strip().upper()
+        if queue not in LIFECYCLE_QUEUES:
+            raise AdapterError("invalid_queue", f"{queue} (erlaubt: {', '.join(LIFECYCLE_QUEUES)})")
         root = self._require_root()
         source = self._find(root, ticket_id)
         if source is None:
             raise AdapterError("ticket_not_found", ticket_id)
-        target_dir = root if queue == "OPEN" else root / queue
+        target_dir = root if queue == "INBOX" else root / queue
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / source.name
         if source.resolve() == target.resolve():
@@ -338,7 +351,7 @@ class TicketMasterAdapter(BaseAdapter):
         return f"T-{datestr}-{highest + 1:02d}"
 
     def _find(self, root: Path, ticket_id: str) -> Path | None:
-        candidates = [root, root / "QUEUED", root / "PENDING", root / "SOLVED", root / ".USER"]
+        candidates = [root] + [root / q for q in QUEUES]
         for folder in candidates:
             if not folder.is_dir():
                 continue

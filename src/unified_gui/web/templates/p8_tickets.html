@@ -48,9 +48,14 @@
 
 {% block scripts %}
 <script>
-const QUEUE_ORDER = ["OPEN", "QUEUED", "PENDING", "SOLVED", ".USER"];
-const NEXT_QUEUES = {"OPEN": ["QUEUED", "PENDING", "SOLVED"], "QUEUED": ["PENDING", "SOLVED", "OPEN"],
-                     "PENDING": ["SOLVED", "QUEUED", "OPEN"], "SOLVED": ["OPEN"], ".USER": ["OPEN"]};
+// Kategorien v1 (ticket-master docs/CATEGORIES.de.md) + 2 rueckwaertskompatible
+// Legacy-Ordner (lesbar, aber keine gueltigen Move-Ziele -- siehe NEXT_QUEUES
+// unten, das fuer sie nur die 8 v1-Cluster als Ziel anbietet).
+const LIFECYCLE_QUEUES = ["INBOX", "ACTIONABLE", "QUEUED", "BLOCKED", "WAITING", "USER", "PARKED", "SOLVED"];
+const QUEUE_ORDER = [...LIFECYCLE_QUEUES, "PENDING", ".USER"];
+const NEXT_QUEUES = Object.fromEntries(
+    QUEUE_ORDER.map(q => [q, LIFECYCLE_QUEUES.filter(n => n !== q)])
+);
 
 async function loadBoard() {
     try {
