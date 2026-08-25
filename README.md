@@ -40,26 +40,29 @@ the existing backends. MIT licensed.
 > stacks through `../../.BUNDLES/`. It consumes `.CONTROL` (locks, tickets, tasks)
 > and `.ORCHESTRATION` (routing) through adapters and owns no domain source of truth.
 
-## Wheelhouse
+## ControlRoom
 
-**Wheelhouse** is this project's shared spoken name — one control room reached through two
-doors: a console (the sailboat, close to the water, hands on the wheel) and a web GUI (the
-cruise ship, more passengers, same course). Both are steered from the same wheelhouse and are
-kept developed side by side on purpose (decision K7, no head start for either); a lighthouse
-stands for the overview a pilot needs across the whole ecosystem's waters, and the individual
-backends this module surfaces — without becoming a sixth parallel GUI itself, see *Core ideas*
-below — are the swimmers and divers below deck. The technical module name
-(`ellmos-unified-gui`, import name `unified_gui`, manifest id unchanged) stays exactly as it is
-— Wheelhouse is a naming layer for docs and user-facing text, not a rename. Programme ticket:
-`_control-center/_TICKETS/.../T-20260825-922806707`.
+This module is part of the **ControlRoom** product — the ecosystem's decided target name for a
+unified surface over the existing `_control-center` governance/data layer (decision
+D-20260817-002: an adapter/view layer on top of the canonical stores, not a replacement of
+them). Internally, the console-plus-web track this module builds (developed side by side on
+purpose, decision K7, no head start for either) also carries the working codename
+**Wheelhouse**, not a product name of its own: one control room reached through two doors — a
+console (the sailboat, close to the water, hands on the wheel) and a web GUI (the cruise ship,
+more passengers, same course). Both are steered from the same wheelhouse; a lighthouse stands
+for the overview a pilot needs across the whole ecosystem's waters, and the individual backends
+this module surfaces — without becoming a sixth parallel GUI itself, see *Core ideas* below —
+are the swimmers and divers below deck. The technical module name (`ellmos-unified-gui`, import
+name `unified_gui`, manifest id unchanged) stays exactly as it is either way — neither name is a
+rename. Programme ticket: `_control-center/_TICKETS/.../T-20260825-922806707`.
 
 **Not the same ocean as `open-ocean`.** `ellmos-ai/open-ocean` is a separate, private repository
 with its own water image — its README opens with *"it opens when the water reaches the
 ocean"*, describing the ecosystem's release-readiness and community-opening roadmap (a maturity
-gate: component green -> bundle green -> everything green -> open-ocean). Wheelhouse describes
-*how you steer and reach the existing modules today* (console vs. web); open-ocean describes
-*when and how the wider system becomes releasable*. The two images share water, not a subject,
-and neither one is a synonym for the other.
+gate: component green -> bundle green -> everything green -> open-ocean). The console/web track
+(Wheelhouse) describes *how you steer and reach the existing modules today*; open-ocean
+describes *when and how the wider system becomes releasable*. The two images share water, not a
+subject, and neither one is a synonym for the other.
 
 *A note on "Lighthouse":* a "Lighthouse" phase name is also used elsewhere in this ecosystem's
 release process (part of the component/bundle/system-wide readiness gates above), and that usage

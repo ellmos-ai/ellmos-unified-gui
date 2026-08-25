@@ -8,7 +8,7 @@ import argparse
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="unified-gui",
-        description="ellmos Unified GUI -- Wheelhouse (console door): the console entrypoint into the shared control room. See README.md#wheelhouse.",
+        description="ellmos Unified GUI -- part of the ControlRoom product (internal codename Wheelhouse for the console+web track): the console entrypoint into the shared control room. See README.md#controlroom.",
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8990)
