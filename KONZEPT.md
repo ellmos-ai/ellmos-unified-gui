@@ -78,6 +78,24 @@ Jedes Panel: eigenes Python-Modul unter `src/unified_gui/panels/`, deklariert
 | P11 | **Skill-Wizard** | `catalog.py` (skills-Repo, Subprozess) | Gerüst anlegen, Pflichtfeld `description:` ausfüllen (Wizard-Fragen "was tut er"/"wann triggert er", gemined aus `skill-creator`s Capture-Intent), statische S-Tests (`--type static`, kein LLM-Aufruf) — der Skill-Körper/die Eval-Schleife bleibt bewusst `skill-creator`s Aufgabe | catalog.py `create`/`quality` (fertig, Wizard schließt nur die Beschreibungs-Lücke) |
 | P12 | **Races** | `compare-race` (read-only) | Vorhandene Race-Berichte, Läufe und vorhandene Judge-Urteile anzeigen; kein kostenpflichtiger Start- oder Judge-Automatismus | kanonischer `compare_race.report`-Import |
 
+### Wheelhouse-Parität Web/Konsole (Stand 2026-08-25, T-20260825-450296633)
+
+Programm Wheelhouse (T-20260825-922806707, K7): Konsole und Web werden
+parallel weiterentwickelt, Ziel "gleich weit" -- gemessen als Status je
+Panel, nicht als Gesamtprozent. Startzustand nach dem Architektur-Spike:
+
+| Panel | Web | Konsole |
+|---|---|---|
+| P1-P12 (alle) | vollständig | fehlt |
+| P8 (Tickets) | vollständig | **Skelett** (lesender Durchstich, `console/p8_tickets_console.py`, verifiziert gegen den echten Ticket-Bestand) |
+
+"Gleich weit" heißt: die Differenz wird über die Roadmap kleiner, nie
+größer -- kein neues Web-Feature ohne mitwachsende Konsole-Ticket-Erfassung.
+Architekturentscheidung für die Konsole-Seite (Ergebnis des Spikes): siehe
+`T-20260825-450296633` (SOLVED) -- dünne CLI-Fassade, die dieselben Adapter
+direkt aufruft (kein HTTP-Hop), nicht Textual/TUI und nicht duplizierte
+Backend-Logik.
+
 ### Antworten auf offene Konzeptfragen (2026-07-11)
 
 - **Task-System-Anbindung wie BACH? → Ja, P7.** Wenn ein Task-Backend vorhanden ist

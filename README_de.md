@@ -41,6 +41,36 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > Tasks) und `.ORCHESTRATION` (Routing) über Adapter, besitzt aber keine eigene
 > Fachlogik-Wahrheit.
 
+## Wheelhouse
+
+**Wheelhouse** ist der gemeinsame Sprechname dieses Projekts — bewusst auf Englisch gehalten
+(Ozean-Bildwelt, User-Vorgabe), auch in dieser deutschen Fassung:
+
+**Wheelhouse** is this project's shared spoken name — one control room reached through two
+doors: a console (the sailboat, close to the water, hands on the wheel) and a web GUI (the
+cruise ship, more passengers, same course). Both are steered from the same wheelhouse and are
+kept developed side by side on purpose (decision K7, no head start for either); a lighthouse
+stands for the overview a pilot needs across the whole ecosystem's waters, and the individual
+backends this module surfaces — without becoming a sixth parallel GUI itself, see *Idee in drei
+Sätzen* unten — are the swimmers and divers below deck. Der technische Modulname
+(`ellmos-unified-gui`, Import-Name `unified_gui`, Manifest-Id unverändert) bleibt exakt
+bestehen — Wheelhouse ist eine Namensebene für Doku und nutzerseitige Texte, keine Umbenennung.
+Programmticket: `_control-center/_TICKETS/.../T-20260825-922806707`.
+
+**Nicht derselbe Ozean wie `open-ocean`.** `ellmos-ai/open-ocean` ist ein separates, privates
+Repository mit eigenem Wasser-Bild — dessen README beginnt mit *„it opens when the water
+reaches the ocean"* und beschreibt den Reifegrad-/Öffnungs-Fahrplan des Ökosystems (eine
+Ampel-Kaskade: Komponente grün → Bundle grün → alle grün → open-ocean). Wheelhouse beschreibt
+*wie man die bestehenden Module heute erreicht und steuert* (Konsole vs. Web); open-ocean
+beschreibt *wann und wie das Gesamtsystem veröffentlichungsreif wird*. Beide Bilder teilen sich
+Wasser, aber kein Thema — keines ist ein Synonym des anderen.
+
+*Zu „Leuchtturm":* Der Begriff „Leuchtturm"/„Lighthouse" wird an anderer Stelle im Ökosystem
+bereits als Bezeichnung der Publizierungs-Phasen (siehe Ampel-Kaskade oben) verwendet — diese
+Verwendung geht dieser Doku voraus. Solange der genaue Ursprung nicht abschließend geklärt ist,
+wird der Leuchtturm oben nur als EIN Bildelement innerhalb der Wheelhouse-Metapher verstanden,
+nicht als beanspruchter Produktname.
+
 ## Idee in drei Sätzen
 
 1. Das Ökosystem hat fünf getrennte GUIs und mehrere GUI-lose Steuersysteme —
