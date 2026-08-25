@@ -31,7 +31,24 @@ from .base import AdapterError, BaseAdapter
 LIFECYCLE_QUEUES = ("INBOX", "ACTIONABLE", "QUEUED", "BLOCKED", "WAITING", "USER", "PARKED", "SOLVED")
 LEGACY_QUEUES = ("PENDING", ".USER")
 QUEUES = LIFECYCLE_QUEUES + LEGACY_QUEUES
-_TICKET_RE = re.compile(r"^(T-\d{8}-\d{2,})(?:\.([A-Za-z0-9_-]+))?\.txt$")
+# Gemirrort aus ticket-masters kanonischem TICKET_FILENAME_RE
+# (lib/ticket_writer.py) -- SEMANTISCH aequivalent, nicht Zeichen-identisch:
+# ticket-master nutzt benannte Gruppen (date/number/slug/suffix), dieser
+# Adapter behaelt aus Kompatibilitaetsgruenden seine eigenen 2 positionalen
+# Gruppen (1=kanonische ID "T-DATE-NUMBER", 2=Suffix/Claim) -- der Slug wird
+# absichtlich NICHT-capturing mitgelesen und verworfen (er ist nie Teil der
+# ID, siehe ticket-master-Kommentar dort). Ein direkter Import von
+# ticket-master waere ein neuer Laufzeit-Dependency auf ein anderes
+# Plan-D-Modul fuer eine reine Dateinamens-Regex -- deshalb Spiegelung statt
+# Import, wie schon bei LIFECYCLE_QUEUES/LEGACY_QUEUES oben.
+#
+# T-20260825-870761420: die alte Fassung ohne Slug-Gruppe verschluckte jedes
+# "T-DATE-NN_beschreibung.txt"-Ticket (SOLVED zeigte 320 statt real ~417,
+# PENDING 2 statt 4) -- Drift-Waechter dafuer in
+# tests/test_ticket_master_adapter.py.
+_TICKET_RE = re.compile(
+    r"^(T-\d{8}-\d+)(?:_[A-Za-z0-9][\w-]*)?(?:\.([A-Za-z0-9_-]+))?\.txt$"
+)
 
 # Fallback-Schwellen (Score 0-50) — Quelle: ticket-master.config.example.json
 DEFAULT_THRESHOLDS = {"tier1_max": 8, "tier2_max": 12, "tier3_max": 28, "tier4_min": 29}

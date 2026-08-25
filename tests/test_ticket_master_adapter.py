@@ -13,6 +13,7 @@ from unified_gui.adapters.ticket_master import (
     LIFECYCLE_QUEUES,
     QUEUES,
     TicketMasterAdapter,
+    _TICKET_RE,
 )
 from unified_gui.capabilities import Capability
 from unified_gui.config import TicketMasterConfig
@@ -186,3 +187,87 @@ def test_score_tiers(adapter):
 def test_score_input_validation(adapter):
     with pytest.raises(AdapterError):
         adapter.score_preview(clarity=11, complexity=0, creativity=0, context=0, criticality=0)
+
+
+def test_ticket_re_parses_underscore_slug_filenames():
+    """Regression for T-20260825-870761420: _TICKET_RE used to have no slug
+    group at all, silently dropping every 'T-DATE-NN_beschreibung.txt'
+    ticket from queues()/_find() (measured live: SOLVED showed 320 instead
+    of ~417 real files)."""
+    with_slug = _TICKET_RE.match("T-20260620-40_windows-konten-migration.txt")
+    assert with_slug is not None
+    assert with_slug.group(1) == "T-20260620-40"
+    assert with_slug.group(2) is None
+
+    with_slug_and_claim = _TICKET_RE.match(
+        "T-20260620-40_windows-konten-migration.LAPTOP.txt")
+    assert with_slug_and_claim is not None
+    assert with_slug_and_claim.group(1) == "T-20260620-40"
+    assert with_slug_and_claim.group(2) == "LAPTOP"
+
+    # non-slug shapes must keep working unchanged
+    plain = _TICKET_RE.match("T-20260825-01.txt")
+    assert plain is not None
+    assert plain.group(1) == "T-20260825-01"
+
+    # T-41_LOESCH-REPORT.txt-style non-tickets (no 8-digit date group) must
+    # keep being rejected -- the fix must not become more permissive than
+    # ticket-master's own canon in the other direction.
+    assert _TICKET_RE.match("T-41_LOESCH-REPORT.txt") is None
+    assert _TICKET_RE.match("readme.txt") is None
+
+
+def test_ticket_re_matches_underscore_slug_files_from_the_live_queue(adapter, tmp_path):
+    """Same bug, exercised through queues()/_find()/move() end-to-end
+    (not just the bare regex) with a filename shape taken from the real
+    live PENDING folder."""
+    root = Path(adapter.config.tickets_root)
+    (root / "PENDING").mkdir()
+    (root / "PENDING" / "T-20260620-40_windows-konten-migration.txt").write_text(
+        "ID: T-20260620-40\nTITLE: Windows-Konten migrieren\nPRIORITY: medium\n",
+        encoding="utf-8")
+    queues = adapter.queues()
+    assert queues["PENDING"][0]["id"] == "T-20260620-40"
+
+    moved = adapter.move("T-20260620-40", "ACTIONABLE")
+    assert moved["queue"] == "ACTIONABLE"
+    assert adapter.queues()["ACTIONABLE"][0]["id"] == "T-20260620-40"
+
+
+def test_ticket_re_recognizes_same_filenames_as_ticket_master_canon():
+    """Drift guard: behavioural equivalence with ticket-master's own
+    TICKET_FILENAME_RE (lib/ticket_writer.py) across a representative
+    filename sample, since the two patterns use different group layouts
+    (named vs. positional) and can't be compared as raw strings. Skips
+    gracefully without a local ticket-master checkout, same convention as
+    test_queues_tuple_matches_ticket_master_canonical_categories above."""
+    tm_path = Path(__file__).parent.parent.parent / "ticket-master"
+    if not tm_path.is_dir():
+        pytest.skip("no local ticket-master checkout to compare against")
+    sys.path.insert(0, str(tm_path))
+    try:
+        from lib.ticket_writer import TICKET_FILENAME_RE
+    except ImportError:
+        pytest.skip("ticket-master checkout present but lib.ticket_writer not importable")
+    finally:
+        sys.path.remove(str(tm_path))
+
+    sample_filenames = [
+        "T-20260825-01.txt",
+        "T-20260825-01.LAPTOP.txt",
+        "T-20260620-40_windows-konten-migration.txt",
+        "T-20260620-40_windows-konten-migration.LAPTOP.txt",
+        "T-20260825-608373032.txt",
+        "T-20260825-608373032_slug-and-long-id.WORKSTATION-LG.txt",
+        "T-41_LOESCH-REPORT.txt",  # must be rejected by both (no 8-digit date)
+        "readme.txt",              # must be rejected by both
+        "LOCK.user.txt",           # must be rejected by both
+    ]
+    for name in sample_filenames:
+        tm_match = TICKET_FILENAME_RE.match(name)
+        ours_match = _TICKET_RE.match(name)
+        assert bool(tm_match) == bool(ours_match), name
+        if tm_match:
+            canonical_id = f"T-{tm_match.group('date')}-{tm_match.group('number')}"
+            assert ours_match.group(1) == canonical_id, name
+            assert ours_match.group(2) == tm_match.group("suffix"), name
