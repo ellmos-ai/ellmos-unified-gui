@@ -300,7 +300,7 @@ class EllmosChatConfig:
     """
     module_path: str | None = None
     backend_type: str = "ollama"
-    default_model: str = "qwen3.6:35b-mlx"
+    default_model: str = "qwen3.8:27b-mlx"
     timeout_s: float = 30.0
 
 @dataclass
@@ -443,7 +443,7 @@ class UnifiedGuiConfig:
             ellmos_chat=EllmosChatConfig(
                 module_path=_expand((data.get("ellmos_chat") or {}).get("module_path")),
                 backend_type=(data.get("ellmos_chat") or {}).get("backend_type", "ollama"),
-                default_model=(data.get("ellmos_chat") or {}).get("default_model", "qwen3.6:35b-mlx"),
+                default_model=(data.get("ellmos_chat") or {}).get("default_model", "qwen3.8:27b-mlx"),
                 timeout_s=float((data.get("ellmos_chat") or {}).get("timeout_s", 30.0)),
             ),
         )
