@@ -79,13 +79,13 @@ Jedes Panel: eigenes Python-Modul unter `src/unified_gui/panels/`, deklariert
 | P12 | **Races** | `compare-race` (read-only) | Vorhandene Race-Berichte, Läufe und vorhandene Judge-Urteile anzeigen; kein kostenpflichtiger Start- oder Judge-Automatismus | kanonischer `compare_race.report`-Import |
 | P13 | **Chat** | `ellmos-chat` (chat.runtime, Staging-Modul) | v1-Durchstich: eine Frage, eine Antwort ueber die konfigurierte Chat-Runtime (Backend/Tools/SafetyPolicy bleiben ellmos-chats eigene Sache); kein Verlaufs-UI, kein Modellwechsel im Panel -- naechste Ausbaustufen bewusst nicht Teil von T-20260825-835413946 | ellmos-chat `ChatRuntime.process()` (sys.path-Konsum aus dem Staging-Modul, analog `compare_race.report`) |
 
-### Wheelhouse-Parität Web/Konsole (Stand 2026-08-25, T-20260825-450296633)
+### Wheelhouse-Parität Web (Wheelhouse Flat) / Konsole (Wheelhouse Lower Decks) (Stand 2026-08-25, T-20260825-450296633)
 
 Programm Wheelhouse (T-20260825-922806707, K7): Konsole und Web werden
 parallel weiterentwickelt, Ziel "gleich weit" -- gemessen als Status je
 Panel, nicht als Gesamtprozent. Startzustand nach dem Architektur-Spike:
 
-| Panel | Web | Konsole |
+| Panel | Web (Wheelhouse Flat) | Konsole (Wheelhouse Lower Decks) |
 |---|---|---|
 | P1-P12 (alle) | vollständig | fehlt |
 | P13 (Chat, neu seit T-20260825-835413946) | vollständig | fehlt |

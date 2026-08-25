@@ -42,27 +42,35 @@ the existing backends. MIT licensed.
 
 ## Wheelhouse
 
-**Wheelhouse** is the (desktop) app of the **ControlRoom** product — ControlRoom is the decided
-target name for the programme (decision D-20260817-002: a unified surface over the existing
-`_control-center` governance/data layer, not a replacement of it), Wheelhouse is the app/GUI
-inside it that this module builds (the macOS/Finder pattern: an OS-level product name, an
-app-level name underneath it). One control room reached through two doors: a console (the
-sailboat, close to the water, hands on the wheel) and a web GUI (the cruise ship, more
-passengers, same course). Both are steered from the same wheelhouse and are kept developed side
-by side on purpose (decision K7, no head start for either); a lighthouse stands for the overview
-a pilot needs across the whole ecosystem's waters, and the individual backends this module
-surfaces — without becoming a sixth parallel GUI itself, see *Core ideas* below — are the
-swimmers and divers below deck. The technical module name (`ellmos-unified-gui`, import name
-`unified_gui`, manifest id unchanged) stays exactly as it is — neither name is a rename.
-Programme ticket: `_control-center/_TICKETS/.../T-20260825-922806707`.
+This module is an access point into **ControlRoom** — the decided product name (decision
+D-20260817-002: a unified surface over the existing `_control-center` governance/data layer, not
+a replacement of it). Reaching ControlRoom has three access layers, one nautical image, three
+names:
+
+| Layer | Name | What it is |
+|---|---|---|
+| Desktop app | **Wheelhouse** | the helm itself — hands on the wheel |
+| Web | **Wheelhouse Flat** | the same control room, flat in the browser |
+| Console | **Wheelhouse Lower Decks** | the same control room, below deck at the machines |
+
+This module builds the two layers that exist today — Web (**Wheelhouse Flat**, this FastAPI/HTMX
+app) and Console (**Wheelhouse Lower Decks**, the `console/` scripts, see *Core ideas* below).
+The Desktop app (bare **Wheelhouse**) is not part of this module and does not exist yet; the name
+above is reserved for it. Both existing layers are kept developed side by side on purpose
+(decision K7, no head start for either) and are steered from the same wheelhouse; a lighthouse
+stands for the overview a pilot needs across the whole ecosystem's waters, and the individual
+backends this module surfaces — without becoming a sixth parallel GUI itself — are the swimmers
+and divers below deck. The technical module name (`ellmos-unified-gui`, import name
+`unified_gui`, manifest id unchanged) stays exactly as it is — none of the names above are a
+rename. Programme ticket: `_control-center/_TICKETS/.../T-20260825-922806707`.
 
 **Not the same ocean as `open-ocean`.** `ellmos-ai/open-ocean` is a separate, private repository
 with its own water image — its README opens with *"it opens when the water reaches the
 ocean"*, describing the ecosystem's release-readiness and community-opening roadmap (a maturity
-gate: component green -> bundle green -> everything green -> open-ocean). Wheelhouse describes
-*how you steer and reach the existing modules today* (console vs. web); open-ocean describes
-*when and how the wider system becomes releasable*. The two images share water, not a subject,
-and neither one is a synonym for the other.
+gate: component green -> bundle green -> everything green -> open-ocean). Wheelhouse (in all
+three layers) describes *how you steer and reach the existing modules today*; open-ocean
+describes *when and how the wider system becomes releasable*. The two images share water, not a
+subject, and neither one is a synonym for the other.
 
 *A note on "Lighthouse":* a "Lighthouse" phase name is also used elsewhere in this ecosystem's
 release process (part of the component/bundle/system-wide readiness gates above), and that usage

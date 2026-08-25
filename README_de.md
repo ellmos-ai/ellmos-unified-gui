@@ -43,11 +43,21 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
 ## Wheelhouse
 
-**Wheelhouse** ist die (Desktop-)App des Produkts **ControlRoom** — ControlRoom ist der
-entschiedene Ziel-Produktname des Programms (Entscheidung D-20260817-002: eine vereinheitlichte
-Oberfläche über der bestehenden `_control-center`-Governance-/Datenebene, kein Ersatz dafür),
-Wheelhouse ist die App/Oberfläche darin, die dieses Modul baut (macOS/Finder-Muster: ein
-Produktname auf Betriebssystem-Ebene, ein App-Name darunter). Die Beschreibung bleibt bewusst
+Dieses Modul ist ein Zugang zu **ControlRoom** — dem entschiedenen Produktnamen (Entscheidung
+D-20260817-002: eine vereinheitlichte Oberfläche über der bestehenden `_control-center`-
+Governance-/Datenebene, kein Ersatz dafür). Der Zugang zu ControlRoom hat drei Ebenen, ein
+Bild, drei Namen:
+
+| Ebene | Name | Bedeutung |
+|---|---|---|
+| Desktop-App | **Wheelhouse** | der Steuerstand selbst — Hand am Steuer |
+| Web | **Wheelhouse Flat** | derselbe Steuerstand, flach im Browser |
+| Konsole | **Wheelhouse Lower Decks** | derselbe Steuerstand, unter Deck an den Maschinen |
+
+Dieses Modul baut die zwei Ebenen, die es heute gibt — Web (**Wheelhouse Flat**, diese
+FastAPI/HTMX-App) und Konsole (**Wheelhouse Lower Decks**, die `console/`-Skripte, siehe *Idee
+in drei Sätzen* unten). Die Desktop-App (blosses **Wheelhouse**) ist NICHT Teil dieses Moduls
+und existiert noch nicht — der Name oben ist dafür reserviert. Die Beschreibung bleibt bewusst
 auf Englisch (Ozean-Bildwelt, User-Vorgabe), auch in dieser deutschen Fassung:
 
 **Wheelhouse** is this project's shared spoken name — one control room reached through two
@@ -58,14 +68,14 @@ stands for the overview a pilot needs across the whole ecosystem's waters, and t
 backends this module surfaces — without becoming a sixth parallel GUI itself, see *Idee in drei
 Sätzen* unten — are the swimmers and divers below deck. Der technische Modulname
 (`ellmos-unified-gui`, Import-Name `unified_gui`, Manifest-Id unverändert) bleibt exakt
-bestehen — weder ControlRoom noch Wheelhouse ist eine Umbenennung. Programmticket:
+bestehen — keiner der Namen oben ist eine Umbenennung. Programmticket:
 `_control-center/_TICKETS/.../T-20260825-922806707`.
 
 **Nicht derselbe Ozean wie `open-ocean`.** `ellmos-ai/open-ocean` ist ein separates, privates
 Repository mit eigenem Wasser-Bild — dessen README beginnt mit *„it opens when the water
 reaches the ocean"* und beschreibt den Reifegrad-/Öffnungs-Fahrplan des Ökosystems (eine
-Ampel-Kaskade: Komponente grün → Bundle grün → alle grün → open-ocean). Wheelhouse beschreibt
-*wie man die bestehenden Module heute erreicht und steuert* (Konsole vs. Web); open-ocean
+Ampel-Kaskade: Komponente grün → Bundle grün → alle grün → open-ocean). Wheelhouse (in allen
+drei Ebenen) beschreibt *wie man die bestehenden Module heute erreicht und steuert*; open-ocean
 beschreibt *wann und wie das Gesamtsystem veröffentlichungsreif wird*. Beide Bilder teilen sich
 Wasser, aber kein Thema — keines ist ein Synonym des anderen.
 
