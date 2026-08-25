@@ -64,6 +64,7 @@ def _mount_config(tmp_path: Path, lock_root: Path) -> dict:
         "clutch": {"repo_path": None},
         "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "controlcenter": {"repo_path": None},
+        "ellmos_chat": {"module_path": "/nonexistent"},
     }
 
 

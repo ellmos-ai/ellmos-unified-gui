@@ -40,6 +40,10 @@ class Capability(str, Enum):
     DECISIONS_RW = "decisions.rw"
     AUTH_ROLE = "auth.role"
     RACES_RO = "races.ro"
+    # Wheelhouse M1 (T-20260825-835413946): ellmos-chat als optionaler
+    # chat.runtime-Provider -- Backend-agnostische Chat-Runtime, siehe
+    # adapters/ellmos_chat.py.
+    CHAT_RUNTIME = "chat.runtime"
 
 
 @dataclass

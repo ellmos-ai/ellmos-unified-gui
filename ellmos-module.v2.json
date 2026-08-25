@@ -14,7 +14,8 @@
   "requires": [],
   "optional": [
     "tasks.default",
-    "routing.default"
+    "routing.default",
+    "chat.runtime"
   ],
   "conflicts": [],
   "surfaces": [

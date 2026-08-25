@@ -77,6 +77,7 @@ Jedes Panel: eigenes Python-Modul unter `src/unified_gui/panels/`, deklariert
 | P10 | **Decisions** | TO-DECIDE-Kette über `decision-clicker` · Rückfall: `decisions.index.json` | Übersicht (offen zuerst, Scope-/Status-Filter, Kollisions-Warnung) **plus** Durchklicken, Einstellen, Register und Desktop-Postfach-Übernahme — sobald die Kernlogik da ist; sonst unverändert read-only | decision-clicker (Lib + CLI) über `DECISIONS_RW`; Index-Generator bleibt der eine Parser [D11] |
 | P11 | **Skill-Wizard** | `catalog.py` (skills-Repo, Subprozess) | Gerüst anlegen, Pflichtfeld `description:` ausfüllen (Wizard-Fragen "was tut er"/"wann triggert er", gemined aus `skill-creator`s Capture-Intent), statische S-Tests (`--type static`, kein LLM-Aufruf) — der Skill-Körper/die Eval-Schleife bleibt bewusst `skill-creator`s Aufgabe | catalog.py `create`/`quality` (fertig, Wizard schließt nur die Beschreibungs-Lücke) |
 | P12 | **Races** | `compare-race` (read-only) | Vorhandene Race-Berichte, Läufe und vorhandene Judge-Urteile anzeigen; kein kostenpflichtiger Start- oder Judge-Automatismus | kanonischer `compare_race.report`-Import |
+| P13 | **Chat** | `ellmos-chat` (chat.runtime, Staging-Modul) | v1-Durchstich: eine Frage, eine Antwort ueber die konfigurierte Chat-Runtime (Backend/Tools/SafetyPolicy bleiben ellmos-chats eigene Sache); kein Verlaufs-UI, kein Modellwechsel im Panel -- naechste Ausbaustufen bewusst nicht Teil von T-20260825-835413946 | ellmos-chat `ChatRuntime.process()` (sys.path-Konsum aus dem Staging-Modul, analog `compare_race.report`) |
 
 ### Wheelhouse-Parität Web/Konsole (Stand 2026-08-25, T-20260825-450296633)
 
@@ -87,6 +88,7 @@ Panel, nicht als Gesamtprozent. Startzustand nach dem Architektur-Spike:
 | Panel | Web | Konsole |
 |---|---|---|
 | P1-P12 (alle) | vollständig | fehlt |
+| P13 (Chat, neu seit T-20260825-835413946) | vollständig | fehlt |
 | P8 (Tickets) | vollständig | **Skelett** (lesender Durchstich, `console/p8_tickets_console.py`, verifiziert gegen den echten Ticket-Bestand) |
 
 "Gleich weit" heißt: die Differenz wird über die Roadmap kleiner, nie
@@ -124,7 +126,8 @@ src/unified_gui/adapters/
 ├── ollama.py          # /api/tags, Modell-Pull-Status
 ├── homebase.py        # MCP stdio: hb_state_task_*, hb_route_*, hb_swarm_*
 ├── controlcenter.py   # MCP: Skills, Bundles, Profile (Discovery-Quelle)
-└── api_models.py      # proprietäre Modelle (Anthropic/OpenAI/... via Key, Abo-Meta)
+├── api_models.py      # proprietäre Modelle (Anthropic/OpenAI/... via Key, Abo-Meta)
+└── ellmos_chat.py      # chat.runtime (ellmos-chat, Staging-Modul, sys.path-Konsum) -- REALISIERT (T-20260825-835413946)
 ```
 
 Vertrag im Detail: `docs/ADAPTER-CONTRACT.md`.

@@ -160,6 +160,7 @@ def test_p7_aggregation_with_scanner_only(tmp_path):
         "clutch": {"repo_path": None},
         "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "controlcenter": {"repo_path": None},
+        "ellmos_chat": {"module_path": "/nonexistent"},
     })
     client = TestClient(app)
 

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block subtitle %}Chat{% endblock %}
+{% block content %}
+<h1>Chat <span class="muted">ellmos-chat (v1-Durchstich, kein Verlauf im Panel)</span></h1>
+
+<div class="card">
+    <p class="muted small-text">
+        Eine Frage, eine Antwort. Kein Modellwechsel, kein Tool-Konfigurator --
+        ellmos-chat entscheidet Backend/Tools/SafetyPolicy selbst. Der Verlauf
+        bleibt in ellmos-chats eigenem Store, nicht hier im Panel.
+    </p>
+</div>
+
+<div class="card">
+    <textarea id="chat-text" class="small-text" rows="4" style="width:100%"
+              placeholder="Frage an ellmos-chat ..."></textarea>
+    <div class="toolbar">
+        <button class="btn" onclick="askChat()">Senden</button>
+        <span id="chat-status" class="muted small-text"></span>
+    </div>
+</div>
+<div id="chat-answer" class="card" style="display:none"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function askChat() {
+    const text = document.getElementById("chat-text").value.trim();
+    const statusEl = document.getElementById("chat-status");
+    const answerEl = document.getElementById("chat-answer");
+    if (!text) { flash("Bitte eine Frage eingeben.", true); return; }
+    statusEl.textContent = "Fragt ellmos-chat ...";
+    answerEl.style.display = "none";
+    try {
+        const data = await api("/api/p13/ask", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({text: text}),
+        });
+        statusEl.textContent = "";
+        answerEl.style.display = "";
+        answerEl.innerHTML = `<pre class="small-text" style="white-space:pre-wrap">${esc(data.answer)}</pre>
+            <div class="muted small-text">Modell: ${esc(data.model || "?")}</div>`;
+    } catch (e) {
+        statusEl.textContent = "";
+        flash(e.message, true);
+    }
+}
+</script>
+{% endblock %}

@@ -84,6 +84,10 @@ DISCOVERY_DEFAULTS = {
     ("decisions", "clicker_path"): lambda: _first_existing(DECISION_CLICKER_CANDIDATES),
     ("compare_race", "repo_path"): lambda: _first_existing_file(COMPARE_RACE_CANDIDATES, "src/compare_race/report.py"),
     ("compare_race", "races_dir"): lambda: _compare_race_races_dir(),
+    # Wheelhouse M1 (T-20260825-835413946): ellmos-chat-Staging-Modul
+    # (kein pip-Paket, keine .git -- Konsum ueber sys.path, siehe
+    # adapters/ellmos_chat.py).
+    ("ellmos_chat", "module_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/.RUNTIME/ellmos-chat",
 }
 
 # decision-clicker liegt nach Plan D im lokalen Klon, NICHT in OneDrive — der
@@ -285,6 +289,21 @@ class CompareRaceConfig:
 
 
 @dataclass
+class EllmosChatConfig:
+    """ellmos-chat als optionaler chat.runtime-Provider (Wheelhouse M1,
+    T-20260825-835413946). Staging-Modul (kein pip-Paket) -- module_path
+    zeigt auf den Ordner MIT src/ellmos_chat/, Konsum per sys.path-
+    Erweiterung analog CompareRaceConfig/repo_path. Keine Klartext-Secrets:
+    backend_type/default_model bleiben auf einen lokalen Ollama-Default
+    begrenzt (siehe Modul-Docstring oben) -- API-Keys werden hier bewusst
+    nicht konfiguriert.
+    """
+    module_path: str | None = None
+    backend_type: str = "ollama"
+    default_model: str = "qwen3.6:35b-mlx"
+    timeout_s: float = 30.0
+
+@dataclass
 class TicketMasterConfig:
     module_id: str | None = None
     # Verzeichnis mit T-*.txt + QUEUED/PENDING/SOLVED (live: _control-center/_TICKETS
@@ -321,6 +340,7 @@ class UnifiedGuiConfig:
     controlcenter: ControlCenterConfig = field(default_factory=ControlCenterConfig)
     skills_catalog: SkillsCatalogConfig = field(default_factory=SkillsCatalogConfig)
     compare_race: CompareRaceConfig = field(default_factory=CompareRaceConfig)
+    ellmos_chat: EllmosChatConfig = field(default_factory=EllmosChatConfig)
     # Standalone-Guard: nur lokale Origins/Clients (im Mount-Betrieb Sache des Hosts)
     local_only: bool = True
     # Audit-Log-Zielpfad fuer zustandsaendernde Aktionen; None -> audit_log.py
@@ -419,6 +439,12 @@ class UnifiedGuiConfig:
             compare_race=CompareRaceConfig(
                 repo_path=_expand((data.get("compare_race") or {}).get("repo_path")),
                 races_dir=_expand((data.get("compare_race") or {}).get("races_dir")),
+            ),
+            ellmos_chat=EllmosChatConfig(
+                module_path=_expand((data.get("ellmos_chat") or {}).get("module_path")),
+                backend_type=(data.get("ellmos_chat") or {}).get("backend_type", "ollama"),
+                default_model=(data.get("ellmos_chat") or {}).get("default_model", "qwen3.6:35b-mlx"),
+                timeout_s=float((data.get("ellmos_chat") or {}).get("timeout_s", 30.0)),
             ),
         )
 

@@ -20,6 +20,7 @@ def _app_without_backends():
         "clutch": {"repo_path": None},
         "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "controlcenter": {"repo_path": None},
+        "ellmos_chat": {"module_path": "/nonexistent"},
     })
 
 
@@ -59,6 +60,7 @@ def test_refresh_picks_up_new_backend(tmp_path):
         "clutch": {"repo_path": None},
         "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "controlcenter": {"repo_path": None},
+        "ellmos_chat": {"module_path": "/nonexistent"},
     })
     client = TestClient(app)
     assert client.get("/api/status").json()["panels"] == []

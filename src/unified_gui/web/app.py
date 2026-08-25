@@ -24,6 +24,7 @@ from ..adapters.clutch import ClutchAdapter
 from ..adapters.compare_race import CompareRaceAdapter
 from ..adapters.controlcenter import ControlCenterAdapter
 from ..adapters.decisions import DecisionsAdapter
+from ..adapters.ellmos_chat import EllmosChatAdapter
 from ..adapters.host_auth import HostAuthAdapter
 from ..adapters.lock_master import LockMasterAdapter
 from ..adapters.ollama import OllamaAdapter
@@ -35,7 +36,8 @@ from ..capabilities import CapabilityRegistry
 from ..config import UnifiedGuiConfig
 from ..panels import (p1_prompts, p2_agents, p3_models, p4_routing,
                       p5_permissions, p6_routines, p7_tasks, p8_tickets,
-                      p9_skills, p10_decisions, p11_skill_wizard, p12_races)
+                      p9_skills, p10_decisions, p11_skill_wizard, p12_races,
+                      p13_chat)
 from ..panels.base import PanelSpec
 from ..security import LocalOnlyMiddleware
 
@@ -64,13 +66,14 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
     decisions_adapter = DecisionsAdapter(config.decisions)
     skills_catalog_adapter = SkillsCatalogAdapter(config.skills_catalog)
     compare_race_adapter = CompareRaceAdapter(config.compare_race)
+    ellmos_chat_adapter = EllmosChatAdapter(config.ellmos_chat)
     # Nur wirksam im ellmos-core-Mount-Betrieb (siehe adapters/host_auth.py);
     # ueberall sonst probt sie leer und aendert nichts am bisherigen Verhalten.
     host_auth_adapter = HostAuthAdapter()
     for adapter in (lock_adapter, ticket_adapter, bach_adapter, scanner_adapter,
                     clutch_adapter, ollama_adapter, controlcenter_adapter,
                     decisions_adapter, skills_catalog_adapter, compare_race_adapter,
-                    host_auth_adapter):
+                    host_auth_adapter, ellmos_chat_adapter):
         registry.register(adapter)
 
     all_panels: list[PanelSpec] = [
@@ -87,6 +90,7 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
         p10_decisions.build(decisions_adapter, lock_adapter),
         p11_skill_wizard.build(skills_catalog_adapter, host_auth_adapter),
         p12_races.build(compare_race_adapter),
+        p13_chat.build(ellmos_chat_adapter),
     ]
 
     app.state.config = config

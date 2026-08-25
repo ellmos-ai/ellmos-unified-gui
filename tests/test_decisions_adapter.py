@@ -31,6 +31,7 @@ _OTHER_BACKENDS_OFF = {
     "clutch": {"repo_path": None},
     "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
     "controlcenter": {"repo_path": None},
+    "ellmos_chat": {"module_path": "/nonexistent"},
 }
 
 

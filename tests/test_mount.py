@@ -23,6 +23,7 @@ def _mounted_client(tmp_path):
         "clutch": {"repo_path": None},
         "ollama": {"url": "http://127.0.0.1:1", "timeout_s": 0.2},
         "controlcenter": {"repo_path": None},
+        "ellmos_chat": {"module_path": "/nonexistent"},
     })
     return TestClient(host)
 
@@ -46,7 +47,7 @@ def test_mounted_panel_api(tmp_path):
                        json={"title": "Mount-Test"}).json()
     assert data["id"].startswith("T-")
     queues = client.get("/control/api/p8/queues").json()
-    assert len(queues["OPEN"]) == 1
+    assert len(queues["INBOX"]) == 1
 
 
 def test_host_root_untouched(tmp_path):
