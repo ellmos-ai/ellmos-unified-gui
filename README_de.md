@@ -41,16 +41,14 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > Tasks) und `.ORCHESTRATION` (Routing) über Adapter, besitzt aber keine eigene
 > Fachlogik-Wahrheit.
 
-## ControlRoom
+## Wheelhouse
 
-Dieses Modul ist Teil des Produkts **ControlRoom** — der entschiedene Ziel-Produktname des
-Ökosystems für eine vereinheitlichte Oberfläche über der bestehenden `_control-center`-
-Governance-/Datenebene (Entscheidung D-20260817-002: eine Adapter-/Sichtebene über den
-kanonischen Stores, kein Ersatz dafür). Intern trägt die Konsole-plus-Web-Schiene, die dieses
-Modul baut (bewusst nebeneinander weiterentwickelt, Entscheidung K7, kein Vorsprung fuer
-eines), zusätzlich den Arbeitscodenamen **Wheelhouse** — kein eigener Produktname. Die
-Beschreibung bleibt bewusst auf Englisch (Ozean-Bildwelt, User-Vorgabe), auch in dieser
-deutschen Fassung:
+**Wheelhouse** ist die (Desktop-)App des Produkts **ControlRoom** — ControlRoom ist der
+entschiedene Ziel-Produktname des Programms (Entscheidung D-20260817-002: eine vereinheitlichte
+Oberfläche über der bestehenden `_control-center`-Governance-/Datenebene, kein Ersatz dafür),
+Wheelhouse ist die App/Oberfläche darin, die dieses Modul baut (macOS/Finder-Muster: ein
+Produktname auf Betriebssystem-Ebene, ein App-Name darunter). Die Beschreibung bleibt bewusst
+auf Englisch (Ozean-Bildwelt, User-Vorgabe), auch in dieser deutschen Fassung:
 
 **Wheelhouse** is this project's shared spoken name — one control room reached through two
 doors: a console (the sailboat, close to the water, hands on the wheel) and a web GUI (the
@@ -66,10 +64,10 @@ bestehen — weder ControlRoom noch Wheelhouse ist eine Umbenennung. Programmtic
 **Nicht derselbe Ozean wie `open-ocean`.** `ellmos-ai/open-ocean` ist ein separates, privates
 Repository mit eigenem Wasser-Bild — dessen README beginnt mit *„it opens when the water
 reaches the ocean"* und beschreibt den Reifegrad-/Öffnungs-Fahrplan des Ökosystems (eine
-Ampel-Kaskade: Komponente grün → Bundle grün → alle grün → open-ocean). Die Konsole-/Web-
-Schiene (Wheelhouse) beschreibt *wie man die bestehenden Module heute erreicht und steuert*
-(Konsole vs. Web); open-ocean beschreibt *wann und wie das Gesamtsystem veröffentlichungsreif
-wird*. Beide Bilder teilen sich Wasser, aber kein Thema — keines ist ein Synonym des anderen.
+Ampel-Kaskade: Komponente grün → Bundle grün → alle grün → open-ocean). Wheelhouse beschreibt
+*wie man die bestehenden Module heute erreicht und steuert* (Konsole vs. Web); open-ocean
+beschreibt *wann und wie das Gesamtsystem veröffentlichungsreif wird*. Beide Bilder teilen sich
+Wasser, aber kein Thema — keines ist ein Synonym des anderen.
 
 *Zu „Leuchtturm":* Der Begriff „Leuchtturm"/„Lighthouse" wird an anderer Stelle im Ökosystem
 bereits als Bezeichnung der Publizierungs-Phasen (siehe Ampel-Kaskade oben) verwendet — diese
