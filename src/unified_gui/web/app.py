@@ -37,7 +37,7 @@ from ..config import UnifiedGuiConfig
 from ..panels import (p1_prompts, p2_agents, p3_models, p4_routing,
                       p5_permissions, p6_routines, p7_tasks, p8_tickets,
                       p9_skills, p10_decisions, p11_skill_wizard, p12_races,
-                      p13_chat)
+                      p13_chat, p14_governance)
 from ..panels.base import PanelSpec
 from ..security import LocalOnlyMiddleware
 
@@ -91,6 +91,7 @@ def create_app(config: UnifiedGuiConfig | dict | None = None, *,
         p11_skill_wizard.build(skills_catalog_adapter, host_auth_adapter),
         p12_races.build(compare_race_adapter),
         p13_chat.build(ellmos_chat_adapter),
+        p14_governance.build(controlcenter_adapter),
     ]
 
     app.state.config = config

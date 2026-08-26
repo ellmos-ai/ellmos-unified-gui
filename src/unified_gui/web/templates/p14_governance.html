@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block subtitle %}Governance{% endblock %}
+{% block content %}
+<h1>Governance <span class="muted">föderierter Metadaten-Lesespiegel (read-only)</span></h1>
+
+<div class="card">
+    <p class="muted small-text">
+        Diese Ansicht zeigt den fertigen Bericht aus
+        <code>controlcenter_list_governance</code> unverändert an. Sie liest keine
+        Registerdatei direkt, bewertet keine Quelle neu und bietet keine
+        schreibende Aktion an. Unvollständige oder nicht konfigurierte Quellen
+        bleiben ausdrücklich sichtbar; BYUM bleibt ein pending advisory pointer.
+    </p>
+</div>
+
+<div class="toolbar">
+    <button class="btn" onclick="loadGovernance()">Lesespiegel laden</button>
+    <span id="governance-status" class="muted small-text" aria-live="polite"></span>
+</div>
+<div id="governance-report" class="card">
+    <div class="muted">Noch nicht geladen.</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadGovernance() {
+    const reportEl = document.getElementById("governance-report");
+    const statusEl = document.getElementById("governance-status");
+    reportEl.innerHTML = '<div class="muted">Lädt ...</div>';
+    statusEl.textContent = "ControlCenter-MCP wird abgefragt ...";
+    try {
+        const data = await api("/api/p14/governance");
+        statusEl.textContent = data.read_only ? "Rein lesender MCP-Bericht" : "";
+        if (!data.text || !data.text.trim()) {
+            reportEl.innerHTML = '<div class="muted">Der MCP-Bericht ist leer; daraus wird keine Vollständigkeit abgeleitet.</div>';
+            return;
+        }
+        reportEl.innerHTML = `<pre class="small-text" style="white-space:pre-wrap;margin:0">${esc(data.text)}</pre>`;
+    } catch (e) {
+        reportEl.innerHTML = '<div class="muted">Lesespiegel derzeit nicht verfügbar.</div>';
+        statusEl.textContent = "";
+        flash(e.message, true);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadGovernance);
+</script>
+{% endblock %}

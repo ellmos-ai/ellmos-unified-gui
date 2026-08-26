@@ -1,12 +1,12 @@
 # TODO — ellmos Unified GUI
 
-**Stand:** 2026-08-21 · Phasen aus KONZEPT.md §7. `[ ]` offen · `[~]` in Arbeit · `[x]` fertig
+**Stand:** 2026-08-26 · Phasen aus KONZEPT.md §7. `[ ]` offen · `[~]` in Arbeit · `[x]` fertig
 
 ## STATUS
 
 | Category | Status | Evidence / next gate |
 |---|---|---|
-| Core console | DONE | Twelve capability-driven panels and 175 local tests are green. |
+| Core console | DONE | Fourteen capability-driven web panels; the suite collects 203 tests. |
 | Packaging and security | DONE | Pinned private CI, security policy, build and metadata regression are present. |
 | Homebase adapter | BLOCKED | Requires a canonical `hb_route_*` seam or a verified taskplan-backed state seam. |
 | BACH integration | WAITING | Requires the separate BACH repository write gate to be open. |
@@ -85,6 +85,12 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       Advisor-Editor (legt Config aus .example an) + clutch-Stats & Route-Vorschau
 - [x] Adapter `controlcenter` (eigener minimaler stdio-MCP-Client, mcp_client.py)
       + **P9 Skills** (Inventar 109 Skills, Intent-Matching, Bundles)
+- [x] **P14 Governance** (2026-08-26): rein lesender Consumer für den fertigen
+      Markdown-Vertrag `controlcenter_list_governance`. Das Panel zeigt Quellenstatus,
+      Teilständigkeit, Decision-Staleness und valides BYUM-Count 0 unverändert an;
+      es liest keine Quelldatei, föderiert nichts selbst und bietet weder Übernahme
+      noch Ausführung an. Neue Capability `governance.ro`; 9 neue Vertrags-/Paneltests,
+      einschließlich Degradierung bei einem veralteten gebauten MCP-Bundle.
 - [x] Adapter `skills_catalog` (Subprozess-Wrapper um `catalog.py`, skills-Repo)
       + **P11 Skill-Wizard** (2026-08-18): Gerüst anlegen (`catalog.py create`), das bisher als
       `{{Beschreibung der Faehigkeit}}`-Platzhalter stehenbleibende
