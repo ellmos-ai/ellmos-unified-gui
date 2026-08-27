@@ -1,4 +1,4 @@
-# panels/ — GUI-Panels P1-P13
+# panels/ — GUI-Panels P1-P14
 
 Jedes Panel: required_capabilities + FastAPI-Router + HTMX-Template-Fragment.
 Katalog und Reihenfolge: KONZEPT.md §4, TODO.md (Phasen).
