@@ -1,6 +1,6 @@
 # ADAPTER-CONTRACT — Unified GUI Backend-Adapter
 
-**Stand:** 2026-08-21 · **Status:** additiver Vertrag v0.8 (implementierter Kern)
+**Stand:** 2026-08-26 · **Status:** additiver Vertrag v0.8 (implementierter Kern plus unveröffentlichte Capabilities)
 
 Jedes Backend wird über genau einen Adapter angebunden. Panels kennen nur diesen
 Vertrag — nie das Backend selbst.
@@ -39,11 +39,13 @@ class BaseAdapter(Protocol):
 | `TASKS_ASSIGN` | Task einem Agenten/Modell zuweisen | BACH, scanner_tasks.py |
 | `TICKETS_RW` | Tickets erfassen/routen/verschieben | ticket-master |
 | `SKILLS_DISCOVERY` | Skills inventarisieren/matchen | controlcenter-mcp |
+| `GOVERNANCE_RO` | fertigen Decision-/Policy-/BYUM-Metadatenbericht rein lesend anzeigen | controlcenter-mcp |
 | `SKILLS_CREATE` | Skill-Gerüst/Beschreibung über den kanonischen Katalog anlegen | skills `catalog.py` |
 | `DECISIONS_RO` | TO-DECIDE-Index lesen (kein Schreibpfad) | decisions.index.json |
 | `DECISIONS_RW` | Entscheiden/Anlegen/Intake über die decision-clicker-Kernlogik | decision-clicker |
 | `AUTH_ROLE` | eingeloggte Person + Rolle des Host-Auftritts lesbar | ellmos-core (`request.session`), NUR im Mount-Betrieb |
 | `RACES_RO` | vorhandene Race-Berichte lesen | compare-race |
+| `CHAT_RUNTIME` | eine Anfrage über die konfigurierte Chat-Runtime beantworten | ellmos-chat |
 
 Regeln: Enum ist **additiv** (nie umbenennen/loeschen). Ein Adapter meldet nur, was
 er JETZT wirklich bedienen kann (kein "geplant").
@@ -104,6 +106,11 @@ class ModelProvider(Protocol):
 class SkillIndex(Protocol):
     def list(self) -> list[SkillInfo]
     def find(self, intent) -> list[SkillMatch]
+
+class GovernanceReader(Protocol):
+    def governance(self) -> GovernanceReport
+    # GovernanceReport: fertiger text/markdown-Bericht, read_only=True.
+    # Keine lokale Quellenanalyse, Föderation, Adoption oder Ausführung.
 
 class DecisionsIndex(Protocol):
     # DECISIONS_RO: Indexsicht; DECISIONS_RW nur über decision-clicker.

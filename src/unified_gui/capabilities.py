@@ -35,6 +35,7 @@ class Capability(str, Enum):
     TASKS_ASSIGN = "tasks.assign"
     TICKETS_RW = "tickets.rw"
     SKILLS_DISCOVERY = "skills.discovery"
+    GOVERNANCE_RO = "governance.ro"
     SKILLS_CREATE = "skills.create"
     DECISIONS_RO = "decisions.ro"
     DECISIONS_RW = "decisions.rw"

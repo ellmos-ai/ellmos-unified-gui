@@ -1,6 +1,6 @@
 # ARCHITECTURE — ellmos Unified GUI
 
-**Stand:** 2026-08-21 · **Status:** v0.8.0 — Schichtenmodell des implementierten Kerns und der offenen Phase-4-Seams.
+**Stand:** 2026-08-26 · **Status:** v0.8.0 plus unveröffentlichte Panels — Schichtenmodell des implementierten Kerns und der offenen Phase-4-Seams.
 
 ## Schichtenmodell
 
@@ -19,14 +19,14 @@
 |  P1 Prompts · P2 Agenten · P3 Modelle · P4 Routing ·          |
 |  P5 Berechtigungen · P6 Routinen · P7 Tasks · P8 Tickets ·    |
 |  P9 Skills · P10 Entscheidungen · P11 Skill-Wizard ·          |
-|  P12 Races                                                    |
+|  P12 Races · P13 Chat · P14 Governance                       |
 |  Jedes Panel: required_capabilities + Router + Fragment       |
 +--------------------------------------------------------------+
 |  ADAPTER  src/unified_gui/adapters/                          |
 |  probe()/health()/Domänen-Methoden je Backend                 |
 |  bach · lock_master · ticket_master · scanner_tasks · clutch ·|
 |  ollama · controlcenter · decisions · host_auth ·             |
-|  skills_catalog · compare_race                                |
+|  skills_catalog · compare_race · ellmos_chat                  |
 +--------------------------------------------------------------+
 |  BACKENDS (extern, autoritativ)                              |
 |  BACH (~/.bach/bach.db via CLI/REST) · LOCK*.txt +            |
@@ -43,8 +43,9 @@ class Capability(str, Enum):
     PROMPTS_RW, PROMPTS_VERSIONS, AGENT_DISPATCH, AGENT_STEER,
     MODELS_LOCAL, MODELS_API, ROUTING_CONFIG, PERMISSIONS_RW,
     LOCKS_RW, SCHEDULER_RW, TASKS_RO, TASKS_ASSIGN, TICKETS_RW,
-    SKILLS_DISCOVERY, SKILLS_CREATE, DECISIONS_RO, DECISIONS_RW,
-    AUTH_ROLE, RACES_RO = ...
+    SKILLS_DISCOVERY, GOVERNANCE_RO, SKILLS_CREATE,
+    DECISIONS_RO, DECISIONS_RW, AUTH_ROLE, RACES_RO,
+    CHAT_RUNTIME = ...
 
 registry = CapabilityRegistry()
 for adapter in discover_adapters(config):
@@ -85,7 +86,9 @@ class BaseAdapter(Protocol):
 
 Domänen-Mixins (nur implementieren, was das Backend kann):
 `PromptStore`, `AgentControl`, `ModelProvider`, `RoutingConfig`,
-`PermissionStore`, `LockControl`, `Scheduler`, `TaskSource`, `TicketStore`, `SkillIndex`.
+`PermissionStore`, `LockControl`, `Scheduler`, `TaskSource`, `TicketStore`, `SkillIndex`,
+`GovernanceReader`. Der `GovernanceReader` transportiert den fertigen
+ControlCenter-MCP-Bericht unverändert; er parst oder föderiert keine Quellen selbst.
 
 ## Bewusste Nicht-Ziele
 

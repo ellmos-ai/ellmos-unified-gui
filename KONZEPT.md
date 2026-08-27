@@ -1,6 +1,6 @@
 # KONZEPT — ellmos Unified GUI
 
-**Produktname:** Unified GUI · **Modul:** `ellmos-unified-gui` · **Stand:** 2026-08-21 · **Status:** weitgehend umgesetzt (v0.8.0)
+**Produktname:** Unified GUI · **Modul:** `ellmos-unified-gui` · **Stand:** 2026-08-26 · **Status:** weitgehend umgesetzt (v0.8.0 plus unveröffentlichte Panels)
 
 ---
 
@@ -47,7 +47,8 @@ GUIs schrittweise beerben kann.
    ticket-master-Verzeichnis existiert?). Jedes Panel deklariert, welche Capabilities es
    braucht; fehlt das Backend, erscheint das Panel nicht (oder read-only-degradiert).
    Discovery-Quelle für MCP-Fähigkeiten: **controlcenter-mcp** (`controlcenter_list_tools`,
-   `controlcenter_list_skills`, `controlcenter_suggest_bundles`).
+   `controlcenter_list_skills`, `controlcenter_suggest_bundles`,
+   `controlcenter_list_governance`).
 3. **Adapter statt Direktzugriff.** Panels sprechen nie ein Backend direkt an, sondern den
    Adapter-Vertrag (`docs/ADAPTER-CONTRACT.md`). Neue Backends (eigenes System, weitere
    Stacks) = neuer Adapter, null Panel-Änderung.
@@ -77,7 +78,8 @@ Jedes Panel: eigenes Python-Modul unter `src/unified_gui/panels/`, deklariert
 | P10 | **Decisions** | TO-DECIDE-Kette über `decision-clicker` · Rückfall: `decisions.index.json` | Übersicht (offen zuerst, Scope-/Status-Filter, Kollisions-Warnung) **plus** Durchklicken, Einstellen, Register und Desktop-Postfach-Übernahme — sobald die Kernlogik da ist; sonst unverändert read-only | decision-clicker (Lib + CLI) über `DECISIONS_RW`; Index-Generator bleibt der eine Parser [D11] |
 | P11 | **Skill-Wizard** | `catalog.py` (skills-Repo, Subprozess) | Gerüst anlegen, Pflichtfeld `description:` ausfüllen (Wizard-Fragen "was tut er"/"wann triggert er", gemined aus `skill-creator`s Capture-Intent), statische S-Tests (`--type static`, kein LLM-Aufruf) — der Skill-Körper/die Eval-Schleife bleibt bewusst `skill-creator`s Aufgabe | catalog.py `create`/`quality` (fertig, Wizard schließt nur die Beschreibungs-Lücke) |
 | P12 | **Races** | `compare-race` (read-only) | Vorhandene Race-Berichte, Läufe und vorhandene Judge-Urteile anzeigen; kein kostenpflichtiger Start- oder Judge-Automatismus | kanonischer `compare_race.report`-Import |
-| P13 | **Chat** | `ellmos-chat` (chat.runtime, Staging-Modul) | v1-Durchstich: eine Frage, eine Antwort ueber die konfigurierte Chat-Runtime (Backend/Tools/SafetyPolicy bleiben ellmos-chats eigene Sache); kein Verlaufs-UI, kein Modellwechsel im Panel -- naechste Ausbaustufen bewusst nicht Teil von T-20260825-835413946 | ellmos-chat `ChatRuntime.process()` (sys.path-Konsum aus dem Staging-Modul, analog `compare_race.report`) |
+| P13 | **Chat** | `ellmos-chat` (chat.runtime, Staging-Modul) | v1-Durchstich: eine Frage, eine Antwort über die konfigurierte Chat-Runtime (Backend/Tools/SafetyPolicy bleiben ellmos-chats eigene Sache); kein Verlaufs-UI, kein Modellwechsel im Panel -- nächste Ausbaustufen bewusst nicht Teil von T-20260825-835413946 | ellmos-chat `ChatRuntime.process()` (sys.path-Konsum aus dem Staging-Modul, analog `compare_race.report`) |
+| P14 | **Governance** | controlcenter-mcp (`controlcenter_list_governance`) | Fertigen Markdown-Lesespiegel unverändert und sicher maskiert anzeigen; Quellenstatus, Teilständigkeit, Staleness und valides BYUM-Count 0 bleiben sichtbar; keine lokale Föderation, Adoption oder Ausführung | rein lesender MCP-Vertrag; Decision-/Policy-/BYUM-Fachlogik bleibt ausschließlich im ControlCenter-MCP |
 
 ### Wheelhouse-Parität Web (Wheelhouse Flat) / Konsole (Wheelhouse Lower Decks) (Stand 2026-08-25, T-20260825-450296633)
 
@@ -89,6 +91,7 @@ Panel, nicht als Gesamtprozent. Startzustand nach dem Architektur-Spike:
 |---|---|---|
 | P1-P12 (alle) | vollständig | fehlt |
 | P13 (Chat, neu seit T-20260825-835413946) | vollständig | fehlt |
+| P14 (Governance, neu seit T-20260826-726630521) | vollständig | fehlt; Folgeticket wird beim Abschluss erfasst |
 | P8 (Tickets) | vollständig | **Skelett** (lesender Durchstich, `console/p8_tickets_console.py`, verifiziert gegen den echten Ticket-Bestand) |
 
 "Gleich weit" heißt: die Differenz wird über die Roadmap kleiner, nie
@@ -125,7 +128,7 @@ src/unified_gui/adapters/
 ├── clutch.py          # Modell-Routing, Provider
 ├── ollama.py          # /api/tags, Modell-Pull-Status
 ├── homebase.py        # MCP stdio: hb_state_task_*, hb_route_*, hb_swarm_*
-├── controlcenter.py   # MCP: Skills, Bundles, Profile (Discovery-Quelle)
+├── controlcenter.py   # MCP: Skills, Bundles und fertiger Governance-Lesespiegel
 ├── api_models.py      # proprietäre Modelle (Anthropic/OpenAI/... via Key, Abo-Meta)
 └── ellmos_chat.py      # chat.runtime (ellmos-chat, Staging-Modul, sys.path-Konsum) -- REALISIERT (T-20260825-835413946)
 ```

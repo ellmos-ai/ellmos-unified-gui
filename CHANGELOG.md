@@ -28,6 +28,16 @@
 
 ### Added
 
+- **P14 Governance: rein lesender ControlCenter-Lesespiegel (2026-08-26):**
+  `ControlCenterAdapter.governance()` konsumiert exakt
+  `controlcenter_list_governance` und gibt dessen fertigen Markdown-Bericht über
+  einen kleinen typisierten, read-only Transportvertrag weiter. Das neue
+  capability-gesteuerte Panel zeigt `available`/`unconfigured`/`unreadable`/`invalid`,
+  `partial` gegen `complete`, Decision-Staleness und ein valides BYUM-Count 0, ohne
+  Quelldateien zu lesen, den Bericht fachlich zu parsen, selbst zu föderieren oder
+  eine Adoption/Ausführung anzubieten. Neun neue Tests, darunter die Degradierung
+  bei einem veralteten gebauten MCP-Bundle; die Suite wächst von 194 auf 203
+  gesammelte Tests (optionale Cross-Repo-Tests bleiben umgebungsabhängig).
 - **P12 Races: read-only compare-race-Reportbrowser (2026-08-19):** neuer `CompareRaceAdapter` +
   Panel `p12_races` zeigen echte, bereits gelaufene Races (`PROMPT.md`/`RACE.md`/`RUN-*.md`,
   inkl. modellmanuellem Judge-Urteil, falls ausgefüllt) — Auto-Discovery findet auf diesem

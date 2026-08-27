@@ -8,15 +8,16 @@
 # ellmos Unified GUI
 
 **Importable operator console** for the ellmos/BACH ecosystem: models, agents, prompts,
-routing, permissions, routines/cron, tasks, tickets and skills — one surface, fed by
+routing, permissions, routines/cron, tasks, tickets, skills and governance — one surface, fed by
 the existing backends. MIT licensed.
 
-> **Status: Phase 1–4 mostly implemented (v0.8.0, verified 2026-08-21; panel additions through
-> 2026-08-19)** — 12 panels run standalone (`python -m unified_gui`, port 8990) and
+> **Status: Phase 1–4 mostly implemented (v0.8.0, verified 2026-08-26; unreleased panel additions through
+> 2026-08-26)** — 14 panels run standalone (`python -m unified_gui`, port 8990) and
 > embedded (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
 > permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions, P11 skill
-> wizard, P12 races. 176/176 tests passing (measured 2026-08-21; some skip locally
-> when a backend like Ollama is unreachable). Real-mounted into `ellmos-core`
+> wizard, P12 races, P13 chat and P14 governance. The suite collects 203 tests;
+> environment-gated integration tests skip when their optional sibling backend is absent.
+> Real-mounted into `ellmos-core`
 > as of 2026-08-18 (`console_enabled` there, see
 > `ellmos-core/src/ellmos_core/console.py`) — the earlier "mount() exists but
 > nobody calls it" gap is closed; proven by a cross-repo integration test with
@@ -32,6 +33,12 @@ the existing backends. MIT licensed.
 > (2026-08-19):** read-only browser over already-run
 > `compare-race` races (`PROMPT.md`/`RACE.md`/`RUN-*.md`, judge verdict included
 > where filled in) — deliberately no race-trigger/judge automation, see TODO.md.
+> **P13 Chat (2026-08-25):** minimal one-question/one-answer pass-through to
+> `ellmos-chat`; its backend, tools, safety policy and history remain authoritative there.
+> **P14 Governance (2026-08-26):** safely escaped, read-only presentation of the
+> exact `controlcenter_list_governance` Markdown contract. Source states, partiality,
+> decision staleness and a valid BYUM count of zero remain visible; this UI neither
+> parses source files nor adopts advisory pointers.
 > Phase 4 remainder (BACH mounting this GUI, homebase adapter) is still open —
 > see TODO.md for the concrete, measured reasons (BACH write-lock; homebase's
 > `hb_route_*`/`hb_state_task_*` tools not canonical yet).
@@ -95,7 +102,9 @@ Permissions (`LOCK.permissions.json` editor, lock-master) · Routines/Cron (BACH
 scheduler; routine → model + role + skills) · Tasks (BACH/scanner/homebase, assignable) ·
 Tickets (ticket-master intake/router/queues) · Skills (controlcenter-mcp) · Decisions ·
 Skill Wizard (scaffold + description + static tests via `catalog.py`, skills repo) ·
-Races (read-only `compare-race` race/report browser).
+Races (read-only `compare-race` race/report browser) · Chat (minimal `ellmos-chat`
+pass-through) · Governance (read-only `controlcenter_list_governance` report; no local
+federation or adoption).
 
 ## Multi-system / cloud (OneDrive)
 

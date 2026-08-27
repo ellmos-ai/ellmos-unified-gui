@@ -6,15 +6,16 @@
 # ellmos Unified GUI
 
 **Importierbare Operator-Konsole** für das ellmos-/BACH-Ökosystem: Modelle, Agenten,
-Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets und Skills — in einer
+Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets, Skills und Governance — in einer
 Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
-> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, verifiziert 2026-08-21; Panel-Ergänzungen bis
-> 2026-08-19)** — 12 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
+> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, verifiziert 2026-08-26; unveröffentlichte Panel-Ergänzungen bis
+> 2026-08-26)** — 14 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
 > eingebettet (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
-> P11 Skill-Wizard, P12 Races. 176/176 Tests grün (gemessen 2026-08-21; einzelne werden
-> übersprungen, wenn ein Backend wie Ollama lokal nicht erreichbar ist). Seit
+> P11 Skill-Wizard, P12 Races, P13 Chat und P14 Governance. Die Suite umfasst
+> 203 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
+> optionale benachbarte Backend fehlt. Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
 > existiert, aber niemand ruft es auf" ist geschlossen; belegt durch einen
@@ -31,7 +32,15 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > (2026-08-19):** read-only Browser über bereits
 > gelaufene `compare-race`-Races (`PROMPT.md`/`RACE.md`/`RUN-*.md`, inkl.
 > Judge-Urteil wo ausgefüllt) — bewusst kein Race-Trigger/Judge-Automatismus,
-> siehe TODO.md. Restlicher Phase-4-Umfang (BACH mountet diese GUI,
+> siehe TODO.md.
+> **P13 Chat (2026-08-25):** minimaler Durchstich für genau eine Frage und eine
+> Antwort an `ellmos-chat`; Backend, Werkzeuge, Sicherheitsrichtlinie und Verlauf
+> bleiben dort autoritativ. **P14 Governance (2026-08-26):** sicher maskierte,
+> rein lesende Darstellung des exakten Markdown-Vertrags von
+> `controlcenter_list_governance`. Quellenstatus, Teilständigkeit,
+> Entscheidungsstaleness und ein valider BYUM-Zähler von null bleiben sichtbar;
+> die GUI liest keine Quelldatei und übernimmt keinen advisory pointer.
+> Restlicher Phase-4-Umfang (BACH mountet diese GUI,
 > Homebase-Adapter) ist weiter offen — siehe TODO.md für die konkreten,
 > gemessenen Gründe (BACH-Schreibsperre; homebase' `hb_route_*`/
 > `hb_state_task_*`-Werkzeuge noch nicht kanonisch).
@@ -103,7 +112,9 @@ Berechtigungen (`LOCK.permissions.json`-Editor, lock-master) · Routinen/Cron
 (BACH-Scheduler; Routine → Modell + Rolle + Skills) · Tasks (BACH/Scanner/homebase,
 zuweisbar) · Tickets (ticket-master-Intake/Router/Queues) · Skills (controlcenter-mcp) ·
 Entscheidungen · Skill-Wizard (Gerüst + Beschreibung + S-Tests über `catalog.py`, skills-Repo) ·
-Races (read-only `compare-race`-Report-Browser).
+Races (read-only `compare-race`-Report-Browser) · Chat (minimaler
+`ellmos-chat`-Durchstich) · Governance (rein lesender Bericht aus
+`controlcenter_list_governance`, keine lokale Föderation oder Übernahme).
 
 ## Multi-System / Cloud (OneDrive)
 
