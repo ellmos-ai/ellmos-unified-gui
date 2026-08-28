@@ -4,6 +4,18 @@ Format: `[ID] Datum — Entscheidung` mit Kontext/Begründung. Neueste oben.
 
 ---
 
+## [D12] 2026-08-28 — Unified GUI bleibt allgemeine Operatoroberfläche; Sovereign-Core bleibt privat
+
+`ellmos-unified-gui` ist die wiederverwendbare, produktneutrale Operatoroberfläche und darf
+Standalone oder eingebettet laufen. `ellmos-core` bleibt dagegen dauerhaft private Runtime-Shell
+und spezialisierte Endnutzer-Webanwendung der kommerziellen Sovereign-Produktlinie. ControlRoom
+komponiert die Operatorzugänge über Unified GUI/Konsole, ist aber kein zweiter Fach-Datenstore.
+Alle Lese- und Schreibpfade bleiben über Adapter an die jeweils autoritativen Backends gebunden.
+
+Diese Entscheidung präzisiert D02/D04: Ein Sovereign-Mount macht die Unified GUI nicht zum
+Sovereign-Core, und die private Klassifikation von `ellmos-core` schränkt die Wiederverwendung
+dieses GUI-Moduls in anderen Produkten oder Einzelanwender-Stacks nicht ein.
+
 ## [D11] 2026-08-07 — P10 wird interaktiv: Schreibpfad über die decision-clicker-Kernlogik, nicht über einen zweiten Parser
 
 Ergänzt [D10]: P10 kann jetzt entscheiden, einstellen und das Desktop-Postfach

@@ -32,10 +32,15 @@ Backends hinweg. Nicht die fünfte Parallel-GUI, sondern die Kapselung, die die 
 GUIs schrittweise beerben kann.
 
 **Produktabgrenzung (wichtig):**
-- **ellmos-core** = *Endnutzer*-Oberfläche der Sovereign-Suite (Chat, Spaces, Artefakte).
-- **Unified GUI** = *Operator*-Konsole (Modelle, Agenten, Prompts, Rechte, Routinen, Tasks, Tickets).
-- Beziehung: Unified GUI **importiert** Bausteine (u. a. das Auth/Shell-Gerüst-Muster von
-  ellmos-core), Hosts wie BACH **importieren** die Unified GUI. Kein Umbau von ellmos-core.
+- **ellmos-core** = dauerhaft private Runtime-Shell und spezialisierte *Endnutzer*-Oberfläche
+  der kommerziellen Sovereign-Produktlinie (Chat, Spaces, Artefakte, Authentifizierung).
+- **Unified GUI** = wiederverwendbare, produktneutrale *Operator*-Konsole (Modelle, Agenten,
+  Prompts, Rechte, Routinen, Tasks, Tickets).
+- **ControlRoom** = Komposition/Produkterlebnis für die Operatorsteuerung. Es nutzt die Unified
+  GUI als Zugang, besitzt aber keine zweite Fach-Datenbank.
+- Beziehung: Hosts wie Sovereign/`ellmos-core` und BACH **importieren** die Unified GUI über
+  Adapter. Die GUI liest und schreibt über die jeweils autoritativen Backends; kein Umbau von
+  `ellmos-core` und keine zweite Wahrheit.
 
 ## 3. Architekturprinzipien
 
