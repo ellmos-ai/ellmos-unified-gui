@@ -109,6 +109,19 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
 
 ## Phase 4 — Konsolidierung
 
+- [ ] **P13: persistenter Chat-Source-of-Truth — NO_OP/BLOCKED (Shadow-Befund
+      2026-08-28):** Der Adapter konstruiert `ChatRuntime` ohne expliziten Store;
+      der aktuelle Modulvertrag fällt dadurch auf `SQLiteChatStore(":memory:")`
+      zurück. Zugleich akzeptiert P13 eine frei vom Client gesetzte `chat_id`, obwohl
+      `ellmos-chat` Authentifizierung und Besitzbindung ausdrücklich an den Host
+      delegiert. Vor einer persistenten Aktivierung muss der Host nicht erratbare Chat-IDs an
+      den authentifizierten Nutzer oder Raum binden. Das Zielschema muss Nutzer-/Raum-,
+      Modell- und Zeitstempelsemantik erhalten; Fehlerpersistenz, Reset/Löschung,
+      Kontextkomprimierung, genau ein Writer, Datenbankkopie-Migration und Rollback
+      benötigen gemeinsame Vertragstests. Bis ein kanonischer `ellmos-chat`-Plan-D-Klon
+      mit erreichbarem Remote und Commit-Pin existiert, bleibt dies ein dokumentiertes
+      Migrationsgate und keine Aktivierungsaufgabe.
+
 - [ ] **Adapter `homebase` (hb_route_stats, hb_state_task_*) — BLOCKED, mit konkretem
       Befund (2026-08-19; vormals "sobald Execution-Backends real"):** nachgemessen statt weiter vage
       formuliert. `hb_route_stats` gehört zu `hb_route_*`, das laut
