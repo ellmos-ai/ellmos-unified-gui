@@ -8,6 +8,7 @@
 |---|---|---|
 | Core console | DONE | Fourteen capability-driven web panels; the suite collects 204 tests. |
 | Packaging and security | DONE | Pinned private CI, security policy, build and metadata regression are present. |
+| GitHub-hosted CI | BLOCKED (external) | Jobs stop before step 1 with `runner_id=0`; GitHub reports a Billing & plans payment/spending-limit gate. Fix that account gate, then rerun CI. |
 | Homebase adapter | BLOCKED | Requires a canonical `hb_route_*` seam or a verified taskplan-backed state seam. |
 | BACH integration | WAITING | Requires the separate BACH repository write gate to be open. |
 | Public release | USER | Repository history/privacy choice and explicit visibility approval remain owner gates. |

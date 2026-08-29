@@ -18,6 +18,8 @@ the existing backends. MIT licensed.
 > wizard, P12 races, P13 chat and P14 governance. The suite collects 204 tests;
 > environment-gated integration tests skip when their optional sibling backend is absent.
 > Visible German adapter status messages use native umlauts and are regression-tested.
+> GitHub-hosted CI is currently blocked before step 1 by the organization's external
+> Billing & plans payment/spending-limit gate; the local and projected suites are green.
 > Real-mounted into `ellmos-core`
 > as of 2026-08-18 (`console_enabled` there, see
 > `ellmos-core/src/ellmos_core/console.py`) — the earlier "mount() exists but

@@ -17,8 +17,11 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > 204 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
 > optionale benachbarte Backend fehlt.
 > Sichtbare deutsche Adapter-Statushinweise verwenden echte Umlaute und sind durch
-> einen Regressionstest abgesichert. Seit
-> 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
+> einen Regressionstest abgesichert.
+> Die GitHub-gehostete CI ist derzeit vor Schritt 1 durch das externe Zahlungs-/
+> Ausgabenlimit-Gate unter „Billing & plans“ der Organisation blockiert; die lokale
+> und die projizierte Suite sind grün.
+> Seit 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
 > existiert, aber niemand ruft es auf" ist geschlossen; belegt durch einen
 > Cross-Repo-Integrationstest mit echtem ellmos-core-Login (kein Fake-Adapter),
