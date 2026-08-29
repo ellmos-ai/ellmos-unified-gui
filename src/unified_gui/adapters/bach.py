@@ -107,7 +107,7 @@ class BachAdapter(BaseAdapter):
         if cli:
             return HealthInfo("degraded",
                               f"BACH-GUI-Server nicht erreichbar ({self.config.rest_url}) — "
-                              "Scheduler/Tasks/Prompts inaktiv, Agenten via CLI verfuegbar")
+                              "Scheduler/Tasks/Prompts inaktiv, Agenten via CLI verfügbar")
         return HealthInfo("offline", "weder REST noch bach.py gefunden")
 
     # ------------------------------------------------------------------

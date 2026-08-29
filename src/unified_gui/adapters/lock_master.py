@@ -76,7 +76,7 @@ class LockMasterAdapter(BaseAdapter):
         if engine and self._watcher_ok:
             return HealthInfo("ok", "Engine + Watcher", latency_ms=self._watcher_latency_ms)
         if engine:
-            return HealthInfo("degraded", "Watcher nicht erreichbar (Locks read-only ueber Engine nicht verfuegbar)")
+            return HealthInfo("degraded", "Watcher nicht erreichbar (Locks read-only über Engine nicht verfügbar)")
         if self._watcher_ok:
             return HealthInfo("degraded", f"permissions.py nicht importierbar ({self._engine_error or 'Pfad fehlt'})")
         return HealthInfo("offline", self._engine_error or "weder Engine noch Watcher gefunden")

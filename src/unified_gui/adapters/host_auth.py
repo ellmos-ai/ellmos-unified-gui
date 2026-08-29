@@ -40,7 +40,7 @@ class HostAuthAdapter(BaseAdapter):
         except ImportError:
             return HealthInfo(status="offline",
                               detail="ellmos-core nicht im Prozess (Standalone- oder Fremd-Mount)")
-        return HealthInfo(status="ok", detail="ellmos-core-Session verfuegbar")
+        return HealthInfo(status="ok", detail="ellmos-core-Session verfügbar")
 
     def current_user(self, request: Any) -> dict | None:
         """Liest die eingeloggte Person aus der Host-Session. Wirft NIE

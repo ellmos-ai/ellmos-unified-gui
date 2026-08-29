@@ -6,7 +6,7 @@
 
 | Category | Status | Evidence / next gate |
 |---|---|---|
-| Core console | DONE | Fourteen capability-driven web panels; the suite collects 203 tests. |
+| Core console | DONE | Fourteen capability-driven web panels; the suite collects 204 tests. |
 | Packaging and security | DONE | Pinned private CI, security policy, build and metadata regression are present. |
 | Homebase adapter | BLOCKED | Requires a canonical `hb_route_*` seam or a verified taskplan-backed state seam. |
 | BACH integration | WAITING | Requires the separate BACH repository write gate to be open. |

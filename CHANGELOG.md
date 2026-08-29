@@ -19,6 +19,11 @@
 
 ### Fixed
 
+- **Sichtbare deutsche Statushinweise (2026-08-29):** Die vier im Full-Ocean-
+  Kontrollraum tatsächlich angezeigten Ersatzschreibweisen wurden in den Adaptern
+  für BACH, Decisions, Host-Authentifizierung und lock-master durch echte Umlaute
+  ersetzt (`verfügbar`, `Einträge`, `über`). Ein gemeinsamer Regressionstest prüft
+  alle vier Laufzeitpfade; die Suite umfasst jetzt 204 gesammelte Tests.
 - **README-Sprachparität + Statuszeile (2026-08-19):** `README.md` (EN) fehlten drei Abschnitte, die
   `README_de.md` bereits hatte (Panels-Zielbild, Multi-System/Cloud-Konfiguration,
   Verwandte Module) — jetzt auf 1:1-Parität gebracht. Statuszeile in beiden Dateien war

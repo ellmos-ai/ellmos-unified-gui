@@ -9,13 +9,15 @@
 Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets, Skills und Governance — in einer
 Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
-> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, verifiziert 2026-08-26; unveröffentlichte Panel-Ergänzungen bis
-> 2026-08-26)** — 14 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
+> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, verifiziert 2026-08-29; unveröffentlichte Panel-Ergänzungen bis
+> 2026-08-29)** — 14 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
 > eingebettet (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
 > P11 Skill-Wizard, P12 Races, P13 Chat und P14 Governance. Die Suite umfasst
-> 203 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
-> optionale benachbarte Backend fehlt. Seit
+> 204 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
+> optionale benachbarte Backend fehlt.
+> Sichtbare deutsche Adapter-Statushinweise verwenden echte Umlaute und sind durch
+> einen Regressionstest abgesichert. Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
 > existiert, aber niemand ruft es auf" ist geschlossen; belegt durch einen

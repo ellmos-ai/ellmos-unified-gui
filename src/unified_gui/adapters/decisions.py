@@ -162,7 +162,7 @@ class DecisionsAdapter(BaseAdapter):
             hint = self._cache.error or "ungueltiges Schema"
             return HealthInfo("degraded", f"{path}: {hint}")
         counts = data.get("counts") or {}
-        detail = f"{path} ({counts.get('total', '?')} Eintraege, generiert {data.get('generated_at', '?')})"
+        detail = f"{path} ({counts.get('total', '?')} Einträge, generiert {data.get('generated_at', '?')})"
         return HealthInfo("ok", detail)
 
     # ------------------------------------------------------------------

@@ -11,12 +11,13 @@
 routing, permissions, routines/cron, tasks, tickets, skills and governance — one surface, fed by
 the existing backends. MIT licensed.
 
-> **Status: Phase 1–4 mostly implemented (v0.8.0, verified 2026-08-26; unreleased panel additions through
-> 2026-08-26)** — 14 panels run standalone (`python -m unified_gui`, port 8990) and
+> **Status: Phase 1–4 mostly implemented (v0.8.0, verified 2026-08-29; unreleased panel additions through
+> 2026-08-29)** — 14 panels run standalone (`python -m unified_gui`, port 8990) and
 > embedded (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
 > permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions, P11 skill
-> wizard, P12 races, P13 chat and P14 governance. The suite collects 203 tests;
+> wizard, P12 races, P13 chat and P14 governance. The suite collects 204 tests;
 > environment-gated integration tests skip when their optional sibling backend is absent.
+> Visible German adapter status messages use native umlauts and are regression-tested.
 > Real-mounted into `ellmos-core`
 > as of 2026-08-18 (`console_enabled` there, see
 > `ellmos-core/src/ellmos_core/console.py`) — the earlier "mount() exists but

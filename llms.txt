@@ -3,8 +3,8 @@
 > Importable operator console for the ellmos/BACH ecosystem: one capability-driven
 > web UI (FastAPI + HTMX, no build step) over existing backends — models, agents,
 > prompts, routing, permissions, routines/cron, tasks, tickets, skills, governance.
-> Status: Phase 1-4 mostly implemented (v0.8.0 plus unreleased panels, verified 2026-08-26),
-> 14 panels (P1-P14), 203 tests collected; optional cross-repo tests are environment-gated. Real-mounted
+> Status: Phase 1-4 mostly implemented (v0.8.0 plus unreleased panels, verified 2026-08-29),
+> 14 panels (P1-P14), 204 tests collected; optional cross-repo tests are environment-gated. Real-mounted
 > into ellmos-core since 2026-08-18 (console_enabled there). P11 skill wizard
 > (structured scaffold+description+static tests via catalog.py, not the skill
 > body/eval loop -- that stays skill-creator's job). Audit log for every
