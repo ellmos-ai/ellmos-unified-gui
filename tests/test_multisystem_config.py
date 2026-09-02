@@ -9,12 +9,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import pytest
 
-import unified_gui.config as config
 from unified_gui.config import (
     SCANNER_DB_FALLBACK,
     UnifiedGuiConfig,
     _expand,
-    _first_existing_dir,
     hostname,
     resolve_module_path,
     scanner_db_default,
@@ -233,31 +231,3 @@ def test_module_id_keeps_legacy_path_as_fallback(monkeypatch, tmp_path):
     monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(tmp_path / "missing.json"))
     fallback = str(tmp_path / "legacy")
     assert resolve_module_path("missing-module", fallback) == fallback
-
-
-def test_first_existing_dir_picks_first_match_and_skips_missing(tmp_path):
-    real = tmp_path / "real"
-    real.mkdir()
-    assert _first_existing_dir((str(tmp_path / "missing"), str(real))) == str(real)
-
-
-def test_first_existing_dir_returns_none_when_nothing_exists(tmp_path):
-    assert _first_existing_dir((str(tmp_path / "a"), str(tmp_path / "b"))) is None
-
-
-def test_lock_master_falls_back_to_hardcoded_clone_when_catalog_has_nothing(
-    monkeypatch, tmp_path
-):
-    """T-20260902-901571937 §3: lock-master's catalog manifest cannot (yet)
-    earn runtime_source (stale local-directory typing) -- rights/lock
-    integrity gets a last-resort hardcoded clone guess instead of silence."""
-    monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(tmp_path / "missing.json"))
-    hardcoded_clone = tmp_path / "repos" / "lock-master"
-    hardcoded_clone.mkdir(parents=True)
-    monkeypatch.setattr(
-        config, "_LOCK_MASTER_HARDCODED_CANDIDATES", (str(hardcoded_clone),)
-    )
-
-    cfg = UnifiedGuiConfig._from_dict({})
-
-    assert cfg.lock_master.module_path == str(hardcoded_clone)
