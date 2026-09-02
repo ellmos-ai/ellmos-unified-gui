@@ -45,6 +45,9 @@ class Capability(str, Enum):
     # chat.runtime-Provider -- Backend-agnostische Chat-Runtime, siehe
     # adapters/ellmos_chat.py.
     CHAT_RUNTIME = "chat.runtime"
+    # Welle 1 Teil 2b des BACH-GUI-Modulschnitts (D-20260830-002): Auftragsnachrichten
+    # und Antworten ueber BACH-REST /api/messages* (dort assistant_core.MessageStore).
+    MESSAGES_RW = "messages.rw"
 
 
 @dataclass

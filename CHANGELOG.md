@@ -27,6 +27,11 @@
   gemessenen Blockern statt vager Formulierung versehen.
 
 ### Added
+- P15 **Nachrichten**: Auftragsnachrichten an Agenten anlegen, Antworten (inbox mit `parent_id`) lesen,
+  gelesen/archivieren/löschen — über den BachAdapter gegen BACH-REST `/api/messages*`, das seit Welle 1 des
+  BACH-GUI-Modulschnitts (D-20260830-002) `assistant_core.MessageStore` bedient. Neue Capability `MESSAGES_RW`
+  (nur bei erreichbarem BACH-REST), kein eigener Store (D04), Fremdtext nur per `textContent`. Schließt das
+  ✗ „Auftragsnachrichten" aus dem 1.3.1-Funktionsabgleich (T-20260903-278159544).
 
 - **P14 Governance: rein lesender ControlCenter-Lesespiegel (2026-08-26):**
   `ControlCenterAdapter.governance()` konsumiert exakt
