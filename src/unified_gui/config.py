@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -66,16 +67,29 @@ def scanner_db_default() -> str:
 # beim Laden ausgewertet — ein Literal wuerde beim Import einfrieren.
 DISCOVERY_DEFAULTS = {
     ("lock_master", "module_id"): "lock-master",
-    ("lock_master", "module_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",
+    # NO "module_path" default here (T-20260902-901571937): a discovery
+    # default is filled into `data` BEFORE resolve_module_path() ever runs,
+    # so it would look exactly like an explicit user config and -- under
+    # the fixed precedence, where an explicit value always wins -- would
+    # permanently outrank both the catalog's runtime_source and the
+    # lock-master hardcode guard in config.py, no matter which is correct.
+    # A bare "~/OneDrive/..." string here was the original bug in disguise.
+    # module_path stays None until resolve_module_path()/the hardcode guard
+    # resolve it.
     ("lock_master", "roots_file"): "~/OneDrive/_scripts/lock_roots.json",
     ("ticket_master", "module_id"): "ticket-master",
     ("ticket_master", "tickets_root"): "~/OneDrive/.TOPICS/_control-center/_TICKETS",
-    ("ticket_master", "config_dir"): "~/OneDrive/.TOPICS/.AI/.MODULES/ticket-master/config",
+    # NO "config_dir" default here -- same reasoning as lock_master.module_path
+    # above. ticket-master's catalog manifest is not (yet) git-repository-typed,
+    # so this currently resolves to None (visibly warned) rather than a wrong
+    # OneDrive guess; fixing that manifest is a separate, different-repo task.
     ("bach", "bach_root"): "~/OneDrive/.TOPICS/.AI/.OS/BACH",
     ("scanner_tasks", "db_path"): scanner_db_default,
     ("scanner_tasks", "tool_path"): "~/OneDrive/.TOPICS/_control-center/_tasks/_tool/scanner_tasks.py",
     ("clutch", "module_id"): "clutch",
-    ("clutch", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MODULES/clutch",
+    # NO "repo_path" default here -- same reasoning as lock_master.module_path
+    # above (and the same not-yet-git-repository-typed manifest gap as
+    # ticket_master.config_dir).
     ("controlcenter", "repo_path"): "~/OneDrive/.TOPICS/.AI/.MCP/ellmos-controlcenter-mcp",
     ("skills_catalog", "repo_path"): lambda: _first_existing_file(SKILLS_CATALOG_CANDIDATES, "catalog.py"),
     ("decisions", "index_path"):
@@ -156,10 +170,18 @@ def _compare_race_races_dir() -> str | None:
 
 
 def _module_catalog_candidates() -> list[Path]:
+    """Kandidaten fuer den Modul-Katalog, in Prioritaet. `ELLMOS_MODULES_CATALOG`
+    ist EXKLUSIV wie `UNIFIED_GUI_CONFIG` (Modulzweck-Kommentar oben): ist es
+    gesetzt, wird NICHT zusaetzlich auf Auto-Discovery zurueckgefallen, selbst
+    wenn die Datei fehlt oder unlesbar ist -- sonst waere Testisolation nicht
+    garantiert (der echte Host-Katalog wuerde durchschlagen, T-20260902-901571937:
+    genau das liess mehrere Degradations-Tests von einem zufaellig vorhandenen
+    lokalen decision-clicker-Klon abhaengen, statt deterministisch zu sein)."""
     configured = os.environ.get("ELLMOS_MODULES_CATALOG")
+    if configured:
+        return [Path(_expand(configured)).resolve()]
     one_drive = os.environ.get("OneDrive") or os.environ.get("ONEDRIVE")
     values = [
-        configured,
         str(Path(one_drive) / ".TOPICS" / ".AI" / ".MODULES" / "modules.catalog.json") if one_drive else None,
         "~/OneDrive/.TOPICS/.AI/.MODULES/modules.catalog.json",
         "~/.TOPICS/.AI/.MODULES/modules.catalog.json",
@@ -175,28 +197,81 @@ def _module_catalog_candidates() -> list[Path]:
 
 
 def resolve_module_path(module_id: str | None, fallback: str | None = None, suffix: str | None = None) -> str | None:
-    """Löst eine Modul-ID katalog-first auf; ein konfigurierter Altpfad bleibt Fallback."""
-    if module_id:
-        for catalog_path in _module_catalog_candidates():
-            try:
-                catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
-                continue
-            if catalog.get("schema") != "ellmos.modules-catalog.v1":
-                continue
-            for module in catalog.get("modules", []):
-                if not isinstance(module, dict) or module.get("id") != module_id:
-                    continue
-                source = module.get("resolved_source")
-                if not isinstance(source, str) or not source:
-                    break
-                path = (catalog_path.parent / source).resolve()
-                if suffix:
-                    path /= suffix
-                if path.exists():
-                    return str(path)
-                break
-    return _expand(fallback)
+    """Löst eine Modul-ID auf: eine explizite Konfiguration (`fallback`) gewinnt
+    IMMER und schlägt den Katalog (T-20260902-901571937 -- vorher umgekehrt:
+    der Katalogpfad gewann, sobald das bloße OneDrive-Verzeichnis existierte,
+    und überstimmte damit eine bewusst gesetzte lokale Angabe, u. a. für
+    lock-master/`permissions.py`). Nur wenn `fallback` fehlt, wird der Katalog
+    befragt -- und zwar NUR über `runtime_source` (additiv seit
+    T-20260902-910578221 in build_catalog.py, nur bei verifiziertem sauberem
+    lokalem Plan-D-Klon gesetzt). `resolved_source` wird hier absichtlich NIE
+    mehr gelesen: es ist der katalogrelative OneDrive-Fundort des Manifests,
+    kein Laufzeit-Importpfad. Fehlt `runtime_source`, bleibt der Aufruf ohne
+    Pfad -- sichtbar gemeldet auf stderr statt eines stillen OneDrive-Griffs."""
+    expanded_fallback = _expand(fallback)
+    if expanded_fallback:
+        path = Path(expanded_fallback)
+        return str(path / suffix) if suffix else str(path)
+    if not module_id:
+        return None
+    catalog = None
+    for catalog_path in _module_catalog_candidates():
+        try:
+            candidate = json.loads(catalog_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if candidate.get("schema") == "ellmos.modules-catalog.v1":
+            catalog = candidate
+            break  # candidates are alternate paths to ONE logical catalog, not
+            # independent sources -- the first one that actually parses wins;
+            # trying further candidates after that would mean "module absent
+            # from the catalog we found" could still fall through to a
+            # different catalog file, which makes no sense for one shared
+            # artifact and (T-20260902-901571937) is exactly what let a
+            # test-isolated candidate leak through to the real host catalog.
+    if catalog is None:
+        return None
+    for module in catalog.get("modules", []):
+        if not isinstance(module, dict) or module.get("id") != module_id:
+            continue
+        runtime_source = module.get("runtime_source")
+        if not isinstance(runtime_source, str) or not runtime_source:
+            print(
+                f"WARNING: unified-gui: module {module_id!r} has no verified local "
+                "clone (catalog carries no runtime_source) -- no path resolved, "
+                "refusing the old OneDrive resolved_source fallback "
+                "(T-20260902-901571937)",
+                file=sys.stderr,
+            )
+            return None
+        path = Path(runtime_source)
+        if suffix:
+            path /= suffix
+        return str(path) if path.exists() else None
+    return None
+
+
+# T-20260902-901571937 §3: lock-master's catalog manifest still declares
+# source_of_truth.type == "local-directory" (stale -- a real git-repository
+# and a clean local Plan-D clone both exist), so build_catalog.py's
+# runtime_source can never be derived for it until that manifest is fixed
+# (a different repo/owner, out of this ticket's scope). Rights/lock
+# integrity is the one consumer here with the least tolerable silent gap
+# (mirrors homebase-mcp's own hardcoded workaround, T-20260825-196589547),
+# so it alone gets a last-resort local-clone guess -- used only when
+# neither an explicit config nor the catalog resolved anything.
+_LOCK_MASTER_HARDCODED_CANDIDATES = (
+    "C:/_Local_DEV/repos/lock-master",
+    "~/_Local_DEV/repos/lock-master",
+)
+
+
+def _first_existing_dir(candidates: tuple[str, ...]) -> str | None:
+    for candidate in candidates:
+        path = Path(_expand(candidate))
+        if path.is_dir():
+            return str(path)
+    return None
 
 
 def _expand(value: str | None) -> str | None:
@@ -383,7 +458,10 @@ class UnifiedGuiConfig:
             audit_log_path=data.get("audit_log_path"),
             lock_master=LockMasterConfig(
                 module_id=lm.get("module_id"),
-                module_path=resolve_module_path(lm.get("module_id"), lm.get("module_path")),
+                module_path=(
+                    resolve_module_path(lm.get("module_id"), lm.get("module_path"))
+                    or _first_existing_dir(_LOCK_MASTER_HARDCODED_CANDIDATES)
+                ),
                 roots=[_expand(r) for r in (lm.get("roots") or [])],
                 roots_file=_expand(lm.get("roots_file")),
                 watcher_url=lm.get("watcher_url", "http://127.0.0.1:8095"),

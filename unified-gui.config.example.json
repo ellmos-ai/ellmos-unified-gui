@@ -3,13 +3,13 @@
   "title": "Unified GUI",
   "discovery": true,
   "lock_master": {
-    "module_path": "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",
+    "_hinweis": "module_path absichtlich nicht vorbelegt (T-20260902-901571937): resolve_module_path() loest ihn selbst auf (Katalog runtime_source, sonst ein Hardcode-Guard auf den lokalen Klon) -- ein OneDrive-Pfad hier wuerde das dauerhaft uebersteuern, egal ob er noch stimmt.",
     "roots_file": "~/OneDrive/_scripts/lock_roots.json",
     "watcher_url": "http://127.0.0.1:8095"
   },
   "ticket_master": {
-    "tickets_root": "~/OneDrive/.TOPICS/_control-center/_TICKETS",
-    "config_dir": "~/OneDrive/.TOPICS/.AI/.MODULES/ticket-master/config"
+    "_hinweis": "config_dir absichtlich nicht vorbelegt -- gleicher Grund wie lock_master.module_path oben.",
+    "tickets_root": "~/OneDrive/.TOPICS/_control-center/_TICKETS"
   },
   "bach": {
     "bach_root": "~/OneDrive/.TOPICS/.AI/.OS/BACH",
@@ -20,7 +20,7 @@
     "tool_path": "~/OneDrive/.TOPICS/_control-center/_tasks/_tool/scanner_tasks.py"
   },
   "clutch": {
-    "repo_path": "~/OneDrive/.TOPICS/.AI/.MODULES/clutch"
+    "_hinweis": "repo_path absichtlich nicht vorbelegt -- gleicher Grund wie lock_master.module_path oben."
   },
   "ollama": {
     "url": "http://127.0.0.1:11434"

@@ -9,10 +9,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import pytest
 
+import unified_gui.config as config
 from unified_gui.config import (
     SCANNER_DB_FALLBACK,
     UnifiedGuiConfig,
     _expand,
+    _first_existing_dir,
     hostname,
     resolve_module_path,
     scanner_db_default,
@@ -78,8 +80,26 @@ def test_discovery_fills_missing_fields(monkeypatch, tmp_path):
     monkeypatch.delenv("UNIFIED_GUI_DISCOVERY", raising=False)
     cfg = UnifiedGuiConfig.load()
     # Discovery liefert ~-Notation, die expandiert wird — kein "~" mehr im Ergebnis
-    assert cfg.clutch.repo_path and "~" not in cfg.clutch.repo_path
     assert cfg.bach.bach_root and str(Path.home()) in cfg.bach.bach_root
+    assert cfg.clutch.module_id == "clutch"
+
+
+def test_discovery_no_longer_guesses_a_bare_onedrive_module_path(monkeypatch, tmp_path):
+    """T-20260902-901571937: `clutch.repo_path`/`lock_master.module_path` used
+    to have a bare "~/OneDrive/..." discovery default -- filled into `data`
+    BEFORE resolve_module_path() runs, so it looked exactly like an explicit
+    user config and permanently outranked the (correct) catalog/hardcode-guard
+    resolution under the fixed precedence. Removed; both fields are resolved
+    exclusively by resolve_module_path() (+ the lock-master hardcode guard)
+    now. In full isolation (no catalog, isolated in conftest.py) clutch has
+    no fallback -- its module_id is filled by discovery.module_id="clutch"
+    but resolve_module_path() can find no clone for it, so it stays absent
+    rather than pointing at a possibly-empty OneDrive read copy."""
+    monkeypatch.setenv("UNIFIED_GUI_CONFIG", str(tmp_path / "leer.json"))
+    monkeypatch.delenv("UNIFIED_GUI_DISCOVERY", raising=False)
+    cfg = UnifiedGuiConfig.load()
+    assert cfg.clutch.repo_path is None
+    assert cfg.ticket_master.config_dir is None
 
 
 def test_discovery_respects_explicit_none(monkeypatch, tmp_path):
@@ -144,21 +164,100 @@ def test_discovery_resolves_scanner_db(monkeypatch, tmp_path):
     assert cfg.scanner_tasks.db_path == str(tmp_path / "aus-env.db")
 
 
-def test_module_id_resolves_from_catalog_before_legacy_path(monkeypatch, tmp_path):
-    module_dir = tmp_path / ".MODULES" / ".CONTROL" / "lock-master"
+def test_explicit_fallback_beats_the_catalog(monkeypatch, tmp_path):
+    """T-20260902-901571937: an explicit local configuration must win over
+    the catalog even when the catalog has a fully resolvable entry for the
+    same module -- the old precedence let a merely-existing OneDrive
+    directory silently overrule a deliberately configured local clone."""
+    catalog_module_dir = tmp_path / ".MODULES" / ".CONTROL" / "lock-master"
+    catalog_module_dir.mkdir(parents=True)
+    catalog_path = tmp_path / ".MODULES" / "modules.catalog.json"
+    catalog_path.write_text(json.dumps({
+        "schema": "ellmos.modules-catalog.v1",
+        "modules": [{
+            "id": "lock-master",
+            "resolved_source": ".CONTROL/lock-master",
+            "runtime_source": str(catalog_module_dir),
+        }],
+    }), encoding="utf-8")
+    monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(catalog_path))
+    explicit = str(tmp_path / "explicit-local-clone")
+
+    resolved = resolve_module_path("lock-master", explicit)
+
+    assert resolved == explicit
+
+
+def test_module_id_resolves_from_catalog_runtime_source_when_no_fallback(monkeypatch, tmp_path):
+    module_dir = tmp_path / "_Local_DEV" / "repos" / "lock-master"
     module_dir.mkdir(parents=True)
     catalog_path = tmp_path / ".MODULES" / "modules.catalog.json"
+    catalog_path.parent.mkdir(parents=True)
+    catalog_path.write_text(json.dumps({
+        "schema": "ellmos.modules-catalog.v1",
+        "modules": [{
+            "id": "lock-master",
+            "resolved_source": ".CONTROL/lock-master",
+            "runtime_source": str(module_dir),
+        }],
+    }), encoding="utf-8")
+    monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(catalog_path))
+
+    resolved = resolve_module_path("lock-master", None)
+
+    assert resolved == str(module_dir)
+
+
+def test_catalog_resolved_source_is_never_used_as_a_load_path(monkeypatch, tmp_path, capsys):
+    """T-20260902-901571937: `resolved_source` is the OneDrive-relative
+    catalog find location, never a runtime import path. A module with no
+    verified local clone (`runtime_source` absent) must resolve to no path
+    at all -- not silently to its OneDrive resolved_source -- and the
+    refusal must be visible, not swallowed."""
+    onedrive_dir = tmp_path / "OneDrive-mirror" / ".CONTROL" / "lock-master"
+    onedrive_dir.mkdir(parents=True)
+    catalog_path = tmp_path / "OneDrive-mirror" / "modules.catalog.json"
     catalog_path.write_text(json.dumps({
         "schema": "ellmos.modules-catalog.v1",
         "modules": [{"id": "lock-master", "resolved_source": ".CONTROL/lock-master"}],
     }), encoding="utf-8")
     monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(catalog_path))
 
-    resolved = resolve_module_path("lock-master", "/legacy/lock-master")
-    assert resolved == str(module_dir)
+    resolved = resolve_module_path("lock-master", None)
+
+    assert resolved is None
+    assert "lock-master" in capsys.readouterr().err
 
 
 def test_module_id_keeps_legacy_path_as_fallback(monkeypatch, tmp_path):
     monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(tmp_path / "missing.json"))
     fallback = str(tmp_path / "legacy")
     assert resolve_module_path("missing-module", fallback) == fallback
+
+
+def test_first_existing_dir_picks_first_match_and_skips_missing(tmp_path):
+    real = tmp_path / "real"
+    real.mkdir()
+    assert _first_existing_dir((str(tmp_path / "missing"), str(real))) == str(real)
+
+
+def test_first_existing_dir_returns_none_when_nothing_exists(tmp_path):
+    assert _first_existing_dir((str(tmp_path / "a"), str(tmp_path / "b"))) is None
+
+
+def test_lock_master_falls_back_to_hardcoded_clone_when_catalog_has_nothing(
+    monkeypatch, tmp_path
+):
+    """T-20260902-901571937 §3: lock-master's catalog manifest cannot (yet)
+    earn runtime_source (stale local-directory typing) -- rights/lock
+    integrity gets a last-resort hardcoded clone guess instead of silence."""
+    monkeypatch.setenv("ELLMOS_MODULES_CATALOG", str(tmp_path / "missing.json"))
+    hardcoded_clone = tmp_path / "repos" / "lock-master"
+    hardcoded_clone.mkdir(parents=True)
+    monkeypatch.setattr(
+        config, "_LOCK_MASTER_HARDCODED_CANDIDATES", (str(hardcoded_clone),)
+    )
+
+    cfg = UnifiedGuiConfig._from_dict({})
+
+    assert cfg.lock_master.module_path == str(hardcoded_clone)
