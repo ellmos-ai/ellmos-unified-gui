@@ -89,6 +89,7 @@ class BachAdapter(BaseAdapter):
                 Capability.PROMPTS_RW,
                 Capability.PROMPTS_VERSIONS,
                 Capability.PROMPTS_IMPORT,
+                Capability.MESSAGES_RW,
             }
         try:
             if self._system_dir() is not None:
@@ -211,6 +212,41 @@ class BachAdapter(BaseAdapter):
 
     def task_done(self, task_id: int) -> dict:
         return self._cli(["task", "done", str(task_id), "--json"])
+
+    # ------------------------------------------------------------------
+    # Nachrichten (REST /api/messages*) -- P15; BACH bedient sie seit Welle 1
+    # ueber assistant_core.MessageStore, Datenhoheit bleibt bei bach.db (D04).
+    # ------------------------------------------------------------------
+    def messages(self, direction: str | None = None, status: str | None = None,
+                 partner: str | None = None, include_archived: bool = True, limit: int = 50) -> list[dict]:
+        query = []
+        if direction:
+            query.append(f"direction={direction}")
+        if status:
+            query.append(f"status={status}")
+        if partner:
+            query.append(f"partner={partner}")
+        query.append(f"include_archived={'true' if include_archived else 'false'}")
+        query.append(f"limit={limit}")
+        data = self._rest("/api/messages?" + "&".join(query))
+        rows = data if isinstance(data, list) else data.get("messages", [])
+        return list(rows or [])
+
+    def message_create(self, recipient: str, body: str, subject: str | None = None, priority: int = 0) -> dict:
+        return self._rest("/api/messages", "POST",
+                          {"recipient": recipient, "subject": subject, "body": body, "priority": priority})
+
+    def message_mark_read(self, msg_id: int) -> dict:
+        return self._rest(f"/api/messages/{msg_id}/read", "PUT")
+
+    def message_mark_all_read(self) -> dict:
+        return self._rest("/api/messages/mark-all-read", "POST")
+
+    def message_archive(self, msg_id: int) -> dict:
+        return self._rest(f"/api/messages/{msg_id}/archive", "PUT")
+
+    def message_delete(self, msg_id: int) -> dict:
+        return self._rest(f"/api/messages/{msg_id}/delete", "PUT")
 
     # ------------------------------------------------------------------
     # Scheduler (REST /api/daemon/*)

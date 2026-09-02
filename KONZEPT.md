@@ -80,6 +80,7 @@ Jedes Panel: eigenes Python-Modul unter `src/unified_gui/panels/`, deklariert
 | P12 | **Races** | `compare-race` (read-only) | Vorhandene Race-Berichte, Läufe und vorhandene Judge-Urteile anzeigen; kein kostenpflichtiger Start- oder Judge-Automatismus | kanonischer `compare_race.report`-Import |
 | P13 | **Chat** | `ellmos-chat` (chat.runtime, Staging-Modul) | v1-Durchstich: eine Frage, eine Antwort über die konfigurierte Chat-Runtime (Backend/Tools/SafetyPolicy bleiben ellmos-chats eigene Sache); kein Verlaufs-UI, kein Modellwechsel im Panel -- nächste Ausbaustufen bewusst nicht Teil von T-20260825-835413946 | ellmos-chat `ChatRuntime.process()` (sys.path-Konsum aus dem Staging-Modul, analog `compare_race.report`) |
 | P14 | **Governance** | controlcenter-mcp (`controlcenter_list_governance`) | Fertigen Markdown-Lesespiegel unverändert und sicher maskiert anzeigen; Quellenstatus, Teilständigkeit, Staleness und valides BYUM-Count 0 bleiben sichtbar; keine lokale Föderation, Adoption oder Ausführung | rein lesender MCP-Vertrag; Decision-/Policy-/BYUM-Fachlogik bleibt ausschließlich im ControlCenter-MCP |
+| P15 | **Nachrichten** | BACH-REST `/api/messages*` (seit Welle 1 des Modulschnitts D-20260830-002 über `assistant_core.MessageStore`) | Auftragsnachrichten an Agenten anlegen, Antworten (inbox mit `parent_id`) lesen, gelesen/archivieren/löschen — kein eigener Store, Datenhoheit bei `bach.db` | BACH |
 
 ### Wheelhouse-Parität Web (Wheelhouse Flat) / Konsole (Wheelhouse Lower Decks) (Stand 2026-08-25, T-20260825-450296633)
 
@@ -92,6 +93,7 @@ Panel, nicht als Gesamtprozent. Startzustand nach dem Architektur-Spike:
 | P1-P12 (alle) | vollständig | fehlt |
 | P13 (Chat, neu seit T-20260825-835413946) | vollständig | fehlt |
 | P14 (Governance, neu seit T-20260826-726630521) | vollständig | fehlt; Folgeticket wird beim Abschluss erfasst |
+| P15 (Nachrichten, neu seit Welle 1 Teil 2b, T-20260903-278159544) | vollständig | fehlt |
 | P8 (Tickets) | vollständig | **Skelett** (lesender Durchstich, `console/p8_tickets_console.py`, verifiziert gegen den echten Ticket-Bestand) |
 
 "Gleich weit" heißt: die Differenz wird über die Roadmap kleiner, nie

@@ -46,6 +46,7 @@ class BaseAdapter(Protocol):
 | `AUTH_ROLE` | eingeloggte Person + Rolle des Host-Auftritts lesbar | ellmos-core (`request.session`), NUR im Mount-Betrieb |
 | `RACES_RO` | vorhandene Race-Berichte lesen | compare-race |
 | `CHAT_RUNTIME` | eine Anfrage über die konfigurierte Chat-Runtime beantworten | ellmos-chat |
+| `MESSAGES_RW` | Auftragsnachrichten anlegen/lesen/markieren/archivieren (BACH-REST `/api/messages*`, dort `assistant_core.MessageStore`) | BACH |
 
 Regeln: Enum ist **additiv** (nie umbenennen/loeschen). Ein Adapter meldet nur, was
 er JETZT wirklich bedienen kann (kein "geplant").

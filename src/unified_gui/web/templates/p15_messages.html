@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block subtitle %}Nachrichten{% endblock %}
+{% block content %}
+<h1>Nachrichten <span class="muted">Aufträge an Agenten und ihre Antworten — Daten bleiben in BACH</span></h1>
+
+<div class="toolbar">
+    <label>Richtung:
+        <select id="m-direction" onchange="loadMessages()">
+            <option value="">alle</option>
+            <option value="outbox">Aufträge (outbox)</option>
+            <option value="inbox">Antworten (inbox)</option>
+        </select>
+    </label>
+    <label>Status:
+        <select id="m-status" onchange="loadMessages()">
+            <option value="">alle</option>
+            <option value="unread">ungelesen</option>
+            <option value="read">gelesen</option>
+            <option value="archived">archiviert</option>
+        </select>
+    </label>
+    <label>Partner: <input id="m-partner" size="12" placeholder="ollama" onchange="loadMessages()"></label>
+    <button class="btn small" onclick="markAllRead()">Alle gelesen</button>
+    <span id="m-count" class="muted small-text"></span>
+</div>
+
+<details class="rule">
+    <summary><b>Neuen Auftrag anlegen</b> <span class="muted small-text">(outbox · Absender user)</span></summary>
+    <div class="row">
+        <label>Empfänger <input id="m-new-recipient" size="12" placeholder="ollama"></label>
+        <label>Betreff <input id="m-new-subject" size="24"></label>
+        <label>Priorität
+            <select id="m-new-priority"><option value="0">normal</option><option value="1">hoch</option><option value="2">dringend</option></select>
+        </label>
+    </div>
+    <textarea id="m-new-body" rows="3" style="width:100%" placeholder="Auftragstext"></textarea>
+    <button class="btn small" onclick="createMessage()">Anlegen</button>
+</details>
+
+<div id="message-list"><div class="muted">Lade ...</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function text(value) {
+    return value == null ? "" : String(value);
+}
+
+function chip(label, className = "chip", title = "") {
+    const element = document.createElement("span");
+    element.className = className;
+    element.textContent = label;
+    if (title) element.title = title;
+    return element;
+}
+
+function messageRow(m) {
+    const row = document.createElement("div");
+    row.className = "rule";
+
+    const details = document.createElement("span");
+    const headline = document.createElement("div");
+    headline.append(chip(m.direction === "inbox" ? "Antwort" : "Auftrag"));
+    if (m.parent_id) headline.append(document.createTextNode(" "), chip("zu #" + text(m.parent_id), "chip", "Antwort auf Auftrag #" + text(m.parent_id)));
+    headline.append(document.createTextNode(" "));
+    const id = document.createElement("b");
+    id.textContent = "#" + text(m.id);
+    headline.append(id, document.createTextNode(" " + text(m.sender) + " → " + text(m.recipient)));
+    if (m.subject) headline.append(document.createTextNode(" · " + text(m.subject)));
+    const meta = document.createElement("span");
+    meta.className = "muted small-text";
+    meta.textContent = " " + [text(m.status), text(m.created_at)].filter(Boolean).join(" · ");
+    headline.append(meta);
+
+    const body = document.createElement("div");
+    body.className = "small-text";
+    body.textContent = text(m.body);   // nie als Markup einsetzen: Nachrichtentexte sind Fremdinhalt
+    details.append(headline, body);
+
+    const actions = document.createElement("span");
+    actions.className = "row";
+    for (const [label, action] of [["Gelesen", "read"], ["Archiv", "archive"], ["Löschen", "delete"]]) {
+        const button = document.createElement("button");
+        button.className = "btn tiny";
+        button.textContent = label;
+        button.addEventListener("click", () => messageAction(m.id, action, label));
+        actions.append(button);
+    }
+    row.append(details, actions);
+    return row;
+}
+
+async function loadMessages() {
+    try {
+        const params = new URLSearchParams();
+        for (const [key, id] of [["direction", "m-direction"], ["status", "m-status"], ["partner", "m-partner"]]) {
+            const value = document.getElementById(id).value.trim();
+            if (value) params.set(key, value);
+        }
+        const data = await api("/api/p15/messages?" + params.toString());
+        document.getElementById("m-count").textContent = text(data.count) + " Nachrichten";
+        const list = document.getElementById("message-list");
+        const rows = Array.isArray(data.messages) ? data.messages : [];
+        if (rows.length) {
+            list.replaceChildren(...rows.map(messageRow));
+        } else {
+            const empty = document.createElement("div");
+            empty.className = "muted";
+            empty.textContent = "Keine Nachrichten.";
+            list.replaceChildren(empty);
+        }
+    } catch (e) { flash(e.message, true); }
+}
+
+async function createMessage() {
+    const recipient = document.getElementById("m-new-recipient").value.trim();
+    const body = document.getElementById("m-new-body").value.trim();
+    if (!recipient || !body) { flash("Empfänger und Text sind Pflicht", true); return; }
+    try {
+        const result = await api("/api/p15/messages", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({recipient, body, subject: document.getElementById("m-new-subject").value.trim() || null,
+                                  priority: Number(document.getElementById("m-new-priority").value)})});
+        flash("Auftrag #" + text(result.id) + " angelegt — die Antwort erscheint als inbox-Nachricht");
+        document.getElementById("m-new-body").value = "";
+        loadMessages();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function messageAction(id, action, label) {
+    if (action === "delete" && !confirm("#" + id + " löschen (soft delete in BACH)?")) return;
+    try {
+        await api("/api/p15/messages/" + id + "/" + action, {method: "POST"});
+        flash(label + ": #" + id);
+        loadMessages();
+    } catch (e) { flash(e.message, true); }
+}
+
+async function markAllRead() {
+    try {
+        const result = await api("/api/p15/messages/mark-all-read", {method: "POST"});
+        flash(text(result.marked) + " als gelesen markiert");
+        loadMessages();
+    } catch (e) { flash(e.message, true); }
+}
+
+loadMessages();
+</script>
+{% endblock %}
