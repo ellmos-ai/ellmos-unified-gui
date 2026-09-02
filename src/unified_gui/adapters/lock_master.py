@@ -22,7 +22,7 @@ from pathlib import Path
 from types import ModuleType
 
 from ..capabilities import Capability, HealthInfo
-from ..config import LockMasterConfig, _LOCK_MASTER_HARDCODED_CANDIDATES
+from ..config import LockMasterConfig
 from .base import AdapterError, BaseAdapter
 
 PERMISSIONS_SKELETON = {
@@ -34,17 +34,7 @@ PERMISSIONS_SKELETON = {
     "applies_to_agents": ["*"],
 }
 
-# T-20260902-901571937 §3: `self.config.module_path` (resolved catalog-/
-# hardcode-first, config.py) is always tried before this list -- this is
-# only the last-resort chain when THAT also came up empty (e.g. on a host
-# whose local lock-master clone isn't at the standard Plan-D location).
-# Local clone candidates first (same list config.py's own hardcode guard
-# uses -- one source of truth, not a second copy of the path strings), the
-# OneDrive locations last: they are a read copy per Plan D, never the
-# preferred import source, only a final fallback so the panel degrades
-# instead of crashing on a host with neither.
 _MODULE_CANDIDATES = (
-    *_LOCK_MASTER_HARDCODED_CANDIDATES,
     # Korrekter ControlRoom-Stack-Pfad; Fallback auf persoenliche Scripts.
     "~/OneDrive/.TOPICS/.AI/.MODULES/.CONTROL/lock-master",
     "~/OneDrive/.TOPICS/.AI/.MODULES/lock-master",

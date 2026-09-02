@@ -251,29 +251,6 @@ def resolve_module_path(module_id: str | None, fallback: str | None = None, suff
     return None
 
 
-# T-20260902-901571937 §3: lock-master's catalog manifest still declares
-# source_of_truth.type == "local-directory" (stale -- a real git-repository
-# and a clean local Plan-D clone both exist), so build_catalog.py's
-# runtime_source can never be derived for it until that manifest is fixed
-# (a different repo/owner, out of this ticket's scope). Rights/lock
-# integrity is the one consumer here with the least tolerable silent gap
-# (mirrors homebase-mcp's own hardcoded workaround, T-20260825-196589547),
-# so it alone gets a last-resort local-clone guess -- used only when
-# neither an explicit config nor the catalog resolved anything.
-_LOCK_MASTER_HARDCODED_CANDIDATES = (
-    "C:/_Local_DEV/repos/lock-master",
-    "~/_Local_DEV/repos/lock-master",
-)
-
-
-def _first_existing_dir(candidates: tuple[str, ...]) -> str | None:
-    for candidate in candidates:
-        path = Path(_expand(candidate))
-        if path.is_dir():
-            return str(path)
-    return None
-
-
 def _expand(value: str | None) -> str | None:
     """Expandiert ~, $VAR und %VAR% — macht Configs system-portabel."""
     if not value:
@@ -458,10 +435,7 @@ class UnifiedGuiConfig:
             audit_log_path=data.get("audit_log_path"),
             lock_master=LockMasterConfig(
                 module_id=lm.get("module_id"),
-                module_path=(
-                    resolve_module_path(lm.get("module_id"), lm.get("module_path"))
-                    or _first_existing_dir(_LOCK_MASTER_HARDCODED_CANDIDATES)
-                ),
+                module_path=resolve_module_path(lm.get("module_id"), lm.get("module_path")),
                 roots=[_expand(r) for r in (lm.get("roots") or [])],
                 roots_file=_expand(lm.get("roots_file")),
                 watcher_url=lm.get("watcher_url", "http://127.0.0.1:8095"),
