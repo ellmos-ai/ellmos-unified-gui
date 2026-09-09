@@ -112,6 +112,10 @@ Rollenspeicher. Sie akzeptiert Nummer, Rollenname oder `modul:rolle` und danach
 Anbieter, Modell und Effort. Der Startweg bevorzugt agent-launcher 0.2 als Host
 für einen benannten sichtbaren Prozess, meldet jeden `[FALLBACK]` und fällt
 geordnet auf task-master, COMA und schließlich den modul-eigenen Starter zurück.
+Das gewählte Projektverzeichnis bleibt auf jedem Weg Prozessarbeitsort;
+task-master erhält zusätzlich `TASKPLAN_WORKDIR`. Endet ein Host innerhalb der
+begrenzten Startprüfung erfolgreich, meldet die Konsole nur die angenommene
+Auftragsübergabe und behauptet keine weiterlaufende Host-PID.
 
 ```powershell
 python -m unified_gui.console start --manifest C:\pfad\zu\ellmos-module.v2.json

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 """Rollen aus Modulmanifesten in einer sichtbaren Konsole starten."""
+
 from __future__ import annotations
 
 import argparse
@@ -11,7 +12,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from importlib import metadata
-from typing import Callable, Sequence
+from typing import Callable, Mapping, Sequence
 
 from ..adapters.base import AdapterError
 from ..adapters.role_manifest import RoleEntry, RoleManifestAdapter
@@ -21,6 +22,7 @@ MANIFEST_ENV = "UNIFIED_GUI_ROLE_MANIFESTS"
 # actual value here lets POSIX CI exercise the Windows planning branch without
 # weakening the real visible-console flag to zero.
 CREATE_NEW_CONSOLE = getattr(subprocess, "CREATE_NEW_CONSOLE", 0x00000010)
+START_CONFIRM_TIMEOUT = 0.5
 
 
 @dataclass(frozen=True)
@@ -28,6 +30,16 @@ class LaunchPlan:
     command: tuple[str, ...]
     backend: str
     notices: tuple[str, ...] = ()
+    cwd: Path | None = None
+    environment: tuple[tuple[str, str], ...] = ()
+
+    def spawn_environment(
+        self, base: Mapping[str, str] | None = None
+    ) -> dict[str, str]:
+        """Build the child environment without hiding explicit plan overrides."""
+        child = dict(os.environ if base is None else base)
+        child.update(self.environment)
+        return child
 
 
 def _version_tuple(value: str) -> tuple[int, ...]:
@@ -82,7 +94,9 @@ def build_launch_plan(
     if not role.prompt_file.is_file():
         raise ValueError(f"Prompt-Datei nicht gefunden: {role.prompt_file}")
     actual_request = request.strip() or role.request
-    actual_workdir = Path(workdir).expanduser().resolve() if workdir else Path.cwd().resolve()
+    actual_workdir = (
+        Path(workdir).expanduser().resolve() if workdir else Path.cwd().resolve()
+    )
     if not actual_workdir.is_dir():
         raise ValueError(f"Arbeitsverzeichnis nicht gefunden: {actual_workdir}")
     name = session_name.strip() or role.key.replace(":", "-")
@@ -90,84 +104,147 @@ def build_launch_plan(
     host = _agent_launcher() if agent_launcher is None else agent_launcher
     if host:
         command = [
-            host, "start", name,
-            "--provider", provider,
-            "--prompt-file", str(role.prompt_file),
-            "--request", actual_request,
-            "--cwd", str(actual_workdir),
+            host,
+            "start",
+            name,
+            "--provider",
+            provider,
+            "--prompt-file",
+            str(role.prompt_file),
+            "--request",
+            actual_request,
+            "--cwd",
+            str(actual_workdir),
             "--visible",
         ]
         if model:
             command.extend(["--model", model])
         if effort:
             command.extend(["--effort", effort])
-        return LaunchPlan(tuple(command), "agent-launcher")
+        return LaunchPlan(tuple(command), "agent-launcher", cwd=actual_workdir)
 
-    notices = ["[FALLBACK] agent-launcher >= 0.2.0 fehlt; verwende den nächsten Startweg."]
+    notices = [
+        "[FALLBACK] agent-launcher >= 0.2.0 fehlt; verwende den nächsten Startweg."
+    ]
     if taskplan_available is None:
         taskplan_available = importlib.util.find_spec("taskplan") is not None
     if taskplan_available:
         command = [
-            sys.executable, "-m", "taskplan", "launch",
-            "--label", role.key,
-            "--prompt-file", str(role.prompt_file),
-            "--request", actual_request,
-            "--provider", provider,
+            sys.executable,
+            "-m",
+            "taskplan",
+            "launch",
+            "--label",
+            role.key,
+            "--prompt-file",
+            str(role.prompt_file),
+            "--request",
+            actual_request,
+            "--provider",
+            provider,
         ]
         if model:
             command.extend(["--model", model])
         if effort:
             command.extend(["--effort", effort])
-        return LaunchPlan(tuple(command), "taskplan", tuple(notices))
+        return LaunchPlan(
+            tuple(command),
+            "taskplan",
+            tuple(notices),
+            cwd=actual_workdir,
+            environment=(("TASKPLAN_WORKDIR", str(actual_workdir)),),
+        )
 
     notices.append("[FALLBACK] task-master fehlt; verwende COMA direkt.")
     if coma_available is None:
         coma_available = importlib.util.find_spec("coma.session") is not None
     if coma_available:
         command = [
-            sys.executable, "-m", "coma", "session",
-            "--provider", provider,
-            "--prompt-file", str(role.prompt_file),
-            "--request", actual_request,
-            "--cwd", str(actual_workdir),
-            "--mode", "interactive",
+            sys.executable,
+            "-m",
+            "coma",
+            "session",
+            "--provider",
+            provider,
+            "--prompt-file",
+            str(role.prompt_file),
+            "--request",
+            actual_request,
+            "--cwd",
+            str(actual_workdir),
+            "--mode",
+            "interactive",
         ]
         if model:
             command.extend(["--model", model])
         if effort:
             command.extend(["--effort", effort])
-        return LaunchPlan(tuple(command), "coma", tuple(notices))
+        return LaunchPlan(tuple(command), "coma", tuple(notices), cwd=actual_workdir)
 
     notices.append("[FALLBACK] COMA fehlt; verwende den modul-eigenen Starter.")
     if role.starter and role.starter.is_file():
-        return LaunchPlan((str(role.starter),), "module-starter", tuple(notices))
+        return LaunchPlan(
+            (str(role.starter),), "module-starter", tuple(notices), cwd=actual_workdir
+        )
     raise ValueError(
         "Kein Startweg verfügbar: agent-launcher, task-master und COMA fehlen; "
         f"kein vorhandener Starter für {role.key}."
     )
 
 
-def spawn_window(command: Sequence[str], *, platform: str | None = None) -> subprocess.Popen:
+def spawn_window(
+    command: Sequence[str],
+    *,
+    platform: str | None = None,
+    cwd: str | Path | None = None,
+    env: Mapping[str, str] | None = None,
+) -> subprocess.Popen:
     """Startet genau einen eigenen sichtbaren Konsolenprozess."""
     actual = platform or os.name
+    popen_options = {
+        "cwd": str(cwd) if cwd is not None else None,
+        "env": dict(env) if env is not None else None,
+    }
     if actual == "nt":
-        return subprocess.Popen(list(command), creationflags=CREATE_NEW_CONSOLE)
+        return subprocess.Popen(
+            list(command), creationflags=CREATE_NEW_CONSOLE, **popen_options
+        )
     terminal = next(
-        (path for name in ("x-terminal-emulator", "gnome-terminal", "konsole", "xterm")
-         if (path := shutil.which(name))),
+        (
+            path
+            for name in ("x-terminal-emulator", "gnome-terminal", "konsole", "xterm")
+            if (path := shutil.which(name))
+        ),
         None,
     )
     if not terminal:
         raise OSError("Kein unterstütztes POSIX-Terminal gefunden")
     flag = "--" if Path(terminal).name in {"gnome-terminal", "konsole"} else "-e"
-    return subprocess.Popen([terminal, flag, *command])
+    return subprocess.Popen([terminal, flag, *command], **popen_options)
+
+
+def _early_returncode(
+    process: object, timeout: float = START_CONFIRM_TIMEOUT
+) -> int | None:
+    """Return an early exit code; ``None`` means the owned host stayed alive."""
+    wait = getattr(process, "wait", None)
+    if not callable(wait):
+        raise OSError("Startprozess liefert keinen prüfbaren Zustand")
+    try:
+        return wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return None
 
 
 def select_role(roles: Sequence[RoleEntry], value: str) -> RoleEntry:
     wanted = value.strip().lower()
     if wanted.isdigit() and 1 <= int(wanted) <= len(roles):
         return roles[int(wanted) - 1]
-    exact = [role for role in roles if wanted in {role.key.lower(), role.role_id.lower(), role.label.lower()}]
+    exact = [
+        role
+        for role in roles
+        if wanted in {role.key.lower(), role.role_id.lower(), role.label.lower()}
+    ]
     if len(exact) == 1:
         return exact[0]
     if len(exact) > 1:
@@ -178,7 +255,9 @@ def select_role(roles: Sequence[RoleEntry], value: str) -> RoleEntry:
 def _manifest_paths(values: Sequence[str]) -> list[Path]:
     raw = list(values)
     if not raw:
-        raw = [item for item in os.environ.get(MANIFEST_ENV, "").split(os.pathsep) if item]
+        raw = [
+            item for item in os.environ.get(MANIFEST_ENV, "").split(os.pathsep) if item
+        ]
     if not raw:
         candidate = Path.cwd() / "ellmos-module.v2.json"
         if candidate.is_file():
@@ -189,9 +268,16 @@ def _manifest_paths(values: Sequence[str]) -> list[Path]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m unified_gui.console")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    start = subparsers.add_parser("start", help="Modulrolle in einem Konsolenfenster starten")
+    start = subparsers.add_parser(
+        "start", help="Modulrolle in einem Konsolenfenster starten"
+    )
     start.add_argument("role", nargs="?", help="Nummer, Rollen-ID oder modul:rolle")
-    start.add_argument("--manifest", action="append", default=[], help="Modulmanifest oder künftiger Rollenkatalog")
+    start.add_argument(
+        "--manifest",
+        action="append",
+        default=[],
+        help="Modulmanifest oder künftiger Rollenkatalog",
+    )
     start.add_argument("--provider")
     start.add_argument("--model", default="")
     start.add_argument("--effort", default="")
@@ -252,16 +338,41 @@ def main(
     if args.dry_run:
         return 0
     try:
-        process = spawn(plan.command)
+        process = spawn(
+            plan.command,
+            cwd=str(plan.cwd) if plan.cwd is not None else None,
+            env=plan.spawn_environment(),
+        )
     except OSError as exc:
         print(f"[FEHLER] Konsolenfenster nicht startbar: {exc}", file=sys.stderr)
         return 1
     pid = getattr(process, "pid", None)
+    try:
+        returncode = _early_returncode(process)
+    except OSError as exc:
+        print(f"[FEHLER] Startzustand nicht prüfbar: {exc}", file=sys.stderr)
+        return 1
+    if returncode is not None:
+        if returncode != 0:
+            print(
+                f"[FEHLER] Startprozess endete während der Startprüfung mit Exit {returncode}.",
+                file=sys.stderr,
+            )
+            return 1
+        print(
+            f"[START] Auftrag an {plan.backend} mit Exit 0 übergeben; "
+            "kein fortlaufender Host-PID."
+        )
+        return 0
     print(f"[START] PID {pid if pid is not None else 'unbekannt'}")
     return 0
 
 
 __all__ = [
-    "LaunchPlan", "build_launch_plan", "build_parser", "main", "select_role",
+    "LaunchPlan",
+    "build_launch_plan",
+    "build_parser",
+    "main",
+    "select_role",
     "spawn_window",
 ]

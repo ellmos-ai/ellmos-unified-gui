@@ -101,6 +101,10 @@ The console now reads each module's existing `roles[]` manifest entries through
 accepts a number, a role name or `module:role`, then provider/model/effort. The
 launch path prefers agent-launcher 0.2 for a named visible process, prints every
 `[FALLBACK]`, and degrades in order to task-master, COMA and the module starter.
+The selected project directory is carried as process cwd through every path;
+task-master also receives `TASKPLAN_WORKDIR`. A host that exits successfully
+during the bounded start check is reported only as an accepted handoff, without
+claiming a still-running host PID.
 
 ```powershell
 python -m unified_gui.console start --manifest C:\path\to\ellmos-module.v2.json
