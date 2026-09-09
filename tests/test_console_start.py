@@ -151,4 +151,5 @@ def test_spawn_window_uses_new_console_on_windows(monkeypatch):
     monkeypatch.setattr(start_console.subprocess, "Popen", popen)
     result = start_console.spawn_window(["fake", "arg"], platform="nt")
     assert result.pid == 123
-    assert popen.call_args.kwargs["creationflags"] == start_console.subprocess.CREATE_NEW_CONSOLE
+    assert popen.call_args.kwargs["creationflags"] == 0x00000010
+    assert start_console.CREATE_NEW_CONSOLE == 0x00000010

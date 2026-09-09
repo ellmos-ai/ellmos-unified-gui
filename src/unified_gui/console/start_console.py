@@ -17,6 +17,10 @@ from ..adapters.base import AdapterError
 from ..adapters.role_manifest import RoleEntry, RoleManifestAdapter
 
 MANIFEST_ENV = "UNIFIED_GUI_ROLE_MANIFESTS"
+# ``subprocess`` exposes this Windows SDK value only on Windows. Keeping the
+# actual value here lets POSIX CI exercise the Windows planning branch without
+# weakening the real visible-console flag to zero.
+CREATE_NEW_CONSOLE = getattr(subprocess, "CREATE_NEW_CONSOLE", 0x00000010)
 
 
 @dataclass(frozen=True)
@@ -147,7 +151,7 @@ def spawn_window(command: Sequence[str], *, platform: str | None = None) -> subp
     """Startet genau einen eigenen sichtbaren Konsolenprozess."""
     actual = platform or os.name
     if actual == "nt":
-        return subprocess.Popen(list(command), creationflags=subprocess.CREATE_NEW_CONSOLE)
+        return subprocess.Popen(list(command), creationflags=CREATE_NEW_CONSOLE)
     terminal = next(
         (path for name in ("x-terminal-emulator", "gnome-terminal", "konsole", "xterm")
          if (path := shutil.which(name))),
