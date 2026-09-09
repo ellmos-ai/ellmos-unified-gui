@@ -8,19 +8,24 @@
   "visibility": "public-candidate",
   "provides": [
     "operator.ui",
+    "operator.console",
     "control.dashboard",
     "unified-gui.host"
   ],
   "requires": [],
   "optional": [
     "tasks.default",
+    "tasks.workflow",
+    "runtime.agent-session",
+    "runtime.agent-window",
     "routing.default",
     "chat.runtime"
   ],
   "conflicts": [],
   "surfaces": [
     "service",
-    "ui"
+    "ui",
+    "console"
   ],
   "state": {
     "ownership": "external",

@@ -1,8 +1,20 @@
 # Changelog — ellmos Unified GUI
 
-## [Unreleased] (TASKPLAN v0.3)
+## [Unreleased] (v0.9.0)
+
+### Added
+
+- **E01 console role start (2026-09-09):** `python -m unified_gui.console start`
+  reads authoritative module `roles[]`, accepts number/name/provider/model/effort
+  and starts through agent-launcher 0.2 with visible, ordered fallbacks to
+  task-master, COMA and the module starter. A future `modules[].roles[]` registry
+  stays compatible without becoming a second prompt store. Repo-local
+  `console/START.bat` and `console/start.sh` remain thin wrappers.
 
 ### Changed
+
+- Package version is 0.9.0. Repository metadata now records the canonical
+  private GitHub name `ellmos-ai/ellmos-unified-gui`; visibility is unchanged.
 
 - **Private Public-Readiness (2026-08-21):** versionsynchrones Paket (`VERSION`, Python-Paket und
   `pyproject.toml` jetzt 0.8.0), kanonische Repository-Metadaten, SPDX-Lizenzsyntax,
