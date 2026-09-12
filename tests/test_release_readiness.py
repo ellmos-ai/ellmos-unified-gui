@@ -15,7 +15,7 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 
 
 ROOT = Path(__file__).parent.parent
-REPOSITORY_URL = "https://github.com/ellmos-ai/unified-gui"
+REPOSITORY_URL = "https://github.com/ellmos-ai/ellmos-unified-gui"
 
 
 def test_version_surfaces_agree() -> None:

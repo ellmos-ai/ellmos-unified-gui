@@ -24,9 +24,15 @@ versioned dependency inventory from its locked build environment.
 
 ## Repository assets and AI assistance
 
-- `assets/banner.png` is tracked as repository artwork. Its source-rights record is not
-  present in this repository, so owner confirmation remains mandatory before public or
-  commercial use.
+- `assets/banner.png` is tracked as repository artwork. It was generated for this
+  repository and carries no third-party source material. Provenance record: commit
+  `772e389a562234f96c4c37cd5b2a4ca513e235b3` ("feat(banner): generate and embed missing
+  banner image", 2026-07-30), authored by the project maintainer; the `[G]` marker in that
+  commit subject denotes generation by the project's own AI assistant under the house
+  convention, not an imported work. No stock library, no external commission and no
+  third-party licence applies. The file has never been replaced since; `git log --follow
+  -- assets/banner.png` returns this single commit. Reused elsewhere it follows the
+  repository licence in `LICENSE`.
 - The code and documentation include AI-assisted contributions that were reviewed and
   edited by a human maintainer. No third-party expression is intentionally incorporated
   as project-owned material; suspected matches must be reviewed before distribution.

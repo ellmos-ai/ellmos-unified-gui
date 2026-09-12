@@ -54,11 +54,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ellmos-ai/unified-gui"
-Repository = "https://github.com/ellmos-ai/unified-gui"
-Documentation = "https://github.com/ellmos-ai/unified-gui#readme"
-Issues = "https://github.com/ellmos-ai/unified-gui/issues"
-Changelog = "https://github.com/ellmos-ai/unified-gui/blob/master/CHANGELOG.md"
+Homepage = "https://github.com/ellmos-ai/ellmos-unified-gui"
+Repository = "https://github.com/ellmos-ai/ellmos-unified-gui"
+Documentation = "https://github.com/ellmos-ai/ellmos-unified-gui#readme"
+Issues = "https://github.com/ellmos-ai/ellmos-unified-gui/issues"
+Changelog = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/CHANGELOG.md"
 "Parent Organization" = "https://github.com/ellmos-ai"
 "Umbrella Ecosystem" = "https://github.com/open-bricks"
 

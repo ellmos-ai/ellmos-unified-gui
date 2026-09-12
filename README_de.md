@@ -1,6 +1,6 @@
 🇩🇪 Deutsch | [🇬🇧 English](README.md)
 
-[![CI](https://github.com/ellmos-ai/unified-gui/actions/workflows/ci.yml/badge.svg)](https://github.com/ellmos-ai/unified-gui/actions/workflows/ci.yml)
+[![CI](https://github.com/ellmos-ai/ellmos-unified-gui/actions/workflows/ci.yml/badge.svg)](https://github.com/ellmos-ai/ellmos-unified-gui/actions/workflows/ci.yml)
 [![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-yellow.svg)](LICENSE)
 
 # ellmos Unified GUI
