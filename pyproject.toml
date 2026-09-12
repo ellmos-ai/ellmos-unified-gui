@@ -11,6 +11,31 @@ requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
 authors = [{ name = "Lukas Geiger" }]
+keywords = [
+    "ellmos",
+    "operator-console",
+    "fastapi",
+    "htmx",
+    "dashboard",
+    "governance",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: System :: Systems Administration",
+]
 dependencies = [
     "fastapi>=0.110",
     "jinja2>=3.1",
@@ -29,8 +54,13 @@ dev = [
 ]
 
 [project.urls]
+Homepage = "https://github.com/ellmos-ai/unified-gui"
 Repository = "https://github.com/ellmos-ai/unified-gui"
+Documentation = "https://github.com/ellmos-ai/unified-gui#readme"
 Issues = "https://github.com/ellmos-ai/unified-gui/issues"
+Changelog = "https://github.com/ellmos-ai/unified-gui/blob/master/CHANGELOG.md"
+"Parent Organization" = "https://github.com/ellmos-ai"
+"Umbrella Ecosystem" = "https://github.com/open-bricks"
 
 [project.scripts]
 unified-gui = "unified_gui.__main__:main"
@@ -43,6 +73,7 @@ unified_gui = ["web/templates/*.html", "web/static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-ra -v"
 
 [tool.ruff]
 target-version = "py310"
