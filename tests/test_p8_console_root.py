@@ -1,9 +1,9 @@
 """Die Tickets-Wurzel des P8-Konsolen-Spikes darf keinen fremden Nutzerpfad raten.
 
-Regression zu T-20260816-933818854: `console/p8_tickets_console.py` trug einen fest
-verdrahteten `C:\\Users\\<name>\\OneDrive\\...`-Default. Auf jedem anderen Rechner zeigte
-der Default ins Leere, und in einem zur Veroeffentlichung vorgesehenen Baum ist ein
-absoluter Benutzerpfad zugleich Instanzdaten.
+Regression: `console/p8_tickets_console.py` trug einen fest verdrahteten
+`C:\\Users\\<name>\\OneDrive\\...`-Default. Auf jedem anderen Rechner zeigte der Default ins
+Leere, und in einem zur Veroeffentlichung vorgesehenen Baum ist ein absoluter Benutzerpfad
+zugleich Instanzdaten.
 """
 
 from __future__ import annotations
