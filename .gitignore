@@ -24,3 +24,23 @@ data/
 *.log
 unified-gui.config.json
 LOCK*.txt
+
+# Multi-host sync conflicts
+*-conflict-*
+*.sync-conflict-*
+*.sync-temp-*
+*-WORKSTATION*
+*-LAPTOP*
+* (kopie)*
+* (copy)*
+
+# Multi-agent locks
+LOCK
+LOCK.*
+*.lock
+LOCK.permissions.json
+
+# OS and filesystem artifacts
+Thumbs.db
+desktop.ini
+.DS_Store

@@ -22,6 +22,7 @@ Aufruf: python console/p8_tickets_console.py [--root <tickets-dir>]
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -31,7 +32,24 @@ from unified_gui.adapters.ticket_master import TicketMasterAdapter  # noqa: E402
 from unified_gui.adapters.base import AdapterError  # noqa: E402
 from unified_gui.config import TicketMasterConfig  # noqa: E402
 
-DEFAULT_TICKETS_ROOT = r"C:\Users\User\OneDrive\.TOPICS\_control-center\_TICKETS"
+def default_tickets_root() -> str | None:
+    """Tickets-Wurzel ohne fest verdrahteten Benutzer- oder Hostpfad.
+
+    Reihenfolge: explizite Umgebungsvariable, dann der uebliche Ort unterhalb des
+    OneDrive-Roots des laufenden Nutzers. Findet sich nichts, bleibt ``None`` --
+    dann verlangt ``--root`` eine Angabe, statt auf einen fremden Rechnerpfad zu
+    zeigen.
+    """
+    explicit = os.environ.get("UNIFIED_GUI_TICKETS_ROOT") or os.environ.get("TICKETS_ROOT")
+    if explicit:
+        return explicit
+    for base in (os.environ.get("OneDrive"), os.environ.get("OneDriveConsumer")):
+        if not base:
+            continue
+        candidate = Path(base) / ".TOPICS" / "_control-center" / "_TICKETS"
+        if candidate.is_dir():
+            return str(candidate)
+    return None
 
 
 def render_queues(queues: dict[str, list[dict]]) -> None:
@@ -53,7 +71,16 @@ def render_queues(queues: dict[str, list[dict]]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=DEFAULT_TICKETS_ROOT, help="ticket-master Tickets-Wurzel")
+    resolved_root = default_tickets_root()
+    parser.add_argument(
+        "--root",
+        default=resolved_root,
+        required=resolved_root is None,
+        help=(
+            "ticket-master Tickets-Wurzel "
+            "(Default: $UNIFIED_GUI_TICKETS_ROOT, sonst $OneDrive/.TOPICS/_control-center/_TICKETS)"
+        ),
+    )
     args = parser.parse_args(argv)
 
     # Derselbe Adapter-Typ, dieselbe Config-Klasse wie im Web-Panel (config.py,
