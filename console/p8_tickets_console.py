@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from unified_gui.adapters.ticket_master import TicketMasterAdapter  # noqa: E402
 from unified_gui.adapters.base import AdapterError  # noqa: E402
-from unified_gui.config import TicketMasterConfig  # noqa: E402
+from unified_gui.config import TicketMasterConfig, resolve_queue_alias  # noqa: E402
 
 def default_tickets_root() -> str | None:
     """Tickets-Wurzel ohne fest verdrahteten Benutzer- oder Hostpfad.
@@ -42,13 +42,19 @@ def default_tickets_root() -> str | None:
     """
     explicit = os.environ.get("UNIFIED_GUI_TICKETS_ROOT") or os.environ.get("TICKETS_ROOT")
     if explicit:
-        return explicit
+        return resolve_queue_alias(explicit)
     for base in (os.environ.get("OneDrive"), os.environ.get("OneDriveConsumer")):
         if not base:
             continue
-        candidate = Path(base) / ".TOPICS" / "_control-center" / "_TICKETS"
-        if candidate.is_dir():
-            return str(candidate)
+        # Beide Namen probieren: die Queue wird von _TICKETS nach TICKETS
+        # umbenannt (T-20260906-387521104), und waehrend der OneDrive-
+        # Replikation kann hier schon der eine und dort noch der andere
+        # liegen. Ohne das zeigt die Konsole eine leere Queue statt eines
+        # falschen Pfades.
+        for name in ("TICKETS", "_TICKETS"):
+            candidate = Path(base) / ".TOPICS" / "_control-center" / name
+            if candidate.is_dir():
+                return str(candidate)
     return None
 
 
