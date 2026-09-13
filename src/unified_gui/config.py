@@ -258,6 +258,42 @@ def _expand(value: str | None) -> str | None:
     return os.path.expanduser(os.path.expandvars(str(value)))
 
 
+# Rename-Toleranz fuer die Ticket-Queue (T-20260906-387521104).
+#
+# Die Live-Queue `_control-center/_TICKETS` wird nach `TICKETS` umbenannt.
+# Ordner und die Configs, die darauf zeigen, liegen in OneDrive und
+# replizieren mit eigener Latenz -- zwischen Rename und angekommener Config
+# kann ein Rechner den einen Namen konfiguriert und den anderen auf der
+# Platte haben. Diese GUI liest die Queue nur, richtet also keinen Schaden
+# an; sie wuerde ohne Toleranz aber schlicht "keine Tickets" anzeigen, und
+# das sieht aus wie eine leere Queue statt wie ein falscher Pfad.
+#
+# Bewusst NICHT in _expand() eingebaut: das expandiert jeden Pfad dieser
+# Konfiguration, nicht nur Queue-Wurzeln.
+_QUEUE_ALIASES = {"_TICKETS": "TICKETS", "TICKETS": "_TICKETS"}
+
+
+def resolve_queue_alias(value: str | None) -> str | None:
+    """Einen Queue-Pfad auf den Namen ziehen, der tatsaechlich existiert.
+
+    Heisst der letzte Pfadteil weder `_TICKETS` noch `TICKETS`, kommt der
+    Wert unveraendert zurueck -- der Aufruf ist also ueberall gefahrlos.
+    Existiert der angefragte Ordner, bleibt es dabei; nur wenn ausschliesslich
+    der Alias existiert, wird umgeleitet. Existieren beide oder keiner, wird
+    nichts geraten.
+    """
+    if not value:
+        return value
+    path = Path(value)
+    alias_name = _QUEUE_ALIASES.get(path.name)
+    if alias_name is None:
+        return value
+    alias = path.with_name(alias_name)
+    if alias.is_dir() and not path.is_dir():
+        return str(alias)
+    return value
+
+
 def hostname() -> str:
     return socket.gethostname().upper()
 
@@ -443,7 +479,7 @@ class UnifiedGuiConfig:
             ),
             ticket_master=TicketMasterConfig(
                 module_id=tm.get("module_id"),
-                tickets_root=_expand(tm.get("tickets_root")),
+                tickets_root=resolve_queue_alias(_expand(tm.get("tickets_root"))),
                 config_dir=resolve_module_path(tm.get("module_id"), tm.get("config_dir"), "config"),
             ),
             decisions=DecisionsConfig(
