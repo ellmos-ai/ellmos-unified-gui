@@ -47,6 +47,12 @@ the existing backends. MIT licensed.
 > stacks through `../../.BUNDLES/`. It consumes `.CONTROL` (locks, tickets, tasks)
 > and `.ORCHESTRATION` (routing) through adapters and owns no domain source of truth.
 
+> **Product boundary:** this repository is the reusable, product-neutral operator UI.
+> `ellmos-core` is the permanently private runtime shell and specialized end-user web app of
+> the commercial Sovereign product line. Sovereign may mount this module, while ControlRoom
+> composes it as its Web/Console access surface. Neither this GUI nor ControlRoom replaces the
+> authoritative backend stores.
+
 ## Wheelhouse
 
 This module is an access point into **ControlRoom** — the decided product name (decision
@@ -143,7 +149,7 @@ cleared merely because it is currently tracked.
 
 ## Related modules
 
-`ellmos-core` (suite core/end-user UI, imported as the scaffold precedent) ·
+`ellmos-core` (private Sovereign runtime/end-user UI; optional host for this operator module) ·
 `lock-master` · `ticket-master` · `clutch` · `ellmos-homebase-mcp` ·
 `ellmos-controlcenter-mcp` · `compare-race` · BACH (`.AI/.OS/BACH`).
 

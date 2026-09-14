@@ -50,6 +50,12 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > Tasks) und `.ORCHESTRATION` (Routing) über Adapter, besitzt aber keine eigene
 > Fachlogik-Wahrheit.
 
+> **Produktgrenze:** Dieses Repository ist die wiederverwendbare, produktneutrale
+> Operatoroberfläche. `ellmos-core` ist die dauerhaft private Runtime-Shell und spezialisierte
+> Endnutzer-Webanwendung der kommerziellen Sovereign-Produktlinie. Sovereign kann dieses Modul
+> einbetten; ControlRoom komponiert es als Web-/Konsolenzugang. Weder diese GUI noch ControlRoom
+> ersetzen die autoritativen Backend-Speicher.
+
 ## Wheelhouse
 
 Dieses Modul ist ein Zugang zu **ControlRoom** — dem entschiedenen Produktnamen (Entscheidung
@@ -155,7 +161,7 @@ Vorbereitung nicht als Freigabe des Assets.
 
 ## Verwandte Module
 
-`ellmos-core` (Suite-Kern/Endnutzer-UI, wird als Gerüst-Vorbild importiert) ·
+`ellmos-core` (private Sovereign-Runtime/Endnutzer-UI; optionaler Host dieses Operatormoduls) ·
 `lock-master` · `ticket-master` · `clutch` · `ellmos-homebase-mcp` ·
 `ellmos-controlcenter-mcp` · `compare-race` · BACH (`.AI/.OS/BACH`).
 

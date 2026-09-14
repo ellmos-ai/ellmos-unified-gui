@@ -35,6 +35,19 @@
 +--------------------------------------------------------------+
 ```
 
+## Produkt- und Datenhoheitsgrenze
+
+| Ebene | Verantwortung | Nicht ihre Verantwortung |
+|---|---|---|
+| `ellmos-unified-gui` | Wiederverwendbare Operatoroberfläche; Standalone oder per `mount()` eingebettet | Endnutzer-Produktkern, Fach-Datenhaltung, eigene Ausführungsengine |
+| ControlRoom | Komposition und Benennung der Operatorzugänge über Unified GUI und Konsole | Zweiter Task-, Chat-, Rechte-, Memory- oder Konfigurationsspeicher |
+| `ellmos-core` / Sovereign | Dauerhaft privater Sovereign-Runtime-Host mit Auth, Spaces, Chat, Artefakten und spezialisierter Endnutzer-UI | Allgemeine, systemübergreifende Operator-GUI neu duplizieren |
+| Backends/Module | Je Capability die einzige fachliche Schreib- und Datenautorität | UI-spezifische Schattenkopien als neue Wahrheit |
+
+Sovereign darf die Unified GUI als Operatorbereich einbetten. Dadurch wird die GUI weder Teil
+des privaten `ellmos-core`-Quellvertrags noch selbst zur Sovereign-Datenautorität. Andere
+Produkte und Einzelanwender-Stacks können dasselbe GUI-Modul mit anderen Adaptern nutzen.
+
 ## Kernmechanik: Capability-Registry
 
 ```python
