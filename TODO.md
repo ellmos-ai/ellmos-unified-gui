@@ -10,7 +10,7 @@
 | Packaging and security | DONE | Pinned private CI, security policy, build and metadata regression are present. |
 | Homebase adapter | BLOCKED | Requires a canonical `hb_route_*` seam or a verified taskplan-backed state seam. |
 | BACH integration | WAITING | Requires the separate BACH repository write gate to be open. |
-| Public release | USER | Repository history/privacy choice and explicit visibility approval remain owner gates. |
+| Public release | DONE | Approved by owner under Wave 1 policy; repository set to public. |
 
 ## TASKPLAN v0.3 — Anpassung  ✅ (2026-07-14, TASKSOLVER; Tasks 40/41/42)
 
