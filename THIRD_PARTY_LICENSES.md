@@ -38,3 +38,20 @@ versioned dependency inventory from its locked build environment.
   as project-owned material; suspected matches must be reviewed before distribution.
 - Runtime data, configured backend content and external model output are not part of the
   repository license merely because Unified GUI displays or routes them.
+
+## Governance and operational invariants
+
+The following invariants define the operational and security perimeter for ellmos Unified GUI:
+
+| Invariant | Scope | Operational guarantee | Verification evidence |
+|---|---|---|---|
+| `INV-LOCAL-01` | Network Privacy | 100% Local-First / Zero-Egress: Server binds to `127.0.0.1`; zero outbound tracking or telemetry. | AST inspections; `tests/test_degradation.py` |
+| `INV-CANON-02` | Data Ownership | Single Data Canon: No duplicate domain database; views and delegates directly to canonical backends. | Architectural audit; zero local SQLite schemas |
+| `INV-PROBE-03` | Lifecycle | Dynamic Capability Probing: Panels activate only when `probe()` validates backend availability within 2s. | `src/unified_gui/capabilities.py`; 15 panel tests |
+| `INV-AUDIT-04` | Compliance | Append-Only JSONL Audit Trail: Every state-changing request (POST/PUT/PATCH/DELETE) is logged. | `src/unified_gui/audit_log.py`; `tests/test_audit_integration.py` |
+| `INV-LOCK-05` | Safety | Pre-Flight Permission and Lock Enforcement: Write routes check locks and permissions fail-closed. | `tests/test_p5_role_gating.py`; `LOCK.permissions.json` |
+| `INV-INJECT-06` | Security | Untrusted Content Protection: External strings are rendered exclusively via safe text assignments (`textContent`). | `tests/test_p15_messages_panel.py`; template audits |
+| `INV-MOUNT-07` | Embedding | Dual-Mode Embedding Parity: Identical panel features available in standalone mode or mounted sub-app. | `src/unified_gui/web/app.py`; `mount()` tests |
+| `INV-HOST-08` | Portability | Host-Neutral Paths: Standardized `~` expansion and cascading hostname configurations. | `src/unified_gui/config.py`; `tests/test_p8_console_root.py` |
+| `INV-ZERO-09` | Simplicity | Zero Frontend Build Overhead: Pure FastAPI + Jinja2 + HTMX; no node/npm build dependencies. | Repository file inventory; zero package.json |
+| `INV-SLA-10` | Security SLA | 48-Hour Acknowledgment & 5-Day Triage: Formal incident response commitments for security reports. | `SECURITY.md`; maintainer triage policy |

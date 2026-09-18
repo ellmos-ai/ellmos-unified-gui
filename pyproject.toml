@@ -18,6 +18,10 @@ keywords = [
     "htmx",
     "dashboard",
     "governance",
+    "local-first",
+    "multi-agent",
+    "llm-console",
+    "zero-egress",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -61,6 +65,7 @@ Issues = "https://github.com/ellmos-ai/ellmos-unified-gui/issues"
 Changelog = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/CHANGELOG.md"
 "Parent Organization" = "https://github.com/ellmos-ai"
 "Umbrella Ecosystem" = "https://github.com/open-bricks"
+"Marketing Log" = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/MARKETING-LOG.txt"
 
 [project.scripts]
 unified-gui = "unified_gui.__main__:main"
