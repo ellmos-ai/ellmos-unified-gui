@@ -48,6 +48,9 @@ class Capability(str, Enum):
     # Welle 1 Teil 2b des BACH-GUI-Modulschnitts (D-20260830-002): Auftragsnachrichten
     # und Antworten ueber BACH-REST /api/messages* (dort assistant_core.MessageStore).
     MESSAGES_RW = "messages.rw"
+    # E01: Rollen bleiben in ihren Modulmanifesten; die Konsole liest nur den
+    # vorhandenen roles[]-Vertrag und haelt keinen zweiten Katalog.
+    ROLES_CATALOG = "roles.catalog"
 
 
 @dataclass

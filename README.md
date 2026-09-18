@@ -11,11 +11,11 @@
 routing, permissions, routines/cron, tasks, tickets, skills and governance — one surface, fed by
 the existing backends. MIT licensed.
 
-> **Status: Phase 1–4 mostly implemented (v0.8.0, verified 2026-08-26; unreleased panel additions through
+> **Status: Phase 1–4 mostly implemented (v0.9.0, verified 2026-09-09; unreleased panel additions through
 > 2026-08-26)** — 14 panels run standalone (`python -m unified_gui`, port 8990) and
 > embedded (`unified_gui.mount(app)`): P1 prompts, P2 agents, P3 models, P4 routing, P5
 > permissions, P6 routines, P7 tasks, P8 tickets, P9 skills, P10 decisions, P11 skill
-> wizard, P12 races, P13 chat and P14 governance. The suite collects 203 tests;
+> wizard, P12 races, P13 chat and P14 governance. The suite collects 221 tests;
 > environment-gated integration tests skip when their optional sibling backend is absent.
 > Real-mounted into `ellmos-core`
 > as of 2026-08-18 (`console_enabled` there, see
@@ -93,6 +93,27 @@ only as one image inside the Wheelhouse metaphor, not as a claimed product name.
    ellmos-core's "two products in one module" mistake.
 3. **Capability-driven panels:** adapters probe their backends; only what a backend
    actually offers becomes visible (discovery via controlcenter-mcp).
+
+## Console role start (Wheelhouse Lower Decks)
+
+The console now reads each module's existing `roles[]` manifest entries through
+`RoleManifestAdapter`; it does not copy prompts or keep a second role store. It
+accepts a number, a role name or `module:role`, then provider/model/effort. The
+launch path prefers agent-launcher 0.2 for a named visible process, prints every
+`[FALLBACK]`, and degrades in order to task-master, COMA and the module starter.
+The selected project directory is carried as process cwd through every path;
+task-master also receives `TASKPLAN_WORKDIR`. A host that exits successfully
+during the bounded start check is reported only as an accepted handoff, without
+claiming a still-running host PID.
+
+```powershell
+python -m unified_gui.console start --manifest C:\path\to\ellmos-module.v2.json
+python -m unified_gui.console start tasksolver --manifest C:\path\to\ellmos-module.v2.json --provider codex --dry-run
+```
+
+The reader also accepts a future generated `modules[].roles[]` catalogue with a
+`manifest_path` per module, so the separate registry work can connect without
+changing this console contract.
 
 ## Panels (target picture)
 

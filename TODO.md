@@ -6,7 +6,7 @@
 
 | Category | Status | Evidence / next gate |
 |---|---|---|
-| Core console | DONE | Fourteen capability-driven web panels; the suite collects 203 tests. |
+| Core console | DONE | Web panels plus E01 role-start console; the suite collects 221 tests. |
 | Packaging and security | DONE | Pinned private CI, security policy, build and metadata regression are present. |
 | Homebase adapter | BLOCKED | Requires a canonical `hb_route_*` seam or a verified taskplan-backed state seam. |
 | BACH integration | WAITING | Requires the separate BACH repository write gate to be open. |
@@ -108,6 +108,12 @@ rinnsal→taskplan-Seam. Dort ist **kein** Fix nötig.
       create+describe+quality liefen gegen echte Daten, Score 5.0/Exzellent.
 
 ## Phase 4 — Konsolidierung
+
+- [x] **E01 Rollenstart-Konsole (2026-09-09):** importierbarer Einstieg
+      `python -m unified_gui.console start`, Nummer/Name/`modul:rolle`,
+      Anbieter/Modell/Effort, direkte read-only `roles[]`-Projektion und
+      sichtbare Rückfallkette agent-launcher → task-master → COMA → Modulstarter.
+      Der spätere generierte Katalog bleibt über `modules[].roles[]` anschließbar.
 
 - [ ] **Adapter `homebase` (hb_route_stats, hb_state_task_*) — BLOCKED, mit konkretem
       Befund (2026-08-19; vormals "sobald Execution-Backends real"):** nachgemessen statt weiter vage

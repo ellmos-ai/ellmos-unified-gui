@@ -1,6 +1,6 @@
 # KONZEPT — ellmos Unified GUI
 
-**Produktname:** Unified GUI · **Modul:** `ellmos-unified-gui` · **Stand:** 2026-08-26 · **Status:** weitgehend umgesetzt (v0.8.0 plus unveröffentlichte Panels)
+**Produktname:** Unified GUI · **Modul:** `ellmos-unified-gui` · **Stand:** 2026-09-09 · **Status:** weitgehend umgesetzt (v0.9.0 plus unveröffentlichte Panels)
 
 ---
 
@@ -95,6 +95,7 @@ Panel, nicht als Gesamtprozent. Startzustand nach dem Architektur-Spike:
 | P14 (Governance, neu seit T-20260826-726630521) | vollständig | fehlt; Folgeticket wird beim Abschluss erfasst |
 | P15 (Nachrichten, neu seit Welle 1 Teil 2b, T-20260903-278159544) | vollständig | fehlt |
 | P8 (Tickets) | vollständig | **Skelett** (lesender Durchstich, `console/p8_tickets_console.py`, verifiziert gegen den echten Ticket-Bestand) |
+| Rollenstart (E01) | kein Web-Panel | **vollständig** (`python -m unified_gui.console start`, direkte `roles[]`, sichtbarer Prozesshost mit klarer Fallback-Kette) |
 
 "Gleich weit" heißt: die Differenz wird über die Roadmap kleiner, nie
 größer -- kein neues Web-Feature ohne mitwachsende Konsole-Ticket-Erfassung.

@@ -9,12 +9,12 @@
 Prompts, Routing, Berechtigungen, Routinen/Cron, Tasks, Tickets, Skills und Governance — in einer
 Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 
-> **Status: Phase 1–4 größtenteils umgesetzt (v0.8.0, verifiziert 2026-08-26; unveröffentlichte Panel-Ergänzungen bis
+> **Status: Phase 1–4 größtenteils umgesetzt (v0.9.0, verifiziert 2026-09-09; unveröffentlichte Panel-Ergänzungen bis
 > 2026-08-26)** — 14 Panels laufen standalone (`python -m unified_gui`, Port 8990) und
 > eingebettet (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
 > P11 Skill-Wizard, P12 Races, P13 Chat und P14 Governance. Die Suite umfasst
-> 203 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
+> 221 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
 > optionale benachbarte Backend fehlt. Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
@@ -103,6 +103,28 @@ nicht als beanspruchter Produktname.
    Modul"-Fehler von BACH-GUI und ellmos-core.
 3. Panels erscheinen **capability-driven**: Adapter proben ihre Backends, und nur was
    ein Backend wirklich anbietet, wird sichtbar (Discovery via controlcenter-mcp).
+
+## Konsolenstart für Modulrollen (Wheelhouse Lower Decks)
+
+Die Konsole liest die vorhandenen `roles[]`-Einträge jedes Moduls über den
+`RoleManifestAdapter`; sie kopiert keine Prompts und führt keinen zweiten
+Rollenspeicher. Sie akzeptiert Nummer, Rollenname oder `modul:rolle` und danach
+Anbieter, Modell und Effort. Der Startweg bevorzugt agent-launcher 0.2 als Host
+für einen benannten sichtbaren Prozess, meldet jeden `[FALLBACK]` und fällt
+geordnet auf task-master, COMA und schließlich den modul-eigenen Starter zurück.
+Das gewählte Projektverzeichnis bleibt auf jedem Weg Prozessarbeitsort;
+task-master erhält zusätzlich `TASKPLAN_WORKDIR`. Endet ein Host innerhalb der
+begrenzten Startprüfung erfolgreich, meldet die Konsole nur die angenommene
+Auftragsübergabe und behauptet keine weiterlaufende Host-PID.
+
+```powershell
+python -m unified_gui.console start --manifest C:\pfad\zu\ellmos-module.v2.json
+python -m unified_gui.console start tasksolver --manifest C:\pfad\zu\ellmos-module.v2.json --provider codex --dry-run
+```
+
+Der Reader akzeptiert außerdem einen später generierten Katalog mit
+`modules[].roles[]` und `manifest_path` je Modul. Das getrennte Registry-Ticket
+kann damit anschließen, ohne den Konsolenvertrag umzubauen.
 
 ## Panels (Zielbild)
 
