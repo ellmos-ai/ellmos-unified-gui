@@ -3,25 +3,29 @@
 > Importable operator console for the ellmos/BACH ecosystem: one capability-driven
 > web UI (FastAPI + HTMX, no build step) over existing backends — models, agents,
 > prompts, routing, permissions, routines/cron, tasks, tickets, skills, governance.
-> Status: Phase 1-4 mostly implemented (v0.8.0 plus unreleased panels, verified 2026-08-26),
-> 14 panels (P1-P14), 203 tests collected; optional cross-repo tests are environment-gated. Real-mounted
+> Status: Phase 1-4 implemented (v0.8.0, verified 2026-09-14),
+> 15 panels (P1-P15), 223 tests collected; optional cross-repo tests are environment-gated. Real-mounted
 > into ellmos-core since 2026-08-18 (console_enabled there). P11 skill wizard
 > (structured scaffold+description+static tests via catalog.py, not the skill
 > body/eval loop -- that stays skill-creator's job). Audit log for every
 > write action across all panels (~/.ellmos/unified-gui/audit.jsonl, modeled
 > on ellmos-controlcenter-mcp's gateway-audit.jsonl). Phase 4 remainder
 > (BACH mount, homebase adapter) open. P12 provides a read-only compare-race
-> report browser, P13 a minimal ellmos-chat pass-through and P14 the exact read-only
-> controlcenter_list_governance report without local federation. German technical planning docs are canonical.
+> report browser, P13 a minimal ellmos-chat pass-through, P14 the exact read-only
+> controlcenter_list_governance report without local federation, and P15 a message
+> management panel via BACH-REST (/api/messages*, MESSAGES_RW) keeping data in BACH.
+> German technical planning docs are canonical.
 
 ## Docs
 
-- [KONZEPT.md](KONZEPT.md): problem, goals, panel catalog P1-P14, migration path
+- [KONZEPT.md](KONZEPT.md): problem, goals, panel catalog P1-P15, migration path
 - [ARCHITECTURE.md](ARCHITECTURE.md): layers, capability registry, mount vs. standalone
 - [docs/ADAPTER-CONTRACT.md](docs/ADAPTER-CONTRACT.md): adapter protocol, capabilities, mixins
 - [DECISIONS.md](DECISIONS.md): decision log D01-D11
 - [TODO.md](TODO.md): phased roadmap
 - [SECURITY.md](SECURITY.md): trust boundaries and vulnerability reporting
+- [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md): dependency inventory and 10 runtime invariants (INV-LOCAL-01 to INV-SLA-10)
+- [MARKETING-LOG.txt](MARKETING-LOG.txt): Path B discoverability log, target personas, and comparative matrix
 
 ## Key facts
 
@@ -29,3 +33,4 @@
 - Panels appear only if their backend capabilities are probed successfully
 - No own domain store: canonical schemas are profiprompt-library-v1.json,
   LOCK.permissions.json, BACH scheduler_jobs, ticket-master T-*.txt files
+- 10 Governance & Runtime Invariants: 100% Local-First / Zero-Egress, append-only JSONL audit, safe textContent rendering
