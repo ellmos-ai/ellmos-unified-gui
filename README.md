@@ -1,4 +1,4 @@
-<img src="assets/banner.svg" width="100%" alt="ellmos Unified GUI banner: a ship's wheelhouse steering wheel and instrument panels below a lighthouse sweeping its beam over the surfaced backend nodes it coordinates">
+<img src="assets/banner.png" width="100%" alt="Ellmos Unified Gui banner">
 
 [🇩🇪 Deutsch](README_de.md) | 🇬🇧 English
 
@@ -159,7 +159,7 @@ assets are offered under the [MIT License](LICENSE). Third-party packages are no
 relicensed; their own terms are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 The repository includes AI-assisted contributions that were reviewed and edited by a
 human maintainer. Before public or commercial use, the owner must still confirm the
-source rights for `assets/banner.svg`; this preparation does not treat that asset as
+source rights for `assets/banner.png`; this preparation does not treat that asset as
 cleared merely because it is currently tracked.
 
 ## Related modules
