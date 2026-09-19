@@ -172,7 +172,7 @@ werden nicht neu lizenziert; ihre eigenen Bedingungen sind in
 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) aufgeführt. Das Repository enthält
 KI-unterstützte Beiträge, die ein menschlicher Maintainer geprüft und bearbeitet hat.
 Vor einer öffentlichen oder kommerziellen Nutzung muss der Eigentümer die Herkunftsrechte
-von `assets/banner.png` noch bestätigen; die bloße Aufnahme in Git gilt in dieser
+von `assets/banner.svg` noch bestätigen; die bloße Aufnahme in Git gilt in dieser
 Vorbereitung nicht als Freigabe des Assets.
 
 ## Verwandte Module
