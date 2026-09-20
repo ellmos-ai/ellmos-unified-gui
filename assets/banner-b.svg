@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 680" width="2400" height="680">
+  <defs>
+    <!-- Sky daytime atmospheric gradient -->
+    <linearGradient id="sky-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#bae6fd" />
+      <stop offset="45%" stop-color="#e0f2fe" />
+      <stop offset="85%" stop-color="#f0f9ff" />
+      <stop offset="100%" stop-color="#f8fafc" />
+    </linearGradient>
+
+    <!-- Calm sea gradient -->
+    <linearGradient id="sea-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="35%" stop-color="#0369a1" />
+      <stop offset="75%" stop-color="#075985" />
+      <stop offset="100%" stop-color="#0c4a6e" />
+    </linearGradient>
+
+    <!-- Soft sun glow gradient -->
+    <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#fef9c3" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#fef9c3" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Card drop shadow -->
+    <filter id="card-shadow" x="-8%" y="-15%" width="116%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.09" />
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.05" />
+    </filter>
+
+    <!-- Rainbow atmospheric soft glow -->
+    <filter id="rainbow-glow" x="-5%" y="-10%" width="110%" height="125%">
+      <feGaussianBlur stdDeviation="7" />
+    </filter>
+  </defs>
+
+  <!-- Sky background -->
+  <rect x="0" y="0" width="2400" height="500" fill="url(#sky-gradient)" />
+
+  <!-- Daytime sun disc near the sea horizon -->
+  <circle cx="1940" cy="450" r="90" fill="url(#sun-glow)" />
+  <circle cx="1940" cy="450" r="46" fill="#fef08a" opacity="0.92" />
+
+  <!-- Calm Sea background -->
+  <rect x="0" y="500" width="2400" height="180" fill="url(#sea-gradient)" />
+
+  <!-- Ocean horizon line -->
+  <line x1="0" y1="500" x2="2400" y2="500" stroke="#38bdf8" stroke-width="1.5" opacity="0.65" />
+
+  <!-- Calm ocean surface ripples -->
+  <g opacity="0.22">
+    <line x1="160" y1="520" x2="520" y2="520" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" />
+    <line x1="680" y1="535" x2="1140" y2="535" stroke="#bae6fd" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="1300" y1="525" x2="1620" y2="525" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" />
+    <line x1="380" y1="560" x2="820" y2="560" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" />
+    <line x1="980" y1="585" x2="1480" y2="585" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" />
+    <line x1="240" y1="620" x2="660" y2="620" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" />
+    <line x1="1520" y1="630" x2="2040" y2="630" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" />
+  </g>
+
+  <!-- Sun reflection lines on water -->
+  <g opacity="0.35">
+    <line x1="1840" y1="512" x2="2040" y2="512" stroke="#fef08a" stroke-width="3" stroke-linecap="round" />
+    <line x1="1870" y1="528" x2="2010" y2="528" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="1890" y1="548" x2="1990" y2="548" stroke="#fef08a" stroke-width="2" stroke-linecap="round" />
+    <line x1="1910" y1="570" x2="1970" y2="570" stroke="#fef08a" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- RAINBOW SOFT ATMOSPHERIC GLOW LAYER (Subtle luminous halo) -->
+  <g filter="url(#rainbow-glow)" opacity="0.28" fill="none" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Band 0: Red -->
+    <path d="M 40 60 C 220 60, 340 325.7, 520 262.7 C 800 164.7, 970 66, 1250 66 C 1600 66, 1924.2 276, 2244.2 500" stroke="#ef4444" />
+    <!-- Band 1: Orange -->
+    <path d="M 40 125 C 220 125, 340 344.8, 520 281.8 C 800 183.8, 970 84, 1250 84 C 1600 84, 1892.8 276, 2212.8 500" stroke="#f97316" />
+    <!-- Band 2: Yellow -->
+    <path d="M 40 190 C 220 190, 340 363.9, 520 300.9 C 800 202.9, 970 102, 1250 102 C 1600 102, 1861.4 276, 2181.4 500" stroke="#eab308" />
+    <!-- Band 3: Green -->
+    <path d="M 40 255 C 220 255, 340 383.0, 520 320.0 C 800 222.0, 970 120, 1250 120 C 1600 120, 1830.0 276, 2150.0 500" stroke="#10b981" />
+    <!-- Band 4: Blue -->
+    <path d="M 40 320 C 220 320, 340 402.1, 520 339.1 C 800 241.1, 970 138, 1250 138 C 1600 138, 1798.6 276, 2118.6 500" stroke="#0ea5e9" />
+    <!-- Band 5: Indigo -->
+    <path d="M 40 385 C 220 385, 340 421.2, 520 358.2 C 800 260.2, 970 156, 1250 156 C 1600 156, 1767.2 276, 2087.2 500" stroke="#4f46e5" />
+    <!-- Band 6: Violet -->
+    <path d="M 40 450 C 220 450, 340 440.3, 520 377.3 C 800 279.3, 970 174, 1250 174 C 1600 174, 1735.8 276, 2055.8 500" stroke="#8b5cf6" />
+  </g>
+
+  <!-- MAIN RAINBOW: CONVERGING RAYS (LEFT) TO UNIFIED GRAND ARCH (SPECTRUM ORDER) -->
+  <g fill="none" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Band 0: Red (outer arch) -->
+    <path d="M 40 60 C 220 60, 340 325.7, 520 262.7 C 800 164.7, 970 66, 1250 66 C 1600 66, 1924.2 276, 2244.2 500" stroke="#ef4444" />
+
+    <!-- Band 1: Orange -->
+    <path d="M 40 125 C 220 125, 340 344.8, 520 281.8 C 800 183.8, 970 84, 1250 84 C 1600 84, 1892.8 276, 2212.8 500" stroke="#f97316" />
+
+    <!-- Band 2: Yellow -->
+    <path d="M 40 190 C 220 190, 340 363.9, 520 300.9 C 800 202.9, 970 102, 1250 102 C 1600 102, 1861.4 276, 2181.4 500" stroke="#eab308" />
+
+    <!-- Band 3: Green -->
+    <path d="M 40 255 C 220 255, 340 383.0, 520 320.0 C 800 222.0, 970 120, 1250 120 C 1600 120, 1830.0 276, 2150.0 500" stroke="#10b981" />
+
+    <!-- Band 4: Blue -->
+    <path d="M 40 320 C 220 320, 340 402.1, 520 339.1 C 800 241.1, 970 138, 1250 138 C 1600 138, 1798.6 276, 2118.6 500" stroke="#0ea5e9" />
+
+    <!-- Band 5: Indigo -->
+    <path d="M 40 385 C 220 385, 340 421.2, 520 358.2 C 800 260.2, 970 156, 1250 156 C 1600 156, 1767.2 276, 2087.2 500" stroke="#4f46e5" />
+
+    <!-- Band 6: Violet (inner arch) -->
+    <path d="M 40 450 C 220 450, 340 440.3, 520 377.3 C 800 279.3, 970 174, 1250 174 C 1600 174, 1735.8 276, 2055.8 500" stroke="#8b5cf6" />
+  </g>
+
+  <!-- Soft water shimmer at rainbow touchdown -->
+  <g opacity="0.32">
+    <line x1="2160" y1="514" x2="2280" y2="514" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="2130" y1="528" x2="2250" y2="528" stroke="#f97316" stroke-width="2" stroke-linecap="round" />
+    <line x1="2100" y1="542" x2="2220" y2="542" stroke="#eab308" stroke-width="2" stroke-linecap="round" />
+    <line x1="2070" y1="556" x2="2190" y2="556" stroke="#10b981" stroke-width="2" stroke-linecap="round" />
+    <line x1="2040" y1="570" x2="2160" y2="570" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" />
+  </g>
+
+  <!-- HIGH-CONTRAST LIGHT PANEL (Framed beneath the rainbow arch and above the sea) -->
+  <rect x="920" y="265" width="960" height="164" rx="24" ry="24"
+        fill="#ffffff" fill-opacity="0.95"
+        stroke="#cbd5e1" stroke-width="2"
+        filter="url(#card-shadow)" />
+
+  <!-- Dominant Wordmark -->
+  <text x="1400" y="335" text-anchor="middle"
+        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+        font-size="58" font-weight="800" fill="#0f172a" letter-spacing="-0.03em">ellmos-unified-gui</text>
+
+  <!-- Tagline verbatim from README.md -->
+  <text x="1400" y="385" text-anchor="middle"
+        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+        font-size="22" font-weight="500" fill="#475569" letter-spacing="0.005em">Importable operator console for the ellmos/BACH ecosystem</text>
+</svg>
