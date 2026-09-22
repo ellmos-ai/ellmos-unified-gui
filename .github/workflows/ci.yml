@@ -33,8 +33,12 @@ jobs:
             python-version: "3.11"
           - os: windows-latest
             python-version: "3.12"
+          - os: windows-latest
+            python-version: "3.13"
           - os: macos-latest
             python-version: "3.12"
+          - os: macos-latest
+            python-version: "3.13"
 
     steps:
       - name: Check out source

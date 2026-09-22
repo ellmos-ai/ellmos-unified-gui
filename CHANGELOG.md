@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Repository hygiene & PEP 621/639 hardening (2026-09-22):**
+  - Removed deprecated `License :: OSI Approved :: MIT License` classifier from `pyproject.toml` to comply with PEP 639 license expression validation in setuptools >= 77 (fixing editable install & sdist build across CI matrix).
+  - Configured `--basetemp=.pytest_tmp` in `tool.pytest.ini_options` and added `.pytest_tmp/` to `.gitignore` to prevent Windows file lock conflicts during tmpdir cleanup.
+  - Hardened GitHub Actions CI matrix (`.github/workflows/ci.yml`) by adding Python 3.13 targets for `windows-latest` and `macos-latest`.
+  - Extended release readiness contract tests (`tests/test_release_readiness.py`) for PEP 639 classifier conflict detection, stale workflow existence, and bilingual README test count parity.
+  - Updated bilingual README status banners to reflect 15 panels and 238 collected tests.
+
 - **E01 console role start (2026-09-09):** `python -m unified_gui.console start`
   reads authoritative module `roles[]`, accepts number/name/provider/model/effort
   and starts through agent-launcher 0.2 with visible, ordered fallbacks to

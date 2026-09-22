@@ -51,6 +51,7 @@ def test_release_hygiene_files_exist() -> None:
         "docs/ai-act-note.md",
         ".github/workflows/ci.yml",
         ".github/workflows/codeql.yml",
+        ".github/workflows/stale.yml",
     )
     assert all((ROOT / relative).is_file() for relative in required)
     metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
@@ -74,6 +75,24 @@ def test_german_readme_uses_real_umlauts() -> None:
     for transliteration in ("unabhaengig", "ergaenzt", "ueberall"):
         assert transliteration not in readme
     assert all(character in readme for character in "äöü")
+
+
+def test_pep621_license_and_classifiers_do_not_conflict() -> None:
+    metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    classifiers = metadata.get("project", {}).get("classifiers", [])
+    assert not any(c.startswith("License ::") for c in classifiers), (
+        "PEP 639 requires license expressions ('license = ...') without redundant 'License ::' classifiers"
+    )
+
+
+def test_readme_and_readme_de_test_count_parity() -> None:
+    readme_en = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme_de = (ROOT / "README_de.md").read_text(encoding="utf-8")
+    match_en = re.search(r"The suite collects\s+(?:>\s*)?(\d+)\s+tests", readme_en)
+    match_de = re.search(r"Die Suite umfasst\s+(?:>\s*)?(\d+)\s+Tests", readme_de)
+    assert match_en is not None, "README.md must document the test count"
+    assert match_de is not None, "README_de.md must document the test count"
+    assert match_en.group(1) == match_de.group(1), "English and German test counts must agree"
 
 
 def test_tracked_text_has_no_private_program_provenance() -> None:
