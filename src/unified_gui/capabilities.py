@@ -51,6 +51,11 @@ class Capability(str, Enum):
     # E01: Rollen bleiben in ihren Modulmanifesten; die Konsole liest nur den
     # vorhandenen roles[]-Vertrag und haelt keinen zweiten Katalog.
     ROLES_CATALOG = "roles.catalog"
+    # Phase 2.1 BACH-GUI-Schalenextraktion (T-20260926-652455601): Control-API (:8081)
+    CONTROL_API = "control.api"
+    CONTROL_SLOTS_RO = "control.slots.ro"
+    CONTROL_WORKERS_RW = "control.workers.rw"
+    CONTROL_ACTIVITY_RO = "control.activity.ro"
 
 
 @dataclass

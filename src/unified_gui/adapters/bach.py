@@ -61,6 +61,8 @@ class BachAdapter(BaseAdapter):
         self.config = config or BachConfig()
         self._rest_ok = False
         self._rest_latency_ms: int | None = None
+        self._control_ok = False
+        self._control_latency_ms: int | None = None
 
     # ------------------------------------------------------------------
     # Vertrag
@@ -92,6 +94,17 @@ class BachAdapter(BaseAdapter):
                 Capability.MESSAGES_RW,
             }
         try:
+            self._control_ok = self._probe_control()
+        except Exception:  # noqa: BLE001 — probe wirft nie
+            self._control_ok = False
+        if self._control_ok:
+            caps |= {
+                Capability.CONTROL_API,
+                Capability.CONTROL_SLOTS_RO,
+                Capability.CONTROL_WORKERS_RW,
+                Capability.CONTROL_ACTIVITY_RO,
+            }
+        try:
             if self._system_dir() is not None:
                 caps |= {Capability.AGENT_DISPATCH, Capability.AGENT_STEER,
                          Capability.TASKS_ASSIGN}
@@ -102,13 +115,23 @@ class BachAdapter(BaseAdapter):
     def health(self) -> HealthInfo:
         cli = self._system_dir() is not None
         if self._rest_ok and cli:
-            return HealthInfo("ok", "REST + CLI", latency_ms=self._rest_latency_ms)
+            detail = "REST + CLI" + (" + Control-API" if self._control_ok else "")
+            return HealthInfo("ok", detail, latency_ms=self._rest_latency_ms)
         if self._rest_ok:
-            return HealthInfo("degraded", "REST ok, bach.py nicht gefunden (keine Agenten-Steuerung)")
+            detail = "REST ok, bach.py nicht gefunden (keine Agenten-Steuerung)" + (
+                " (Control-API ok)" if self._control_ok else ""
+            )
+            return HealthInfo("degraded", detail)
         if cli:
-            return HealthInfo("degraded",
-                              f"BACH-GUI-Server nicht erreichbar ({self.config.rest_url}) — "
-                              "Scheduler/Tasks/Prompts inaktiv, Agenten via CLI verfuegbar")
+            detail = (
+                f"BACH-GUI-Server nicht erreichbar ({self.config.rest_url}) — "
+                "Scheduler/Tasks/Prompts inaktiv, Agenten via CLI verfuegbar"
+            )
+            if self._control_ok:
+                detail += ", Control-API erreichbar"
+            return HealthInfo("degraded", detail)
+        if self._control_ok:
+            return HealthInfo("degraded", f"Nur Control-API erreichbar ({self.config.control_url})", latency_ms=self._control_latency_ms)
         return HealthInfo("offline", "weder REST noch bach.py gefunden")
 
     # ------------------------------------------------------------------
@@ -141,6 +164,72 @@ class BachAdapter(BaseAdapter):
             return json.loads(body) if body.strip() else {}
         except json.JSONDecodeError as exc:
             raise AdapterError("bach_rest_bad_json", body[:200]) from exc
+
+    # ------------------------------------------------------------------
+    # Control-API-Transport (:8081)
+    # ------------------------------------------------------------------
+    def _resolve_control_token(self) -> str | None:
+        if self.config.control_token:
+            return self.config.control_token
+        if self.config.control_token_file:
+            try:
+                token = Path(self.config.control_token_file).expanduser().read_text(encoding="utf-8").strip()
+                if token:
+                    return token
+            except (OSError, UnicodeDecodeError):
+                pass
+        import os
+        env_token = os.environ.get("BACH_CONTROL_API_TOKEN") or os.environ.get("UNIFIED_GUI_BACH_CONTROL_TOKEN")
+        if env_token:
+            return env_token.strip()
+        token_file_env = os.environ.get("BACH_CONTROL_API_TOKEN_FILE") or os.environ.get("UNIFIED_GUI_BACH_CONTROL_TOKEN_FILE")
+        if token_file_env:
+            try:
+                token = Path(token_file_env).expanduser().read_text(encoding="utf-8").strip()
+                if token:
+                    return token
+            except (OSError, UnicodeDecodeError):
+                pass
+        return None
+
+    def _probe_control(self) -> bool:
+        started = time.time()
+        try:
+            self._control("/api/status")
+        except AdapterError:
+            return False
+        self._control_latency_ms = int((time.time() - started) * 1000)
+        return True
+
+    def _control(self, path: str, method: str = "GET", payload: dict | None = None):
+        url = self.config.control_url.rstrip("/") + path
+        data = json.dumps(payload).encode("utf-8") if payload is not None else None
+        request = urllib.request.Request(url, data=data, method=method)
+        if data is not None:
+            request.add_header("Content-Type", "application/json")
+        token = self._resolve_control_token()
+        if token:
+            request.add_header("Authorization", f"Bearer {token}")
+        try:
+            with urllib.request.urlopen(request, timeout=self.config.control_timeout_s) as response:
+                body = response.read().decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")[:300]
+            if exc.code == 401:
+                raise AdapterError("bach_control_unauthorized", detail or "Control-API-Token fehlt oder ungültig") from exc
+            if exc.code == 403:
+                raise AdapterError("bach_control_forbidden", detail) from exc
+            if exc.code == 404:
+                raise AdapterError("bach_control_not_found", detail) from exc
+            if exc.code == 409:
+                raise AdapterError("bach_control_conflict", detail) from exc
+            raise AdapterError("bach_control_error", f"{exc.code} {path}: {detail}") from exc
+        except (urllib.error.URLError, OSError, TimeoutError) as exc:
+            raise AdapterError("bach_control_unreachable", f"{url}: {exc}") from exc
+        try:
+            return json.loads(body) if body.strip() else {}
+        except json.JSONDecodeError as exc:
+            raise AdapterError("bach_control_bad_json", body[:200]) from exc
 
     # ------------------------------------------------------------------
     # CLI-Transport (Agenten, Zuweisung)
@@ -335,3 +424,77 @@ class BachAdapter(BaseAdapter):
             "prompts": prompts,
             "boards": [],
         }
+
+    # ------------------------------------------------------------------
+    # Control-API (:8081) — Slots, Workers, Activity (T-20260926-652455601)
+    # ------------------------------------------------------------------
+    def control_status(self) -> dict:
+        """Liest den globalen Status der Control-API (/api/status)."""
+        return self._control("/api/status")
+
+    def control_readiness(self, chat_id: str = "api-delegate") -> dict:
+        """Prüft Backend-Verfügbarkeit für eine Session/Worker (/api/readiness)."""
+        return self._control(f"/api/readiness?chat_id={urllib.parse.quote(chat_id)}")
+
+    def control_slots(self) -> dict:
+        """Liest Slots und dynamische Worker (/api/slots)."""
+        return self._control("/api/slots")
+
+    def control_workers(self) -> list[dict]:
+        """Liest dynamische Worker (/api/workers)."""
+        data = self._control("/api/workers")
+        if isinstance(data, list):
+            return data
+        return data.get("workers", [])
+
+    def control_activity(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        source: list[str] | None = None,
+        status: list[str] | None = None,
+        since: str | None = None,
+        until: str | None = None,
+        order: str = "desc",
+    ) -> list[dict]:
+        """Liest Aktivitätshistorie mit Filterung (/api/activity)."""
+        params = [f"limit={limit}", f"offset={offset}", f"order={order}"]
+        if source:
+            params.append("source=" + urllib.parse.quote(",".join(source)))
+        if status:
+            params.append("status=" + urllib.parse.quote(",".join(status)))
+        if since:
+            params.append("since=" + urllib.parse.quote(since))
+        if until:
+            params.append("until=" + urllib.parse.quote(until))
+        query = "&".join(params)
+        data = self._control(f"/api/activity?{query}")
+        if isinstance(data, list):
+            return data
+        return data.get("history", [])
+
+    def control_create_worker(self, payload: dict) -> dict:
+        """Erstellt einen neuen dynamischen Worker (/api/workers POST)."""
+        return self._control("/api/workers", method="POST", payload=payload)
+
+    def control_delete_worker(self, worker_id: str) -> dict:
+        """Löscht einen dynamischen Worker (/api/workers/delete POST)."""
+        return self._control("/api/workers/delete", method="POST", payload={"id": worker_id})
+
+    def control_toggle_worker(self, worker_id: str, status: str | None = None) -> dict:
+        """Pausiert/Reaktiviert einen Worker (/api/workers/toggle POST)."""
+        payload: dict[str, str] = {"id": worker_id}
+        if status:
+            payload["status"] = status
+        return self._control("/api/workers/toggle", method="POST", payload=payload)
+
+    def control_stop_worker(self, worker_id: str) -> dict:
+        """Stoppt einen Worker (/api/workers/stop POST)."""
+        return self._control("/api/workers/stop", method="POST", payload={"id": worker_id})
+
+    def control_run_worker(self, worker_id: str, prompt: str | None = None) -> dict:
+        """Startet einen Worker-Lauf (/api/workers/run POST)."""
+        payload: dict[str, str] = {"id": worker_id}
+        if prompt:
+            payload["prompt"] = prompt
+        return self._control("/api/workers/run", method="POST", payload=payload)
