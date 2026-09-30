@@ -1,6 +1,6 @@
 # Optionaler Consumer der neutralen Activity-Schale
 
-session: 01a0f189-21d6-7851-a075-0aab0e3ebe77 | codex-gui-program@ASUS-GEI | 2026-09-30
+Stand des lokalen Integrationsnachweises: 30.09.2026.
 
 Die bisherigen `create_app()`- und `mount()`-Funktionen bleiben die Lite-GUI.
 Die BACH-stämmige Vollschale liegt in einem getrennten Paket; zunächst ist nur
