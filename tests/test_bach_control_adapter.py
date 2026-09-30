@@ -424,7 +424,21 @@ def test_probe_request_timeouts_share_total_budget(monkeypatch):
     adapter = BachAdapter(BachConfig(bach_root="/missing", rest_timeout_s=10,
                                     control_timeout_s=10, control_token="test-token"))
     monkeypatch.setattr(adapter, "PROBE_BUDGET_S", 0.15)
+    elapsed = [0.0]
     timeouts = []
+
+    class ImmediateThread:
+        """Deterministic scheduler; the separate stall test covers real threads."""
+
+        def __init__(self, *, target, args, daemon):
+            self.target = target
+            self.args = args
+
+        def start(self):
+            self.target(*self.args)
+
+    monkeypatch.setattr(threading, "Thread", ImmediateThread)
+    monkeypatch.setattr(time, "monotonic", lambda: elapsed[0])
 
     class Response:
         def __enter__(self):
@@ -434,22 +448,34 @@ def test_probe_request_timeouts_share_total_budget(monkeypatch):
             pass
 
         def read(self):
-            return b'{"service":"bach-chat-control","slots":{},"history":[]}'
+            return b'{"service":"bach-chat-control","slots":{},"history":[],"authenticated":true}'
 
     def request(req, timeout=None):
-        timeouts.append(timeout)
-        time.sleep(0.03)
+        timeouts.append((req.full_url, timeout))
+        elapsed[0] += 0.03
         return Response()
 
     monkeypatch.setattr(urllib.request, "urlopen", request)
     monkeypatch.setattr(adapter._control_opener, "open", request)
-    started = time.monotonic()
-    adapter.probe()
-    assert time.monotonic() - started < 0.8
-    assert len(timeouts) >= 4
-    # Subtraction of the large monotonic timestamp can round a deadline up.
-    assert all(0 < timeout <= 0.151 for timeout in timeouts), timeouts
-    assert timeouts[-1] < 0.1
+    caps = adapter.probe()
+    assert Capability.CONTROL_WORKERS_RW in caps
+    assert [url for url, _ in timeouts] == [
+        "http://127.0.0.1:8000/api/status",
+        "http://127.0.0.1:8081/api/status",
+        "http://127.0.0.1:8081/api/slots",
+        "http://127.0.0.1:8081/api/activity?limit=0",
+        "http://127.0.0.1:8081/api/auth/check",
+    ]
+    assert [timeout for _, timeout in timeouts] == pytest.approx([0.15, 0.12, 0.09, 0.06, 0.03])
+
+    # Exhaustion must reject the next request before the transport is called.
+    adapter._probe_context.deadline = elapsed[0]
+    try:
+        with pytest.raises(AdapterError, match="bach_probe_timeout"):
+            adapter.control_status()
+        assert len(timeouts) == 5
+    finally:
+        del adapter._probe_context.deadline
 
 
 @pytest.mark.parametrize("body", [b'42', b'"text"', b'{"ok":false}', b'{"error":"denied"}'])
