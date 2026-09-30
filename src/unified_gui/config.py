@@ -84,6 +84,7 @@ DISCOVERY_DEFAULTS = {
     # so this currently resolves to None (visibly warned) rather than a wrong
     # OneDrive guess; fixing that manifest is a separate, different-repo task.
     ("bach", "bach_root"): "~/OneDrive/.TOPICS/.AI/.OS/BACH",
+    ("bach", "control_url"): "http://127.0.0.1:8081",
     ("scanner_tasks", "db_path"): scanner_db_default,
     ("scanner_tasks", "tool_path"): "~/OneDrive/.TOPICS/_control-center/_tasks/_tool/scanner_tasks.py",
     ("clutch", "module_id"): "clutch",
@@ -318,6 +319,11 @@ class BachConfig:
     # BACH-GUI-Server (Scheduler/Tasks/Prompts via REST).
     rest_url: str = "http://127.0.0.1:8000"
     rest_timeout_s: float = 1.5
+    # BACH-Control-API (Slots/Workers/Activity via :8081).
+    control_url: str = "http://127.0.0.1:8081"
+    control_timeout_s: float = 2.0
+    control_token: str | None = None
+    control_token_file: str | None = None
     # CLI-Aufrufe (Agenten) dauern wegen BACH-Startup-Hooks Sekunden.
     cli_timeout_s: float = 120.0
     python_exe: str | None = None
@@ -465,6 +471,8 @@ class UnifiedGuiConfig:
         dc = data.get("decisions") or {}
         bc = data.get("bach") or {}
         sc = data.get("scanner_tasks") or {}
+        rest_url = bc.get("rest_url", "http://127.0.0.1:8000")
+        default_control_url = "http://127.0.0.1:1" if rest_url == "http://127.0.0.1:1" else "http://127.0.0.1:8081"
         return cls(
             title=data.get("title", "Unified GUI"),
             local_only=bool(data.get("local_only", True)),
@@ -491,8 +499,12 @@ class UnifiedGuiConfig:
             ),
             bach=BachConfig(
                 bach_root=_expand(bc.get("bach_root")),
-                rest_url=bc.get("rest_url", "http://127.0.0.1:8000"),
+                rest_url=rest_url,
                 rest_timeout_s=float(bc.get("rest_timeout_s", 1.5)),
+                control_url=bc.get("control_url") or default_control_url,
+                control_timeout_s=float(bc.get("control_timeout_s", 2.0)),
+                control_token=bc.get("control_token"),
+                control_token_file=_expand(bc.get("control_token_file")),
                 cli_timeout_s=float(bc.get("cli_timeout_s", 120.0)),
                 python_exe=_expand(bc.get("python_exe")),
             ),
@@ -587,6 +599,9 @@ def _apply_env(data: dict) -> None:
         ENV_PREFIX + "WATCHER_URL": ("lock_master", "watcher_url"),
         ENV_PREFIX + "BACH_ROOT": ("bach", "bach_root"),
         ENV_PREFIX + "BACH_URL": ("bach", "rest_url"),
+        ENV_PREFIX + "BACH_CONTROL_URL": ("bach", "control_url"),
+        ENV_PREFIX + "BACH_CONTROL_TOKEN": ("bach", "control_token"),
+        ENV_PREFIX + "BACH_CONTROL_TOKEN_FILE": ("bach", "control_token_file"),
         ENV_PREFIX + "SCANNER_DB": ("scanner_tasks", "db_path"),
         ENV_PREFIX + "SCANNER_TOOL": ("scanner_tasks", "tool_path"),
     }

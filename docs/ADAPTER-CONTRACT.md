@@ -48,9 +48,31 @@ class BaseAdapter(Protocol):
 | `CHAT_RUNTIME` | eine Anfrage über die konfigurierte Chat-Runtime beantworten | ellmos-chat |
 | `MESSAGES_RW` | Auftragsnachrichten anlegen/lesen/markieren/archivieren (BACH-REST `/api/messages*`, dort `assistant_core.MessageStore`) | BACH |
 | `ROLES_CATALOG` | modul-eigene `roles[]` read-only für Konsolenstart auflösen | Modulmanifest oder generierter Rollenkatalog |
+| `CONTROL_API` | Control-API-Verbindung (:8081) und Status vorhanden | BACH `telegram_chat.py::ControlHandler` |
+| `CONTROL_SLOTS_RO` | Slot- und Dynamic-Worker-Konfiguration lesen (`/api/slots`) | BACH Control-API |
+| `CONTROL_WORKERS_RW` | Worker steuern/starten/stoppen/löschen (`/api/workers*`), nur nach guardgeschütztem Auth-Nachweis | BACH Control-API |
+| `CONTROL_ACTIVITY_RO` | Aktivitätshistorie lesen und filtern (`/api/activity`) | BACH Control-API |
 
 Regeln: Enum ist **additiv** (nie umbenennen/loeschen). Ein Adapter meldet nur, was
 er JETZT wirklich bedienen kann (kein "geplant").
+
+Der BACH-Adapter prüft REST, Control-API und CLI parallel mit einem gemeinsamen
+Zeitbudget von 1,8 Sekunden. Jede Netzwerkprobe erhält höchstens die verbleibende
+Zeit. Späte Antworten verändern den veröffentlichten Capability-/Health-Stand
+nicht. Ein öffentlicher `/api/status`-Erfolg beweist nur die Control-Verbindung:
+die Antwort muss `service=bach-chat-control` tragen. Slots und Activity brauchen
+zusätzlich erfolgreiche Leserouten mit passendem Antwortschema.
+
+`CONTROL_WORKERS_RW` erfordert einen konfigurierten Token und einen erfolgreichen,
+nebenwirkungsfreien `GET /api/auth/check`. Der BACH-Server prüft dort denselben
+Bearer-/Origin-Guard wie vor Worker-Schreibaktionen und antwortet
+`{"service":"bach-chat-control","authenticated":true}`. Fehlende oder falsche
+Tokens, ein fehlender Endpoint (älteres Backend), Fehler und unpassende Antworten
+lassen den Adapter im Lesebetrieb. Die Probe startet, stoppt oder verändert keinen
+Worker. Jede spätere Schreibaktion wird erneut vom Backend autorisiert; der
+Handshake ersetzt weder den Befehlsvertrag noch die Rechteprüfung der Oberfläche.
+Control-Requests folgen keinen HTTP-Redirects, damit Token und Worker-Befehle
+ihren konfigurierten Empfänger behalten.
 
 ## 3. Domänen-Mixins
 
@@ -122,6 +144,23 @@ class DecisionsIndex(Protocol):
     def scopes(self) -> list[str]
     def decide(self, key, choice, note="") -> dict       # nur DECISIONS_RW
     def create(self, title, **fields) -> dict             # nur DECISIONS_RW
+
+class ControlApiProvider(Protocol):
+    # CONTROL_API, CONTROL_SLOTS_RO, CONTROL_WORKERS_RW, CONTROL_ACTIVITY_RO
+    def control_status(self) -> dict
+    def control_readiness(self, chat_id: str = "api-delegate") -> dict
+    def control_slots(self) -> dict
+    def control_workers(self) -> list[dict]
+    def control_activity(self, limit: int = 50, offset: int = 0,
+                         source: list[str] | None = None,
+                         status: list[str] | None = None,
+                         since: str | None = None, until: str | None = None,
+                         order: str = "desc") -> list[dict]
+    def control_create_worker(self, payload: dict) -> dict
+    def control_delete_worker(self, worker_id: str) -> dict
+    def control_toggle_worker(self, worker_id: str, status: str | None = None) -> dict
+    def control_stop_worker(self, worker_id: str) -> dict
+    def control_run_worker(self, worker_id: str, prompt: str | None = None) -> dict
 ```
 
 ## 4. Routine-Bindings (P6 — Routine an Modell/Rolle/Skills knüpfen)

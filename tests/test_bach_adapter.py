@@ -40,7 +40,8 @@ def test_extract_json_none_raises():
 
 def test_probe_all_absent():
     adapter = BachAdapter(BachConfig(bach_root="/nonexistent",
-                                     rest_url="http://127.0.0.1:1", rest_timeout_s=0.2))
+                                     rest_url="http://127.0.0.1:1", rest_timeout_s=0.2,
+                                     control_url="http://127.0.0.1:1", control_timeout_s=0.2))
     assert adapter.probe() == set()
     assert adapter.health().status == "offline"
 
@@ -50,8 +51,10 @@ def test_probe_cli_only(tmp_path):
     system.mkdir()
     (system / "bach.py").write_text("# stub", encoding="utf-8")
     adapter = BachAdapter(BachConfig(bach_root=str(tmp_path),
-                                     rest_url="http://127.0.0.1:1", rest_timeout_s=0.2))
+                                     rest_url="http://127.0.0.1:1", rest_timeout_s=0.2,
+                                     control_url="http://127.0.0.1:1", control_timeout_s=0.2))
     caps = adapter.probe()
     assert "agent.dispatch" in {c.value for c in caps}
     assert "scheduler.rw" not in {c.value for c in caps}
+    assert "control.api" not in {c.value for c in caps}
     assert adapter.health().status == "degraded"
