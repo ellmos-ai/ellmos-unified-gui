@@ -1,9 +1,9 @@
-# ENTWURF, nicht aktiviert/veröffentlicht. Außerhalb .github/workflows.
-# Der SHA ist der unabhängig lokal geprüfte BACH-Shell-Stand; öffentliche
-# Erreichbarkeit ist noch nicht bestätigt. Erst nach PR-/Integrationsreadback
-# den endgültigen unveränderlichen Pin prüfen und diesen Job aktivieren.
-name: Prepared optional shell consumer
+# Public source pin: BACH PR177 merged; independent reviewed source tree.
+# This dedicated package-consumer gate leaves the Lite CI unchanged.
+name: Control shell consumer
 on:
+  push:
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      BACH_SHELL_COMMIT: 973e8c0edd178ca04deee47658d67a389e19a543
+      BACH_SHELL_COMMIT: a15ade88e17a005cab98d2fe4e81aea5194cf5e5
       UNIFIED_GUI_REQUIRE_CONTROL_SHELL: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,15 +34,18 @@ jobs:
           [[ "$BACH_SHELL_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           test "$(git -C bach-shell-source rev-parse HEAD)" = "$BACH_SHELL_COMMIT"
       - name: Install GUI tools and only the independent stdlib shell package
+        shell: bash
         run: |
           python -m pip install "setuptools>=77" wheel -e ".[dev]"
-          python -m pip install --no-deps --no-build-isolation ./bach-shell-source/system/ocean_gui_shell
+          python -m pip install --no-deps --no-build-isolation "git+https://github.com/ellmos-ai/bach.git@${BACH_SHELL_COMMIT}#subdirectory=system/ocean_gui_shell"
       - name: Require installed package and real mount plus BACH consumer parity
         shell: bash
         run: |
           python - <<'PY'
-          from importlib.metadata import requires
+          from importlib.metadata import distribution, requires
           from pathlib import Path
+          import json
+          import os
           import sys
           import xml.etree.ElementTree as ET
           import ocean_gui_shell
@@ -52,6 +55,9 @@ jobs:
           installed = Path(ocean_gui_shell.__file__).resolve()
           assert source not in installed.parents, "source import replaced installed package"
           assert not requires("ocean-gui-shell"), "shell added runtime dependencies"
+          provenance = json.loads(distribution("ocean-gui-shell").read_text("direct_url.json"))
+          assert provenance["vcs_info"]["commit_id"] == os.environ["BACH_SHELL_COMMIT"]
+          assert provenance["subdirectory"] == "system/ocean_gui_shell"
           assert not any(name == "gui" or name.startswith(("gui.", "hub", "bach")) for name in sys.modules)
           # Import the verified branding wrapper explicitly. Its neutral import
           # uses the already imported installed package, never its source copy.

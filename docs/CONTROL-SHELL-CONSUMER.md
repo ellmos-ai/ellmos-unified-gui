@@ -43,19 +43,26 @@ echten neutralen Integrationsfälle werden ausdrücklich übersprungen.
 Es findet keine automatische Suche nach einem BACH-Checkout statt.
 
 Mit `UNIFIED_GUI_REQUIRE_CONTROL_SHELL=1` werden fehlende neutrale Pakete
-oder BACH-Consumer zu Fehlern. Der vorbereitete Job in
-`CONTROL-SHELL-CI-PIN-DRAFT.yml` prüft den genauen Quellcommit, installiert
+oder BACH-Consumer zu Fehlern. Der dedizierte Job in
+`.github/workflows/control-shell.yml` prüft den genauen Quellcommit, installiert
 ausschließlich das unabhängige Paket ohne BACH-Runtime-Abhängigkeiten und
 verlangt elf tatsächlich ausgeführte Tests ohne Skip. Das installierte Paket
 wird vor dem ausdrücklich geladenen BACH-Branding-Consumer importiert; eine
 Quellkopie darf den Installationsnachweis nicht ersetzen.
 
-Dieser Job ist ein **inaktiver, nicht veröffentlichter Entwurf**. Sein
-SHA `973e8c0edd178ca04deee47658d67a389e19a543` wurde unabhängig lokal geprüft,
-ist aber noch kein bestätigter öffentlicher Paketpin. Vor Aktivierung sind
-der tatsächliche BACH-Shell-PR, dessen Integration und die Erreichbarkeit des
-endgültigen unveränderlichen Commits erneut zu belegen. Der bestehende
-Lite-CI-Workflow bleibt unverändert.
+Der frühere inaktive Entwurf wurde nach dem tatsächlichen Merge von BACH
+PR177 am 30.09.2026 auf den öffentlich erreichbaren unveränderlichen SHA
+`a15ade88e17a005cab98d2fe4e81aea5194cf5e5` festgelegt. Installationspin:
+
+```text
+git+https://github.com/ellmos-ai/bach.git@a15ade88e17a005cab98d2fe4e81aea5194cf5e5#subdirectory=system/ocean_gui_shell
+```
+
+Der Job läuft bei Push, Pull Request und manuellem Workflowaufruf. Checkout
+und installierte VCS-Metadaten müssen denselben Commit und ausschließlich
+das neutrale Paket bestätigen. Der bestehende Lite-CI-Workflow bleibt
+unverändert. Die Aktivierung ist lokal vorbereitet; Veröffentlichung und
+echte GUI-CI-Ausführung bleiben bis zur unabhängigen Integration offen.
 
 Lokaler Autorencheck vom 30.09.2026: Das separat gebaute geprüfte Wheel
 `ocean_gui_shell-0.1.0-py3-none-any.whl` (SHA256
@@ -70,6 +77,17 @@ erwartet mit **RC 1, acht bestanden und drei Importfehlern, null Skips**.
 Das ist ein lokaler Gegenbeleg zum unbeabsichtigt grünen Integrationslauf,
 kein Nachweis ausgeführter GitHub-CI. Ruff, YAML-Parse und unveränderter
 aktiver Lite-Workflow wurden ebenfalls geprüft.
+
+Nach PR177-Merge wurde der öffentliche Git-Pin zusätzlich tatsächlich mit
+`--no-deps --no-build-isolation` in einer frischen isolierten Temp-venv
+installiert. VCS-Metadaten bestätigen exakt `a15ade88e17a005cab98d2fe4e81aea5194cf5e5`
+und `system/ocean_gui_shell`; Paketmetadaten enthalten keine Runtime-Deps.
+Ein separater `python -I`-Import-/Renderlauf lud keine BACH-/GUI-/Backendmodule.
+Die installierten drei Code-/Resource-Dateien stimmen bytegleich mit dem
+öffentlichen Commit überein. Der tatsächliche Python-Teil des neuen Jobs
+bestand lokal **11 Tests in 2.14s, null Skips/Fehler** gegen dieses installierte
+Paket und die unveränderten Branding-Dateien desselben Pins. Nur lokale
+Fixture-/JUnit-Pfade wurden dafür angepasst; dies ist keine GitHub-CI-Abnahme.
 
 Der Abgleich von PR164, der genaue Backend-Vertrag und die Restgates stehen
 im BACH-Delta unter `docs/REVIEW-T652-SHELL-EXTRACTION-20260930.md` und
