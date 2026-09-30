@@ -14,8 +14,10 @@ probe() bleibt schnell: REST mit kurzem Timeout, CLI nur per Dateisystem-Check
 from __future__ import annotations
 
 import json
+import queue
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -25,6 +27,13 @@ from pathlib import Path
 from ..capabilities import Capability, HealthInfo
 from ..config import BachConfig
 from .base import AdapterError, BaseAdapter
+
+
+class _NoControlRedirect(urllib.request.HTTPRedirectHandler):
+    """Never forward a device token or worker command through a redirect."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, "Control-API redirect rejected", headers, fp)
 
 
 def extract_json(text: str):
@@ -56,6 +65,7 @@ def extract_json(text: str):
 class BachAdapter(BaseAdapter):
     name = "bach"
     label = "BACH (Agenten, Tasks, Routinen, Prompts)"
+    PROBE_BUDGET_S = 1.8
 
     def __init__(self, config: BachConfig | None = None) -> None:
         self.config = config or BachConfig()
@@ -63,6 +73,8 @@ class BachAdapter(BaseAdapter):
         self._rest_latency_ms: int | None = None
         self._control_ok = False
         self._control_latency_ms: int | None = None
+        self._probe_context = threading.local()
+        self._control_opener = urllib.request.build_opener(_NoControlRedirect())
 
     # ------------------------------------------------------------------
     # Vertrag
@@ -79,38 +91,56 @@ class BachAdapter(BaseAdapter):
         return None
 
     def probe(self) -> set[Capability]:
+        """Probe all transports within one deadline; publish only completed results."""
         caps: set[Capability] = set()
-        try:
-            self._rest_ok = self._probe_rest()
-        except Exception:  # noqa: BLE001 — probe wirft nie
-            self._rest_ok = False
-        if self._rest_ok:
-            caps |= {
-                Capability.SCHEDULER_RW,
-                Capability.TASKS_RO,
-                Capability.PROMPTS_RW,
-                Capability.PROMPTS_VERSIONS,
-                Capability.PROMPTS_IMPORT,
-                Capability.MESSAGES_RW,
-            }
-        try:
-            self._control_ok = self._probe_control()
-        except Exception:  # noqa: BLE001 — probe wirft nie
-            self._control_ok = False
-        if self._control_ok:
-            caps |= {
-                Capability.CONTROL_API,
-                Capability.CONTROL_SLOTS_RO,
-                Capability.CONTROL_WORKERS_RW,
-                Capability.CONTROL_ACTIVITY_RO,
-            }
-        try:
-            if self._system_dir() is not None:
+        deadline = time.monotonic() + self.PROBE_BUDGET_S
+        results: queue.Queue = queue.Queue()
+
+        def measure(name, operation):
+            started = time.monotonic()
+            self._probe_context.deadline = deadline
+            try:
+                result = operation()
+            except Exception:  # noqa: BLE001 — probe never throws
+                result = None
+            finally:
+                del self._probe_context.deadline
+            results.put((name, result, int((time.monotonic() - started) * 1000)))
+
+        self._rest_ok = self._control_ok = False
+        self._rest_latency_ms = self._control_latency_ms = None
+        operations = {"rest": self._probe_rest, "control": self._probe_control,
+                      "cli": self._system_dir}
+        for name, operation in operations.items():
+            threading.Thread(target=measure, args=(name, operation), daemon=True).start()
+        for _ in operations:
+            try:
+                name, result, latency = results.get(timeout=max(0, deadline - time.monotonic()))
+            except queue.Empty:
+                break
+            if name == "rest" and result:
+                self._rest_ok = True
+                self._rest_latency_ms = latency
+                caps |= {Capability.SCHEDULER_RW, Capability.TASKS_RO,
+                         Capability.PROMPTS_RW, Capability.PROMPTS_VERSIONS,
+                         Capability.PROMPTS_IMPORT, Capability.MESSAGES_RW}
+            elif name == "control" and result:
+                self._control_ok = Capability.CONTROL_API in result
+                self._control_latency_ms = latency
+                caps |= result
+            elif name == "cli" and result is not None:
                 caps |= {Capability.AGENT_DISPATCH, Capability.AGENT_STEER,
                          Capability.TASKS_ASSIGN}
-        except Exception:  # noqa: BLE001
-            pass
         return caps
+
+    def _request_timeout(self, configured: float) -> float:
+        deadline = getattr(self._probe_context, "deadline", None)
+        timeout = float(configured)
+        if deadline is not None:
+            timeout = min(timeout, deadline - time.monotonic())
+        if timeout <= 0:
+            raise AdapterError("bach_probe_timeout", "Probe-Zeitbudget aufgebraucht")
+        return timeout
 
     def health(self) -> HealthInfo:
         cli = self._system_dir() is not None
@@ -138,12 +168,10 @@ class BachAdapter(BaseAdapter):
     # REST-Transport
     # ------------------------------------------------------------------
     def _probe_rest(self) -> bool:
-        started = time.time()
         try:
             self._rest("/api/status")
         except AdapterError:
             return False
-        self._rest_latency_ms = int((time.time() - started) * 1000)
         return True
 
     def _rest(self, path: str, method: str = "GET", payload: dict | None = None):
@@ -153,7 +181,7 @@ class BachAdapter(BaseAdapter):
         if data is not None:
             request.add_header("Content-Type", "application/json")
         try:
-            with urllib.request.urlopen(request, timeout=self.config.rest_timeout_s) as response:
+            with urllib.request.urlopen(request, timeout=self._request_timeout(self.config.rest_timeout_s)) as response:
                 body = response.read().decode("utf-8", errors="replace")
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:300]
@@ -192,14 +220,36 @@ class BachAdapter(BaseAdapter):
                 pass
         return None
 
-    def _probe_control(self) -> bool:
-        started = time.time()
+    def _probe_control(self) -> set[Capability]:
+        caps: set[Capability] = set()
         try:
-            self._control("/api/status")
+            status = self._control("/api/status")
         except AdapterError:
-            return False
-        self._control_latency_ms = int((time.time() - started) * 1000)
-        return True
+            return caps
+        if not isinstance(status, dict) or status.get("service") != "bach-chat-control":
+            return caps
+        caps.add(Capability.CONTROL_API)
+        for path, field, expected, capability in (
+            ("/api/slots", "slots", dict, Capability.CONTROL_SLOTS_RO),
+            ("/api/activity?limit=0", "history", list, Capability.CONTROL_ACTIVITY_RO),
+        ):
+            try:
+                response = self._control(path)
+                if isinstance(response, dict) and isinstance(response.get(field), expected):
+                    caps.add(capability)
+            except AdapterError:
+                pass
+        # Public status is not evidence of permission to mutate workers. This
+        # guard-protected GET validates the token without touching any worker.
+        if self._resolve_control_token():
+            try:
+                auth = self._control("/api/auth/check")
+                if (isinstance(auth, dict) and auth.get("service") == "bach-chat-control"
+                        and auth.get("authenticated") is True):
+                    caps.add(Capability.CONTROL_WORKERS_RW)
+            except AdapterError:
+                pass
+        return caps
 
     def _control(self, path: str, method: str = "GET", payload: dict | None = None):
         url = self.config.control_url.rstrip("/") + path
@@ -211,7 +261,7 @@ class BachAdapter(BaseAdapter):
         if token:
             request.add_header("Authorization", f"Bearer {token}")
         try:
-            with urllib.request.urlopen(request, timeout=self.config.control_timeout_s) as response:
+            with self._control_opener.open(request, timeout=self._request_timeout(self.config.control_timeout_s)) as response:
                 body = response.read().decode("utf-8", errors="replace")
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:300]
@@ -227,9 +277,14 @@ class BachAdapter(BaseAdapter):
         except (urllib.error.URLError, OSError, TimeoutError) as exc:
             raise AdapterError("bach_control_unreachable", f"{url}: {exc}") from exc
         try:
-            return json.loads(body) if body.strip() else {}
+            result = json.loads(body) if body.strip() else {}
         except json.JSONDecodeError as exc:
             raise AdapterError("bach_control_bad_json", body[:200]) from exc
+        if not isinstance(result, (dict, list)) or (method != "GET" and not isinstance(result, dict)):
+            raise AdapterError("bach_control_bad_json", "Unerwartetes Antwortformat")
+        if isinstance(result, dict) and (result.get("ok") is False or result.get("error")):
+            raise AdapterError("bach_control_error", str(result.get("error") or "Anfrage abgelehnt"))
+        return result
 
     # ------------------------------------------------------------------
     # CLI-Transport (Agenten, Zuweisung)
