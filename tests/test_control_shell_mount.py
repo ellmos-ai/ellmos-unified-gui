@@ -1,6 +1,7 @@
 """Optional shared shell mount: no backend calls, per-app state and parity."""
 import builtins
 import importlib
+import os
 import sys
 
 import pytest
@@ -57,7 +58,34 @@ def test_rw_requires_explicit_backend():
 @pytest.fixture
 def neutral():
     # Explicit PYTHONPATH or an installed independent package, never discovery of BACH.
-    return pytest.importorskip("ocean_gui_shell")
+    return optional_consumer_module("ocean_gui_shell")
+
+
+def optional_consumer_module(name):
+    if os.environ.get("UNIFIED_GUI_REQUIRE_CONTROL_SHELL") == "1":
+        return importlib.import_module(name)
+    return pytest.importorskip(name)
+
+
+@pytest.mark.parametrize("name", ["ocean_gui_shell", "gui.activity_dashboard"])
+def test_required_consumer_missing_dependency_fails(monkeypatch, name):
+    monkeypatch.setenv("UNIFIED_GUI_REQUIRE_CONTROL_SHELL", "1")
+
+    def missing(module_name):
+        raise ModuleNotFoundError(module_name)
+
+    monkeypatch.setattr(importlib, "import_module", missing)
+    monkeypatch.setattr(pytest, "importorskip", lambda *args: pytest.fail("required CI attempted skip"))
+    with pytest.raises(ModuleNotFoundError, match=name):
+        optional_consumer_module(name)
+
+
+@pytest.mark.parametrize("name", ["ocean_gui_shell", "gui.activity_dashboard"])
+def test_lite_keeps_explicit_optional_consumer(monkeypatch, name):
+    monkeypatch.delenv("UNIFIED_GUI_REQUIRE_CONTROL_SHELL", raising=False)
+    marker = object()
+    monkeypatch.setattr(pytest, "importorskip", lambda module_name: marker if module_name == name else None)
+    assert optional_consumer_module(name) is marker
 
 
 def test_real_neutral_mount_standalone_parity(neutral):
@@ -82,10 +110,7 @@ def test_real_mount_navigation_and_rw_configuration(neutral):
 
 
 def test_real_bach_consumer_parity(neutral):
-    try:
-        bach = importlib.import_module("gui.activity_dashboard")
-    except ImportError:
-        pytest.skip("BACH source consumer not supplied to this explicit integration run")
+    bach = optional_consumer_module("gui.activity_dashboard")
     host = FastAPI()
     mount_control_shell(host, "/bach", branding=bach.DEFAULT_BRANDING,
                         control_api="/api", read_only=False)

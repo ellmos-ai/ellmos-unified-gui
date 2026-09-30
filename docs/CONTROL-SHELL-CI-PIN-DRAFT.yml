@@ -1,0 +1,67 @@
+# ENTWURF, nicht aktiviert/veröffentlicht. Außerhalb .github/workflows.
+# Der SHA ist der unabhängig lokal geprüfte BACH-Shell-Stand; öffentliche
+# Erreichbarkeit ist noch nicht bestätigt. Erst nach PR-/Integrationsreadback
+# den endgültigen unveränderlichen Pin prüfen und diesen Job aktivieren.
+name: Prepared optional shell consumer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  shell-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BACH_SHELL_COMMIT: 973e8c0edd178ca04deee47658d67a389e19a543
+      UNIFIED_GUI_REQUIRE_CONTROL_SHELL: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Check out the exact reviewed package source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ellmos-ai/bach
+          ref: ${{ env.BACH_SHELL_COMMIT }}
+          path: bach-shell-source
+          persist-credentials: false
+      - name: Verify immutable source identity
+        shell: bash
+        run: |
+          [[ "$BACH_SHELL_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C bach-shell-source rev-parse HEAD)" = "$BACH_SHELL_COMMIT"
+      - name: Install GUI tools and only the independent stdlib shell package
+        run: |
+          python -m pip install "setuptools>=77" wheel -e ".[dev]"
+          python -m pip install --no-deps --no-build-isolation ./bach-shell-source/system/ocean_gui_shell
+      - name: Require installed package and real mount plus BACH consumer parity
+        shell: bash
+        run: |
+          python - <<'PY'
+          from importlib.metadata import requires
+          from pathlib import Path
+          import sys
+          import xml.etree.ElementTree as ET
+          import ocean_gui_shell
+          import pytest
+
+          source = Path("bach-shell-source").resolve()
+          installed = Path(ocean_gui_shell.__file__).resolve()
+          assert source not in installed.parents, "source import replaced installed package"
+          assert not requires("ocean-gui-shell"), "shell added runtime dependencies"
+          assert not any(name == "gui" or name.startswith(("gui.", "hub", "bach")) for name in sys.modules)
+          # Import the verified branding wrapper explicitly. Its neutral import
+          # uses the already imported installed package, never its source copy.
+          sys.path.insert(0, str(source / "system"))
+          result = pytest.main(["tests/test_control_shell_mount.py", "-q", "--junitxml=control-shell.xml"])
+          assert result == 0, "required consumer tests failed"
+          report = ET.parse("control-shell.xml").getroot()
+          suites = list(report.iter("testsuite"))
+          assert suites and sum(int(s.get("tests", 0)) for s in suites) >= 11
+          assert all(int(s.get(field, 0)) == 0 for s in suites for field in ("skipped", "errors", "failures"))
+          assert Path(ocean_gui_shell.__file__).resolve() == installed
+          assert not any(name.startswith(("hub", "bach")) for name in sys.modules)
+          PY
