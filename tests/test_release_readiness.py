@@ -52,6 +52,7 @@ def test_release_hygiene_files_exist() -> None:
         ".github/workflows/ci.yml",
         ".github/workflows/codeql.yml",
         ".github/workflows/stale.yml",
+        ".github/workflows/control-shell.yml",
     )
     assert all((ROOT / relative).is_file() for relative in required)
     metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
@@ -130,3 +131,16 @@ def test_tracked_text_has_no_private_program_provenance() -> None:
             violations.append(str(path.relative_to(ROOT)))
 
     assert violations == []
+
+
+def test_ci_matrix_and_python_classifiers_align() -> None:
+    metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    classifiers = metadata.get("project", {}).get("classifiers", [])
+    py_versions = {
+        c.split("::")[-1].strip()
+        for c in classifiers
+        if c.startswith("Programming Language :: Python :: 3.")
+    }
+    ci_yaml = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    for ver in py_versions:
+        assert f'python-version: "{ver}"' in ci_yaml or f"python-version: '{ver}'" in ci_yaml

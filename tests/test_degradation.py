@@ -31,7 +31,8 @@ def test_index_ok_without_backends():
     assert "Kein Panel aktiv" in resp.text
 
 
-def test_status_reports_no_panels():
+def test_status_reports_no_panels(monkeypatch):
+    monkeypatch.setitem(sys.modules, "ellmos_core.web", None)
     client = TestClient(_app_without_backends())
     data = client.get("/api/status").json()
     assert data["panels"] == []

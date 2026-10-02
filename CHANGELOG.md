@@ -4,6 +4,11 @@
 
 ### Added
 
+- **Repository hygiene, test isolation & CI alignment contract tests (2026-10-02):**
+  - Isolated host-auth capability probe in `tests/test_degradation.py` via monkeypatching `sys.modules["ellmos_core.web"] = None` so `test_status_reports_no_panels` reliably passes in developer environments where `ellmos-core` is locally installed.
+  - Synchronized bilingual `README.md` and `README_de.md` status banners to reflect the current 280 collected tests across all 15 panels.
+  - Extended release readiness contract tests (`tests/test_release_readiness.py`) to verify required `.github/workflows/control-shell.yml` presence and validate that all Python versions declared in `project.classifiers` are exercised in the GitHub Actions CI matrix.
+
 - **Repository hygiene & PEP 621/639 hardening (2026-09-22):**
   - Removed deprecated `License :: OSI Approved :: MIT License` classifier from `pyproject.toml` to comply with PEP 639 license expression validation in setuptools >= 77 (fixing editable install & sdist build across CI matrix).
   - Configured `--basetemp=.pytest_tmp` in `tool.pytest.ini_options` and added `.pytest_tmp/` to `.gitignore` to prevent Windows file lock conflicts during tmpdir cleanup.

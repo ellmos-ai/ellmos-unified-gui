@@ -14,7 +14,7 @@ Oberfläche, gespeist aus den vorhandenen Backends. MIT-lizenziert.
 > eingebettet (`unified_gui.mount(app)`): P1 Prompts, P2 Agenten, P3 Modelle, P4 Routing,
 > P5 Berechtigungen, P6 Routinen, P7 Tasks, P8 Tickets, P9 Skills, P10 Entscheidungen,
 > P11 Skill-Wizard, P12 Races, P13 Chat, P14 Governance und P15 Nachrichten. Die Suite umfasst
-> 238 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
+> 280 Tests; umgebungsabhängige Integrationstests werden übersprungen, wenn das
 > optionale benachbarte Backend fehlt. Seit
 > 2026-08-18 real in `ellmos-core` eingehängt (`console_enabled` dort, siehe
 > `ellmos-core/src/ellmos_core/console.py`) — die frühere Lücke "mount()
