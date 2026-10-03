@@ -9,7 +9,7 @@ description = "Importable operator console for the ellmos/BACH ecosystem (capabi
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md"]
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_LICENSES.md", "THIRD_PARTY_LICENSES.txt"]
 authors = [{ name = "Lukas Geiger" }]
 keywords = [
     "ellmos",
@@ -22,6 +22,16 @@ keywords = [
     "multi-agent",
     "llm-console",
     "zero-egress",
+    "panel-host",
+    "modular-ui",
+    "bach",
+    "offline-first",
+    "ai-orchestration",
+    "open-bricks",
+    "ellmos-ai",
+    "python",
+    "desktop-app",
+    "gui",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -62,6 +72,11 @@ Repository = "https://github.com/ellmos-ai/ellmos-unified-gui"
 Documentation = "https://github.com/ellmos-ai/ellmos-unified-gui#readme"
 Issues = "https://github.com/ellmos-ai/ellmos-unified-gui/issues"
 Changelog = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/CHANGELOG.md"
+Security = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/SECURITY.md"
+Notice = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/NOTICE"
+"Third-Party Licenses" = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/THIRD_PARTY_LICENSES.md"
+"Third-Party Licenses (Text)" = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/THIRD_PARTY_LICENSES.txt"
+"Level 1 SBOM" = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/THIRD_PARTY_LICENSES.txt"
 "Parent Organization" = "https://github.com/ellmos-ai"
 "Umbrella Ecosystem" = "https://github.com/open-bricks"
 "Marketing Log" = "https://github.com/ellmos-ai/ellmos-unified-gui/blob/master/MARKETING-LOG.txt"

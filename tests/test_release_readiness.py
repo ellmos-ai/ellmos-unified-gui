@@ -58,7 +58,9 @@ def test_release_hygiene_files_exist() -> None:
     metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert metadata["project"]["license-files"] == [
         "LICENSE",
+        "NOTICE",
         "THIRD_PARTY_LICENSES.md",
+        "THIRD_PARTY_LICENSES.txt",
     ]
     manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
     assert "recursive-include docs *.md" in manifest

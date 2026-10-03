@@ -1,0 +1,54 @@
+# LEVEL 1 SOFTWARE BILL OF MATERIALS (SBOM) & Third-Party Licenses Inventory
+
+Project: ellmos Unified GUI (Importable Operator Console for the ellmos/BACH Ecosystem)
+Audited: 2026-10-03 against Level 1 SBOM and runtime invariants.
+License: MIT License (see LICENSE and NOTICE)
+Repository: https://github.com/ellmos-ai/ellmos-unified-gui
+Ecosystem: ellmos-ai (https://github.com/ellmos-ai)
+Umbrella Collective: open-bricks (https://github.com/open-bricks)
+
+## Project License & Attribution
+
+ellmos Unified GUI is authored by Lukas Geiger and licensed under the MIT License.
+See `LICENSE` and `NOTICE`.
+
+## Runtime Architecture & Dependencies
+
+ellmos Unified GUI does not vendor third-party source code or pre-built wheels. Python packages are resolved by the installer and remain under their own permissive licenses.
+
+| Package | Use | Declared Range | License | Type |
+|---|---|---:|---|---|
+| FastAPI | Runtime web application | >=0.110 | MIT | Web framework |
+| Jinja2 | Runtime HTML templates | >=3.1 | BSD-3-Clause | Template engine |
+| Uvicorn | Optional standalone server | >=0.27 | BSD-3-Clause | ASGI server |
+| build | Development/package build | >=1.2 | MIT | PEP 517 build frontend |
+| HTTPX | Development and tests | >=0.27 | BSD-3-Clause | HTTP client |
+| pytest | Test suite execution | >=8 | MIT | Test framework |
+| Ruff | Development linting & hygiene | >=0.12 | MIT | Fast linter |
+| tomli | Python 3.10 development compatibility | >=2 | MIT | TOML parser |
+| Twine | Distribution package validation | >=6 | Apache-2.0 | Release verification |
+
+## Repository Assets & Provenance
+
+- `assets/banner.png`: Tracked repository artwork generated for this project and carries no third-party source material. Provenance record: commit 772e389a562234f96c4c37cd5b2a4ca513e235b3 ("feat(banner): generate and embed missing banner image", 2026-07-30), authored by the project maintainer under the house convention [G]. Reused elsewhere it follows the repository license in LICENSE.
+- Code & Documentation: Includes AI-assisted contributions reviewed and edited by human maintainer Lukas Geiger.
+- Zero External CDN / Telemetry: Zero external tracking scripts, commercial analytics, or third-party web CDNs. HTMX is served locally via inline templates and static assets.
+
+## Zero-Copyleft Guarantee & Unprivileged Execution
+
+- Zero-Copyleft Isolation: All runtime and development components are governed exclusively by permissive licenses (MIT, BSD-3-Clause, Apache-2.0). The repository contains zero GPL, AGPL, or viral copyleft dependencies.
+- Unprivileged User-Mode Operation (RunAsInvoker): Unified GUI runs entirely in unprivileged user mode (`python -m unified_gui`, port 8990 loopback on 127.0.0.1). No administrative elevation, sudo, or root privileges are required for web serving, console CLI, or test execution.
+
+## Governance and Operational Invariants
+
+ellmos Unified GUI strictly adheres to ten foundational governance and runtime invariants:
+- INV-LOCAL-01: Network Privacy (100% Local-First / Zero-Egress: Server binds strictly to 127.0.0.1; zero outbound tracking, metrics, or telemetry)
+- INV-CANON-02: Data Ownership (Single Data Canon: No duplicate domain database; views and delegates directly to canonical backends)
+- INV-PROBE-03: Lifecycle (Dynamic Capability Probing: Panels activate only when probe() validates backend availability within 2s)
+- INV-AUDIT-04: Compliance (Append-Only JSONL Audit Trail: Every state-changing request [POST/PUT/PATCH/DELETE] is logged to ~/.ellmos/unified-gui/audit.jsonl)
+- INV-LOCK-05: Safety (Pre-Flight Permission and Lock Enforcement: Write routes check locks and permissions fail-closed via LOCK.permissions.json)
+- INV-INJECT-06: Security (Untrusted Content Protection: External strings are rendered exclusively via safe text assignments and escaped templates)
+- INV-MOUNT-07: Embedding (Dual-Mode Embedding Parity: Identical panel features available in standalone mode or mounted sub-app via mount())
+- INV-HOST-08: Portability (Host-Neutral Paths: Standardized ~ expansion and cascading hostname configurations in unified-gui.config.json)
+- INV-ZERO-09: Simplicity (Zero Frontend Build Overhead: Pure FastAPI + Jinja2 + HTMX; zero node/npm build dependencies)
+- INV-SLA-10: Security SLA (48-Hour Acknowledgment & 5-Day Triage: Formal incident response commitments for security reports under § 521 BGB Gefälligkeitsrecht)

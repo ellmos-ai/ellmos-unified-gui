@@ -1,5 +1,8 @@
 # Third-party licenses and provenance
 
+> Audited: 2026-10-03 against Level 1 SBOM and runtime invariants.
+> Plain-text companion: [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt). Project attribution: [NOTICE](NOTICE).
+
 This repository does not vendor third-party source code or dependency wheels. Python
 packages are resolved separately by the installer and remain under their own licenses.
 The following inventory describes direct dependencies declared in `pyproject.toml` at

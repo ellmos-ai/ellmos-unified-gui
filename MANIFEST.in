@@ -1,3 +1,4 @@
 include ARCHITECTURE.md CHANGELOG.md DECISIONS.md KONZEPT.md MARKETING-LOG.txt
 include SECURITY.md THIRD_PARTY_LICENSES.md TODO.md VERSION llms.txt
+include NOTICE THIRD_PARTY_LICENSES.txt
 recursive-include docs *.md

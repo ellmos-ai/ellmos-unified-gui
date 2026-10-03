@@ -1,0 +1,7 @@
+ellmos Unified GUI
+Copyright (c) 2026 Lukas Geiger
+
+Licensed under the MIT License (see LICENSE).
+This product is developed as part of the ellmos-ai infrastructure line under the open-bricks umbrella.
+Importable operator console for the ellmos/BACH ecosystem maintained by Lukas Geiger and ellmos-ai contributors.
+Third-party dependency licenses and transparency inventory are documented in THIRD_PARTY_LICENSES.md and THIRD_PARTY_LICENSES.txt.

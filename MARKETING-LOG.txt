@@ -1,0 +1,45 @@
+# Marketing & Discoverability Log - ellmos Unified GUI
+# Organisation: ellmos-ai | Umbrella: open-bricks
+# Primary Branch: master | Canonical Path: C:\_Local_DEV\audits\T-20260816-933818854-20260909T1300\ellmos-unified-gui
+
+================================================================================
+2026-10-03 - Pfad B: Discoverability, Visual Architecture, Bilingual Quick Navigation & Level 1 SBOM Audit
+================================================================================
+- Remote GitHub Metadaten & Topics-Sättigung:
+  - 20/20 GitHub Topics via `gh repo edit` voll gesättigt: desktop-app, gui, local-first, modular-ui, python, panel-host, operator-console, fastapi, htmx, zero-egress, multi-agent, governance, dashboard, llm-console, bach, ellmos, open-bricks, ellmos-ai, offline-first, ai-orchestration.
+  - Repository Description geschärft: "Importable operator console for the ellmos/BACH ecosystem — capability-driven web panels over existing backends".
+  - Homepage URL verankert: "https://github.com/ellmos-ai/ellmos-unified-gui#readme".
+- Live-Traffic & Websichtbarkeits-Analyse:
+  - 14-Tage GitHub Traffic: 2 Views / 1 Unique View; 320 Clones / 73 Unique Cloners.
+  - Externe Websuche: 0 Treffer für "ellmos-unified-gui" / "ellmos Unified GUI" in externen Indizes. Hoher Bedarf an strukturierter Discoverability und RAG-Aufbereitung.
+- Visuelle Vier-Sichten-Architektur & Diagramme:
+  - Mermaid Flowchart Topologie (5-Layer Modular Architecture: Access Layer, Core Router & Session Gateway, Modular Panels P1..P15, Adapter & Probe Protocol, Canonical Backends & Repositories) in Section 2 beider READMEs integriert.
+  - Mermaid Sequenzdiagramm (Panel Request, Capability Probe & Append-Only Audit Trail Lifecycle mit `autonumber`) in Section 2 implementiert.
+  - ASCII Vier-Sichten-Architekturprojektion ([VIEW 1: ACCESS SURFACES & WHEELHOUSE OPERATOR DOORS], [VIEW 2: CORE PIPELINE, CAPABILITY REGISTRY & REVERSIBLE MOUNT ENGINE], [VIEW 3: PANEL FEDERATION, DOMAIN ADAPTERS & AUDIT LOG PERSISTENCE], [VIEW 4: AIR-GAP PERIMETER, UNPRIVILEGED RUNASINVOKER & GOVERNANCE BOUNDARY]; deutsche Fassung [SICHT 1] bis [SICHT 4]) unter Abbildung aller 10 Invarianten INV-LOCAL-01 bis INV-SLA-10.
+- Bilinguale 18-Punkte-Schnellnavigation & Anker:
+  - 18 Abschnitte in `README.md` und `README_de.md` mit 100% wechselseitiger Parität und dualen HTML-Ankern (`<a id="sec-01"></a>` bis `<a id="sec-18"></a>`).
+  - Schnellnavigationstabelle `#sec-01` bis `#sec-18` verlinkt.
+  - Shields.io Badges synchronisiert: Tests (280+ passed | 100% green / 280+ bestanden | 100% grün), Verified (2026-10-03 / Geprüft 2026-10-03), License (MIT), Attribution (NOTICE), SBOM (Plain-Text), Statutory (§ 521 BGB).
+- Ziel-Personas & High-Intent SEO-Queries:
+  - [PERSONA-01] Local AI & Autonomous Agent Architect: High-intent queries "local-first operator console for LLM agents", "unified dashboard for multi-agent workflows", "FastAPI HTMX LLM admin UI".
+  - [PERSONA-02] Enterprise Governance & Security Lead: High-intent queries "zero egress AI management dashboard", "air-gapped LLM operator panel", "append-only JSONL audit log agent console".
+  - [PERSONA-03] Modular Open-Source Developer: High-intent queries "importable FastAPI mountable admin panel", "capability-driven UI adapter architecture", "zero build step HTMX operator dashboard".
+  - [PERSONA-04] Compliance & AI Act Auditor: High-intent queries "open source AI governance console", "BGB 521 statutory open source disclaimer", "SBOM compliant local AI tools".
+- 10-Dimensionen-Vergleichsmatrix (INV-LOCAL-01 bis INV-SLA-10):
+  - Vergleich von ellmos Unified GUI vs. Closed Cloud Dashboards (LangSmith, Helicone), Heavy Electron Consoles und Ad-hoc CLI Scripts bezüglich Local-First, Zero-Egress, Data Canon, Dynamic Probing, Audit Trail, Lock Gating, Injection Defense, Dual-Mode Mounting, Host Portability und Zero Build Overhead.
+- Formelle Attribution & Level 1 SBOM:
+  - Root `NOTICE`-Datei für Lukas Geiger, `ellmos-ai` und `open-bricks` angelegt.
+  - Plain-Text Level 1 SBOM Begleitdatei `THIRD_PARTY_LICENSES.txt` Stand 2026-10-03 neu angelegt mit Bestätigung aller 10 Invarianten INV-LOCAL-01 bis INV-SLA-10, RunAsInvoker Non-Elevation, Zero-Copyleft Garantie und § 521 BGB Haftungsausschluss; `THIRD_PARTY_LICENSES.md` re-auditiert.
+- PEP 621 Standardisierung in `pyproject.toml`:
+  - `license-files` um NOTICE und THIRD_PARTY_LICENSES.txt erweitert.
+  - 20 gesättigte Keywords synchron zu den GitHub Topics.
+  - `[project.urls]` um Notice, Third-Party Licenses, Third-Party Licenses (Text) und Level 1 SBOM erweitert.
+- Discovery Context in `llms.txt`:
+  - Aktualisiert auf Stand 2026-10-03, 280 Tests Baseline, Version 0.9.0, 15 Panels, NOTICE Attribution, Level 1 SBOM und 10 Invarianten.
+- Nicht-automatisierte Handlungsempfehlungen (Actionable Recommendations):
+  - REC-20261003-01: Submission an kuratierte Listen "Awesome-FastAPI" und "Awesome-HTMX" in den Kategorien Admin Panels / Developer Consoles zur Erhöhung der Entwicklersichtbarkeit.
+  - REC-20261003-02: Show HN / Dev.to / Reddit r/LocalLLaMA Veröffentlichung mit Fokus auf "Local-First Operator Console without Electron: Pure FastAPI + HTMX over Multi-Agent Systems".
+  - REC-20261003-03: Ökosystem-Cross-Listing in Glama, MCP.so und Tool-Verzeichnissen als empfohlene Administrationskonsole für ellmos-homebase-mcp, controlcenter-mcp und clutch.
+- Vertragstests:
+  - `tests/test_metadata.py` angelegt mit umfassender Abdeckung für NOTICE, Level 1 SBOM Text-Companion, PEP 621 Keywords/URLs, duale HTML-Anker sec-01..sec-18, bilinguale § 521 BGB Hinweise, Mermaid/ASCII Topologie, MARKETING-LOG.txt Recency und CHANGELOG.md unreleased entries.
+- Status: Vollsuite 280+ Tests zu 100% grün, ruff sauber, compileall fehlerfrei, Version 0.9.0 strikt eingefroren per T-20260920-167562623.

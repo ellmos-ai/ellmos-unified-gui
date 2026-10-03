@@ -4,6 +4,16 @@
 
 ### Added
 
+- **Pfad B Marketing, Discoverability, Visual Architecture & Level 1 SBOM Audit (2026-10-03):**
+  - **Remote Metadata & 20/20 Topics Saturation:** Saturated all 20 GitHub Topics via `gh repo edit` (`desktop-app`, `gui`, `local-first`, `modular-ui`, `python`, `panel-host`, `operator-console`, `fastapi`, `htmx`, `zero-egress`, `multi-agent`, `governance`, `dashboard`, `llm-console`, `bach`, `ellmos`, `open-bricks`, `ellmos-ai`, `offline-first`, `ai-orchestration`), sharpened repository description, and set canonical homepage to README anchor.
+  - **Visual Architecture & Four-View Topology:** Integrated Mermaid 5-Layer system architecture flowchart and panel request/audit sequence diagram with `autonumber` in Section 2 of `README.md` and `README_de.md`; implemented ASCII Four-View Architectural Topology projection (`[VIEW 1]` to `[VIEW 4]` / `[SICHT 1]` to `[SICHT 4]`) reflecting all 10 governance invariants `INV-LOCAL-01` to `INV-SLA-10`.
+  - **Bilingual 18-Point Quick Navigation Parity:** Restructured `README.md` and `README_de.md` into 18 reciprocal sections with dual reciprocal HTML anchors (`<a id="sec-01"></a>` to `<a id="sec-18"></a>`) and linked quick navigation tables.
+  - **Target Personas & 10-Dimension Comparative Matrix:** Embedded 4 target personas (`[PERSONA-01]` to `[PERSONA-04]`) with high-intent SEO queries and a 10-dimension comparative matrix evaluating ellmos Unified GUI against Closed Cloud Dashboards, Heavy Electron Consoles, and Ad-hoc CLI Scripts.
+  - **Attribution & Level 1 SBOM Companion:** Created root `NOTICE` attribution file under MIT license; authored plain-text Level 1 SBOM companion `THIRD_PARTY_LICENSES.txt` Stand 2026-10-03 with certification of `RunAsInvoker` unprivileged user mode, zero-copyleft isolation, and statutory disclaimer (§ 521 BGB); re-audited `THIRD_PARTY_LICENSES.md`.
+  - **PEP 621 Standardisation in `pyproject.toml`:** Expanded `license-files` to include `NOTICE` and `THIRD_PARTY_LICENSES.txt`; added URLs for `Notice`, `Third-Party Licenses`, `Third-Party Licenses (Text)`, and `Level 1 SBOM`; saturated `keywords` array to 20 terms; maintained strict version freeze `0.9.0` per `T-20260920-167562623`.
+  - **Local Marketing & RAG Synchronization:** Authored local `MARKETING-LOG.txt` documenting traffic baseline (2 views / 320 clones in 14d) and 3 actionable discoverability recommendations; synchronized `llms.txt` Stand 2026-10-03 with 280 tests baseline and 15 panels.
+  - **Contract Test Suite (`tests/test_metadata.py`):** Added comprehensive automated contract tests verifying NOTICE presence, Level 1 SBOM text companion integrity, PEP 621 20 keywords, dual HTML anchors parity `sec-01`..`sec-18`, bilingual § 521 BGB statutory disclaimers, Mermaid/ASCII diagrams, and CHANGELOG/MARKETING-LOG recency.
+
 - **Repository hygiene, test isolation & CI alignment contract tests (2026-10-02):**
   - Isolated host-auth capability probe in `tests/test_degradation.py` via monkeypatching `sys.modules["ellmos_core.web"] = None` so `test_status_reports_no_panels` reliably passes in developer environments where `ellmos-core` is locally installed.
   - Synchronized bilingual `README.md` and `README_de.md` status banners to reflect the current 280 collected tests across all 15 panels.
