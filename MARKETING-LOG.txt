@@ -1,6 +1,6 @@
 # Marketing & Discoverability Log - ellmos Unified GUI
 # Organisation: ellmos-ai | Umbrella: open-bricks
-# Primary Branch: master | Canonical Path: C:\_Local_DEV\audits\T-20260816-933818854-20260909T1300\ellmos-unified-gui
+# Primary Branch: master | Repository: https://github.com/ellmos-ai/ellmos-unified-gui
 
 ================================================================================
 2026-10-03 - Pfad B: Discoverability, Visual Architecture, Bilingual Quick Navigation & Level 1 SBOM Audit
